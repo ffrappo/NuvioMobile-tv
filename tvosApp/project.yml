@@ -1,7 +1,7 @@
 name: NuvioTV
 options:
   deploymentTarget:
-    tvOS: "17.0"
+    tvOS: "18.0"
   xcodeVersion: "27.0"
   createIntermediateGroups: true
 
@@ -19,7 +19,7 @@ targets:
   NuvioTV:
     type: application
     platform: tvOS
-    deploymentTarget: "17.0"
+    deploymentTarget: "18.0"
     sources:
       - path: Sources
       - path: Resources
@@ -51,7 +51,7 @@ targets:
   NuvioTVTests:
     type: bundle.unit-test
     platform: tvOS
-    deploymentTarget: "17.0"
+    deploymentTarget: "18.0"
     sources:
       - path: Tests
     dependencies:
