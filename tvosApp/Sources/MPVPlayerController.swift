@@ -301,9 +301,21 @@ final class MPVPlayerController: UIViewController {
         guard let mpv else { return }
         var position = 0.0
         var duration = 0.0
+        var paused: Int32 = 0
+        var cachePaused: Int32 = 0
+        var seeking: Int32 = 0
         mpv_get_property(mpv, "time-pos", MPV_FORMAT_DOUBLE, &position)
         mpv_get_property(mpv, "duration", MPV_FORMAT_DOUBLE, &duration)
-        Task { @MainActor in session.update(position: position, duration: duration) }
+        mpv_get_property(mpv, "pause", MPV_FORMAT_FLAG, &paused)
+        mpv_get_property(mpv, "paused-for-cache", MPV_FORMAT_FLAG, &cachePaused)
+        mpv_get_property(mpv, "seeking", MPV_FORMAT_FLAG, &seeking)
+        Task { @MainActor in
+            session.update(position: position, duration: duration)
+            session.update(
+                paused: paused != 0,
+                loading: cachePaused != 0 || seeking != 0
+            )
+        }
     }
 
     private func publishPlaybackOptions(resizeMode: PlayerResizeMode? = nil) {
