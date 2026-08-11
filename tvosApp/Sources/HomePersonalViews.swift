@@ -61,18 +61,15 @@ struct ProgressCard: View {
             }
             .overlay(
                 RoundedRectangle(cornerRadius: 18)
-                    .stroke(
-                        focused ? Color.white.opacity(0.95) : Color.white.opacity(0.12),
-                        lineWidth: focused ? 3 : 1
-                    )
+                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
             )
             Text(item.summary.name.tvSafe).font(.headline).lineLimit(1).frame(width: 370, alignment: .leading)
             Text(metadata.tvSafe).font(.subheadline).foregroundStyle(NuvioTheme.secondaryText)
         }
         .scaleEffect(focused ? 1.06 : 1)
         .shadow(
-            color: focused ? Color.white.opacity(0.25) : .black.opacity(0.4),
-            radius: focused ? 16 : 8,
+            color: .black.opacity(focused ? 0.70 : 0.40),
+            radius: focused ? 20 : 8,
             y: focused ? 10 : 3
         )
         .animation(.easeOut(duration: 0.16), value: focused)
@@ -99,10 +96,7 @@ struct FolderCard: View {
                 .clipShape(RoundedRectangle(cornerRadius: 18))
                 .overlay(
                     RoundedRectangle(cornerRadius: 18)
-                        .stroke(
-                            focused ? Color.white.opacity(0.95) : Color.white.opacity(0.12),
-                            lineWidth: focused ? 3 : 1
-                        )
+                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
                 )
             if !folder.hideTitle {
                 Text(folder.title.tvSafe).font(.headline).lineLimit(1).frame(width: 250, alignment: .leading)
@@ -113,8 +107,8 @@ struct FolderCard: View {
         }
         .scaleEffect(focused ? 1.06 : 1)
         .shadow(
-            color: focused ? Color.white.opacity(0.25) : .black.opacity(0.4),
-            radius: focused ? 16 : 8,
+            color: .black.opacity(focused ? 0.70 : 0.40),
+            radius: focused ? 20 : 8,
             y: focused ? 10 : 3
         )
         .animation(.easeOut(duration: 0.16), value: focused)
