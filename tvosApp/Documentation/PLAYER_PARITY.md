@@ -19,7 +19,7 @@ The reference is the established Compose player under `composeApp/src/commonMain
 | Source and episode metadata | `PlayerScreenArgs.kt` | Implemented in the player header and option panels |
 | Network response headers | platform engines | Deferred because the current tvOS Stremio model does not decode stream headers |
 | Addon subtitle discovery | `SubtitleRepository.kt` | Deferred until the tvOS service implements the subtitle resource endpoint |
-| Subtitle style and delay | `SubtitleStylePanel.kt` | Deferred from the first parity milestone, MPV can support a later native panel |
+| Subtitle size and delay | `SubtitleStylePanel.kt` | Implemented with native MPV font-size controls and 100 ms delay adjustment |
 | Next-episode autoplay | `PlayerNextEpisodeAutoPlay.kt` | Deferred, manual episode selection is available |
 | Tracking scrobble sync | `PlayerScreenRuntimePlaybackActions.kt` | Deferred because native tvOS currently has no tracking provider repository |
 | Picture in Picture | Android platform manager | Outside tvOS fullscreen television scope |

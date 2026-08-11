@@ -12,6 +12,8 @@ final class MPVPlaybackSession: ObservableObject {
     @Published private(set) var resizeMode: PlayerResizeMode = .fit
     @Published private(set) var audioTracks: [PlaybackTrack] = []
     @Published private(set) var subtitleTracks: [PlaybackTrack] = []
+    @Published private(set) var subtitleDelayMilliseconds = 0
+    @Published private(set) var subtitleFontSize = 52
     @Published private(set) var errorMessage: String?
 
     fileprivate weak var controller: MPVPlayerController?
@@ -26,6 +28,10 @@ final class MPVPlaybackSession: ObservableObject {
     func setResizeMode(_ mode: PlayerResizeMode) { controller?.setResizeMode(mode) }
     func selectAudio(id: Int64) { controller?.selectAudio(id: id) }
     func selectSubtitle(id: Int64?) { controller?.selectSubtitle(id: id) }
+    func setSubtitleDelay(milliseconds: Int) {
+        controller?.setSubtitleDelay(milliseconds: milliseconds)
+    }
+    func setSubtitleFontSize(_ size: Int) { controller?.setSubtitleFontSize(size) }
     func switchSource(url: URL) { controller?.load(url: url) }
     func stop() { controller?.stop() }
 
@@ -45,6 +51,11 @@ final class MPVPlaybackSession: ObservableObject {
     fileprivate func update(position: Double, duration: Double) {
         self.position = position
         self.duration = duration
+    }
+
+    fileprivate func updateSubtitle(delayMilliseconds: Int? = nil, fontSize: Int? = nil) {
+        if let delayMilliseconds { subtitleDelayMilliseconds = delayMilliseconds }
+        if let fontSize { subtitleFontSize = fontSize }
     }
 
     fileprivate func update(
@@ -190,6 +201,22 @@ final class MPVPlayerController: UIViewController {
             mpv_set_property_string(mpv, "sid", "no")
         }
         publishPlaybackOptions()
+    }
+
+    func setSubtitleDelay(milliseconds: Int) {
+        guard let mpv else { return }
+        let clamped = min(max(milliseconds, -60_000), 60_000)
+        var seconds = Double(clamped) / 1_000
+        mpv_set_property(mpv, "sub-delay", MPV_FORMAT_DOUBLE, &seconds)
+        Task { @MainActor in session.updateSubtitle(delayMilliseconds: clamped) }
+    }
+
+    func setSubtitleFontSize(_ size: Int) {
+        guard let mpv else { return }
+        let clamped = min(max(size, 24), 96)
+        var value = Double(clamped)
+        mpv_set_property(mpv, "sub-font-size", MPV_FORMAT_DOUBLE, &value)
+        Task { @MainActor in session.updateSubtitle(fontSize: clamped) }
     }
 
     func stop() {

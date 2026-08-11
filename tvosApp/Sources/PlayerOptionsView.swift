@@ -65,6 +65,43 @@ struct PlayerOptionsView: View {
                     }
                 }
 
+                Section("Subtitle Timing") {
+                    Button {
+                        session.setSubtitleDelay(
+                            milliseconds: session.subtitleDelayMilliseconds - 100
+                        )
+                    } label: {
+                        Label("100 ms Earlier", systemImage: "backward")
+                    }
+                    Button { session.setSubtitleDelay(milliseconds: 0) } label: {
+                        optionLabel(
+                            title: "Reset (\(session.subtitleDelayMilliseconds) ms)",
+                            selected: session.subtitleDelayMilliseconds == 0
+                        )
+                    }
+                    Button {
+                        session.setSubtitleDelay(
+                            milliseconds: session.subtitleDelayMilliseconds + 100
+                        )
+                    } label: {
+                        Label("100 ms Later", systemImage: "forward")
+                    }
+                }
+
+                Section("Subtitle Size") {
+                    Button {
+                        session.setSubtitleFontSize(session.subtitleFontSize - 4)
+                    } label: {
+                        Label("Smaller", systemImage: "textformat.size.smaller")
+                    }
+                    Text("Current size: \(session.subtitleFontSize)")
+                    Button {
+                        session.setSubtitleFontSize(session.subtitleFontSize + 4)
+                    } label: {
+                        Label("Larger", systemImage: "textformat.size.larger")
+                    }
+                }
+
                 if route.availableSources.count > 1 {
                     Section("Sources") {
                         ForEach(route.availableSources) { source in
