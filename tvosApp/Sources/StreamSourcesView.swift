@@ -96,20 +96,21 @@ struct StreamSourcesView: View {
             HStack(spacing: 18) {
                 Image(systemName: isPlayable ? "play.fill" : "link.badge.plus")
                     .font(.title3.weight(.bold))
-                    .foregroundStyle(isPlayable ? .white : NuvioTheme.secondaryText)
+                    .foregroundStyle(isFocused ? NuvioTheme.accent : (isPlayable ? .white : NuvioTheme.secondaryText))
                     .frame(width: 48, height: 48)
                     .background(
-                        isPlayable ? NuvioTheme.accent : Color.white.opacity(0.08),
+                        isFocused ? NuvioTheme.accent.opacity(0.18) : (isPlayable ? NuvioTheme.accent : Color.white.opacity(0.08)),
                         in: Circle()
                     )
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text(source.stream.name.tvSafe)
                         .font(.headline)
+                        .foregroundStyle(isFocused ? .black : .white)
                         .lineLimit(1)
                     Text(source.addonName.tvSafe)
                         .font(.caption)
-                        .foregroundStyle(NuvioTheme.secondaryText)
+                        .foregroundStyle(isFocused ? .black.opacity(0.6) : NuvioTheme.secondaryText)
                         .lineLimit(1)
                 }
 
@@ -118,14 +119,14 @@ struct StreamSourcesView: View {
                 Text(isPlayable ? "PLAY" : "INFO")
                     .font(.caption2.weight(.bold))
                     .tracking(1.4)
-                    .foregroundStyle(isPlayable ? NuvioTheme.accentLight : NuvioTheme.secondaryText)
+                    .foregroundStyle(isFocused ? NuvioTheme.accent : NuvioTheme.accentLight)
             }
             .padding(.horizontal, 20)
             .frame(maxWidth: .infinity, minHeight: 88)
-            .background(isFocused ? NuvioTheme.panelFocused : NuvioTheme.panel)
+            .background(isFocused ? Color.white : NuvioTheme.panel)
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .overlay(NuvioFocusBorder(focused: isFocused, cornerRadius: 18))
             .scaleEffect(isFocused ? 1.02 : 1)
+            .shadow(color: isFocused ? .black.opacity(0.45) : .clear, radius: 14, y: 7)
         }
         .buttonStyle(.plain)
         .focusEffectDisabled()
@@ -211,7 +212,8 @@ extension PlayerSourceOption {
             url: url,
             name: source.stream.name,
             addonName: source.addonName,
-            requestHeaders: source.stream.requestHeaders
+            requestHeaders: source.stream.requestHeaders,
+            responseHeaders: source.stream.responseHeaders
         )
     }
 }

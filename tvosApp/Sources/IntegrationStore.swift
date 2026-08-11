@@ -41,13 +41,21 @@ final class IntegrationStore: ObservableObject {
                 syncMessage = "No mobile integration settings were found."
             }
         } catch {
-            syncMessage = "Integration sync failed: \(error.localizedDescription)"
+            let detail = AppLog.safeDescription(error)
+            AppLog.sync.error("Integration sync failed detail=\(detail, privacy: .public)")
+            syncMessage = "Integration sync failed: \(detail)"
         }
     }
 
     func setSkipIntroEnabled(_ enabled: Bool) {
         settings.skipIntroEnabled = enabled
         persist()
+    }
+
+    func clearForLogout() {
+        settings = TVIntegrationSettings()
+        syncMessage = nil
+        defaults.removeObject(forKey: key)
     }
 
     private func persist() {

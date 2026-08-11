@@ -113,12 +113,30 @@ struct SkipSegmentsService {
     }
 
     private func get<T: Decodable>(_ url: String) async -> T? {
-        guard let url = URL(string: url) else { return nil }
+        guard let url = URL(string: url) else {
+            AppLog.provider.error("Skip provider URL was invalid")
+            return nil
+        }
         do {
             let (data, response) = try await session.data(from: url)
-            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { return nil }
-            return try decoder.decode(T.self, from: data)
-        } catch { return nil }
+            guard let http = response as? HTTPURLResponse else {
+                AppLog.provider.error("Skip provider returned a non-HTTP response host=\(url.host ?? "unknown", privacy: .public)")
+                return nil
+            }
+            guard (200..<300).contains(http.statusCode) else {
+                AppLog.provider.warning("Skip provider failed host=\(url.host ?? "unknown", privacy: .public) status=\(http.statusCode)")
+                return nil
+            }
+            do {
+                return try decoder.decode(T.self, from: data)
+            } catch {
+                AppLog.provider.error("Skip provider decode failed host=\(url.host ?? "unknown", privacy: .public) detail=\(AppLog.safeDescription(error), privacy: .public)")
+                return nil
+            }
+        } catch {
+            AppLog.provider.warning("Skip provider request failed host=\(url.host ?? "unknown", privacy: .public) detail=\(AppLog.safeDescription(error), privacy: .public)")
+            return nil
+        }
     }
 
     private func postAnimeSkip<T: Decodable>(_ query: String, clientID: String) async -> T? {
@@ -127,12 +145,27 @@ struct SkipSegmentsService {
         request.httpMethod = "POST"
         request.setValue(clientID, forHTTPHeaderField: "X-Client-ID")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try? JSONSerialization.data(withJSONObject: ["query": query])
         do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: ["query": query])
             let (data, response) = try await session.data(for: request)
-            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { return nil }
-            return try decoder.decode(T.self, from: data)
-        } catch { return nil }
+            guard let http = response as? HTTPURLResponse else {
+                AppLog.provider.error("Anime Skip returned a non-HTTP response")
+                return nil
+            }
+            guard (200..<300).contains(http.statusCode) else {
+                AppLog.provider.warning("Anime Skip failed status=\(http.statusCode)")
+                return nil
+            }
+            do {
+                return try decoder.decode(T.self, from: data)
+            } catch {
+                AppLog.provider.error("Anime Skip decode failed detail=\(AppLog.safeDescription(error), privacy: .public)")
+                return nil
+            }
+        } catch {
+            AppLog.provider.warning("Anime Skip request failed detail=\(AppLog.safeDescription(error), privacy: .public)")
+            return nil
+        }
     }
 }
 

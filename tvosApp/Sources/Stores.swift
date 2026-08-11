@@ -25,6 +25,22 @@ final class LibraryStore: ObservableObject {
         save()
     }
 
+    func clearForLogout() {
+        items = []
+        defaults.removeObject(forKey: key)
+    }
+
+    func syncFromAccount(auth: AuthStore, profileID: Int, service: NuvioAccountService = NuvioAccountService()) async {
+        guard auth.session != nil else { return }
+        do {
+            let token = try await auth.validAccessToken()
+            items = try await service.library(accessToken: token, profileID: profileID).map(\.summary)
+            save()
+        } catch {
+            AppLog.sync.error("Library sync failed profile=\(profileID) detail=\(AppLog.safeDescription(error), privacy: .public)")
+        }
+    }
+
     private func load() {
         guard let data = defaults.data(forKey: key),
               let decoded = try? JSONDecoder().decode([MetaSummary].self, from: data) else { return }
@@ -49,6 +65,7 @@ final class AddonStore: ObservableObject {
     private let accountService: NuvioAccountService
     private let key = "nuvio.tv.addonBases.v1"
     private var storedBases: [String]
+    private var accountContext: (auth: AuthStore, profileID: Int)?
 
     init(
         defaults: UserDefaults = .standard,
@@ -66,6 +83,7 @@ final class AddonStore: ObservableObject {
     }
 
     func syncFromAccount(auth: AuthStore, profileID: Int = 1) async {
+        accountContext = (auth, profileID)
         syncMessage = "Syncing account addons..."
         do {
             let token = try await auth.validAccessToken()
@@ -78,7 +96,9 @@ final class AddonStore: ObservableObject {
                 .filter(\.enabled)
                 .sorted { $0.sortOrder < $1.sortOrder }
             let remoteURLs = remote.map(\.url)
-            if !remoteURLs.isEmpty || storedBases.isEmpty {
+            if remoteURLs.isEmpty, !storedBases.isEmpty {
+                await pushToAccount()
+            } else {
                 storedBases = remoteURLs
                 persist()
             }
@@ -96,6 +116,7 @@ final class AddonStore: ObservableObject {
         addons = []
         homeAddons = []
         syncMessage = nil
+        accountContext = nil
         persist()
     }
 
@@ -106,7 +127,8 @@ final class AddonStore: ObservableObject {
             baseURL: base,
             name: result.manifest.name,
             detail: result.manifest.description,
-            providesStreams: result.manifest.providesStreams
+            providesStreams: result.manifest.providesStreams,
+            manifest: result.manifest
         )
         let homeAddon = HomeAddon(baseURL: base, name: result.manifest.name, manifest: result.manifest)
         if let index = addons.firstIndex(where: { $0.baseURL == base }) {
@@ -122,13 +144,15 @@ final class AddonStore: ObservableObject {
         }
         storedBases = addons.map(\.baseURL)
         persist()
+        await pushToAccount()
     }
 
-    func remove(_ addon: AddonEndpoint) {
+    func remove(_ addon: AddonEndpoint) async {
         addons.removeAll { $0.baseURL == addon.baseURL }
         homeAddons.removeAll { $0.baseURL == addon.baseURL }
         storedBases = addons.map(\.baseURL)
         persist()
+        await pushToAccount()
     }
 
     func refreshManifests() async {
@@ -145,7 +169,8 @@ final class AddonStore: ObservableObject {
                     baseURL: result.base.absoluteString,
                     name: result.manifest.name,
                     detail: result.manifest.description,
-                    providesStreams: result.manifest.providesStreams
+                    providesStreams: result.manifest.providesStreams,
+                    manifest: result.manifest
                 ))
                 refreshedHomeAddons.append(HomeAddon(
                     baseURL: result.base.absoluteString,
@@ -159,12 +184,23 @@ final class AddonStore: ObservableObject {
                     baseURL: base,
                     name: URL(string: base)?.host ?? "Unavailable addon",
                     detail: "Could not refresh this manifest.",
-                    providesStreams: true
+                    providesStreams: true,
+                    manifest: nil
                 ))
             }
         }
         addons = refreshed
         homeAddons = refreshedHomeAddons
+    }
+
+    private func pushToAccount() async {
+        guard let context = accountContext else { return }
+        do {
+            let token = try await context.auth.validAccessToken()
+            try await accountService.saveAddons(addons, accessToken: token, profileID: context.profileID)
+        } catch {
+            AppLog.sync.error("Addon push failed profile=\(context.profileID) detail=\(AppLog.safeDescription(error), privacy: .public)")
+        }
     }
 
     private static func safeEndpointLabel(_ value: String) -> String {

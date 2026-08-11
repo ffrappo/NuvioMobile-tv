@@ -83,27 +83,39 @@ struct StremioService {
     }
 
     func streams(type: String, id: String, addons: [AddonEndpoint]) async -> StreamFetchReport {
-        var sources: [StreamSource] = []
-        var failures: [String] = []
-
-        for addon in addons where addon.providesStreams {
-            do {
-                let url = try AddonTransport.resourceURL(
-                    baseURL: addon.baseURL,
-                    resource: "stream",
-                    type: type,
-                    id: id
-                )
-                let response: StreamResponse = try await request(url)
-                sources.append(contentsOf: response.streams.map {
-                    StreamSource(addonName: addon.name, stream: $0)
-                })
-            } catch {
-                failures.append("\(addon.name): \(error.userMessage)")
+        await withTaskGroup(of: (Int, String, [StreamSource]?, String?).self) { group in
+            for (index, addon) in addons.enumerated() where addon.providesStreams {
+                group.addTask {
+                    do {
+                        let url = try AddonTransport.resourceURL(
+                            baseURL: addon.baseURL,
+                            resource: "stream",
+                            type: type,
+                            id: id
+                        )
+                        let response: StreamResponse = try await request(url)
+                        return (
+                            index,
+                            addon.name,
+                            response.streams.map { StreamSource(addonName: addon.name, stream: $0) },
+                            nil
+                        )
+                    } catch {
+                        return (index, addon.name, nil, error.userMessage)
+                    }
+                }
             }
-        }
 
-        return StreamFetchReport(sources: sources, failures: failures)
+            var results: [(Int, String, [StreamSource]?, String?)] = []
+            for await result in group { results.append(result) }
+            results.sort { $0.0 < $1.0 }
+            return StreamFetchReport(
+                sources: results.flatMap { $0.2 ?? [] },
+                failures: results.compactMap { result in
+                    result.3.map { "\(result.1): \($0)" }
+                }
+            )
+        }
     }
 
     func request<T: Decodable>(_ url: URL) async throws -> T {
@@ -178,6 +190,24 @@ struct StremioService {
         }
         guard let result = components.url else { throw StremioServiceError.invalidURL }
         return result
+    }
+
+
+    static func manifestProvidesMeta(_ manifest: AddonManifest, type: String, id: String) -> Bool {
+        manifestSupportsResource(manifest, name: "meta", type: type, id: id)
+    }
+
+    static func manifestSupportsID(_ manifest: AddonManifest, type: String, id: String) -> Bool {
+        manifestSupportsResource(manifest, name: "meta", type: type, id: id)
+    }
+
+    private static func manifestSupportsResource(_ manifest: AddonManifest, name: String, type: String, id: String) -> Bool {
+        for resource in manifest.resources where resource.name == name {
+            guard resource.types.isEmpty || resource.types.contains(type) else { continue }
+            guard resource.idPrefixes.isEmpty || resource.idPrefixes.contains(where: { id.hasPrefix($0) }) else { continue }
+            return true
+        }
+        return false
     }
 
     static func catalogURL(type: String, id: String, query: String?) throws -> URL {

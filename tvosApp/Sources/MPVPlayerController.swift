@@ -21,12 +21,14 @@ final class MPVPlaybackSession: ObservableObject {
     func load(
         url: URL,
         startPosition: Double? = nil,
-        requestHeaders: [String: String] = [:]
+        requestHeaders: [String: String] = [:],
+        responseHeaders: [String: String] = [:]
     ) {
         controller?.load(
             url: url,
             startPosition: startPosition,
-            requestHeaders: requestHeaders
+            requestHeaders: requestHeaders,
+            responseHeaders: responseHeaders
         )
     }
     func toggle() { controller?.togglePlayback() }
@@ -121,7 +123,6 @@ final class MPVPlayerController: UIViewController {
         if let url = pendingURL, view.window != nil, view.bounds.width > 1 {
             pendingURL = nil
             command("loadfile", url.absoluteString, "replace")
-            applyPendingStartPosition()
         }
     }
 
@@ -138,9 +139,10 @@ final class MPVPlayerController: UIViewController {
     func load(
         url: URL,
         startPosition: Double? = nil,
-        requestHeaders: [String: String] = [:]
+        requestHeaders: [String: String] = [:],
+        responseHeaders: [String: String] = [:]
     ) {
-        applyRequestHeaders(requestHeaders)
+        applyRequestHeaders(requestHeaders, responseHeaders: responseHeaders)
         pendingStartPosition = startPosition
         Task { @MainActor in
             session.beginLoading()
@@ -149,7 +151,6 @@ final class MPVPlayerController: UIViewController {
             pendingURL = url
         } else {
             command("loadfile", url.absoluteString, "replace")
-            applyPendingStartPosition()
         }
     }
 
@@ -291,6 +292,7 @@ final class MPVPlayerController: UIViewController {
                 guard let event = mpv_wait_event(mpv, 0), event.pointee.event_id != MPV_EVENT_NONE else { return }
                 switch event.pointee.event_id {
                 case MPV_EVENT_FILE_LOADED, MPV_EVENT_PLAYBACK_RESTART:
+                    self.applyPendingStartPosition()
                     Task { @MainActor in
                         self.session.update(paused: false, loading: false)
                         self.publishPlaybackOptions()

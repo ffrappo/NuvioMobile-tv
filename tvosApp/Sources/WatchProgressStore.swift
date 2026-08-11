@@ -62,10 +62,19 @@ final class WatchProgressStore: ObservableObject {
 
     func resumablePosition(videoID: String, contentID: String) -> Double? {
         let record = records
-            .filter { $0.videoID == videoID || $0.contentID == contentID }
+            .filter { $0.videoID == videoID && $0.contentID == contentID }
             .max { $0.lastWatched < $1.lastWatched }
         guard let record, !record.isCompleted, record.position >= 15_000 else { return nil }
         return Double(record.position) / 1_000
+    }
+
+    func clearForLogout() {
+        records = []
+        profileID = 1
+        let prefix = "nuvio.tv.watchProgress.v2."
+        for key in defaults.dictionaryRepresentation().keys where key.hasPrefix(prefix) {
+            defaults.removeObject(forKey: key)
+        }
     }
 
     func sync(auth: AuthStore, profileID: Int, service: StremioService = StremioService()) async {
@@ -134,7 +143,7 @@ final class WatchProgressStore: ObservableObject {
             return try await service.details(type: item.contentType, id: item.contentID).summary
         } catch {
             let detail = AppLog.safeDescription(error)
-            AppLog.sync.warning("Progress metadata unavailable content=\(item.contentID, privacy: .public) detail=\(detail, privacy: .public)")
+            AppLog.sync.warning("Progress metadata unavailable content=\(item.contentID, privacy: .private(mask: .hash)) detail=\(detail, privacy: .public)")
             return nil
         }
     }

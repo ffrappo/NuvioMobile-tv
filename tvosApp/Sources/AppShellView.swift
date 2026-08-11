@@ -34,6 +34,7 @@ struct AppShellView: View {
     @EnvironmentObject private var authStore: AuthStore
     @EnvironmentObject private var addonStore: AddonStore
     @EnvironmentObject private var integrationStore: IntegrationStore
+    @EnvironmentObject private var libraryStore: LibraryStore
     @EnvironmentObject private var profileStore: TVProfileStore
     @State private var selection: AppSection = .home
     @State private var path: [MetaSummary] = []
@@ -55,12 +56,15 @@ struct AppShellView: View {
         .task(id: authStore.signedInEmail) {
             if authStore.session != nil {
                 await profileStore.sync(auth: authStore)
+                let profileID = profileStore.activeProfileID
+                let addonProfileID = profileStore.activeProfile?.usesPrimaryAddons == true ? 1 : profileID
                 async let addons: Void = addonStore.syncFromAccount(
                     auth: authStore,
-                    profileID: profileStore.activeProfileID
+                    profileID: addonProfileID
                 )
                 async let integrations: Void = integrationStore.syncFromAccount(auth: authStore)
-                _ = await (addons, integrations)
+                async let library: Void = libraryStore.syncFromAccount(auth: authStore, profileID: profileID)
+                _ = await (addons, integrations, library)
             } else {
                 await addonStore.refreshManifests()
             }

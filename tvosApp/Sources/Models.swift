@@ -7,7 +7,13 @@ struct CatalogResponse: Decodable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        metas = container.decodeLossyArray(MetaSummary.self, forKey: .metas)
+        guard let values = try? container.decode([Lossy<MetaSummary>].self, forKey: .metas) else {
+            throw DecodingError.typeMismatch(
+                [MetaSummary].self,
+                DecodingError.Context(codingPath: container.codingPath + [CodingKeys.metas], debugDescription: "metas must be an array")
+            )
+        }
+        metas = values.compactMap(\.value)
     }
 }
 
@@ -22,7 +28,13 @@ struct StreamResponse: Decodable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        streams = container.decodeLossyArray(StremioStream.self, forKey: .streams)
+        guard let values = try? container.decode([Lossy<StremioStream>].self, forKey: .streams) else {
+            throw DecodingError.typeMismatch(
+                [StremioStream].self,
+                DecodingError.Context(codingPath: container.codingPath + [CodingKeys.streams], debugDescription: "streams must be an array")
+            )
+        }
+        streams = values.compactMap(\.value)
     }
 }
 
@@ -75,9 +87,9 @@ struct MetaSummary: Codable, Hashable, Identifiable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = container.decodeFlexibleString(forKey: .id) ?? "unknown"
-        type = container.decodeFlexibleString(forKey: .type) ?? "movie"
-        name = container.decodeFlexibleString(forKey: .name) ?? "Untitled"
+        id = try container.decodeRequiredFlexibleString(forKey: .id)
+        type = try container.decodeRequiredFlexibleString(forKey: .type)
+        name = try container.decodeRequiredFlexibleString(forKey: .name)
         poster = container.decodeFlexibleString(forKey: .poster)
         background = container.decodeFlexibleString(forKey: .background)
         description = container.decodeFlexibleString(forKey: .description)
@@ -143,9 +155,9 @@ struct MetaDetail: Decodable, Identifiable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = container.decodeFlexibleString(forKey: .id) ?? "unknown"
-        type = container.decodeFlexibleString(forKey: .type) ?? "movie"
-        name = container.decodeFlexibleString(forKey: .name) ?? "Untitled"
+        id = try container.decodeRequiredFlexibleString(forKey: .id)
+        type = try container.decodeRequiredFlexibleString(forKey: .type)
+        name = try container.decodeRequiredFlexibleString(forKey: .name)
         poster = container.decodeFlexibleString(forKey: .poster)
         background = container.decodeFlexibleString(forKey: .background)
         description = container.decodeFlexibleString(forKey: .description)
@@ -188,7 +200,7 @@ struct StremioVideo: Decodable, Hashable, Identifiable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = container.decodeFlexibleString(forKey: .id) ?? "unknown-video"
+        id = try container.decodeRequiredFlexibleString(forKey: .id)
         name = container.decodeFlexibleString(forKey: .name)
             ?? container.decodeFlexibleString(forKey: .title)
             ?? "Episode"
@@ -214,10 +226,11 @@ struct StremioStream: Decodable, Hashable, Identifiable {
     let description: String?
     let url: String?
     let requestHeaders: [String: String]
+    let responseHeaders: [String: String]
 
     private enum CodingKeys: String, CodingKey { case name, title, description, url, behaviorHints }
     private enum BehaviorHintKeys: String, CodingKey { case proxyHeaders }
-    private enum ProxyHeaderKeys: String, CodingKey { case request }
+    private enum ProxyHeaderKeys: String, CodingKey { case request, response }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -231,99 +244,13 @@ struct StremioStream: Decodable, Hashable, Identifiable {
         let hints = try? container.nestedContainer(keyedBy: BehaviorHintKeys.self, forKey: .behaviorHints)
         let proxy = try? hints?.nestedContainer(keyedBy: ProxyHeaderKeys.self, forKey: .proxyHeaders)
         requestHeaders = (try? proxy?.decode([String: String].self, forKey: .request)) ?? [:]
+        responseHeaders = (try? proxy?.decode([String: String].self, forKey: .response)) ?? [:]
     }
 
     var directURL: URL? {
         guard let url, let value = URL(string: url), let scheme = value.scheme?.lowercased(),
               scheme == "http" || scheme == "https" else { return nil }
         return value
-    }
-}
-
-struct AddonManifest: Decodable {
-    let id: String
-    let name: String
-    let description: String?
-    let version: String?
-    let resources: [ManifestResource]
-    let catalogs: [AddonCatalog]
-    let types: [String]
-    let idPrefixes: [String]
-    let logoURL: String?
-
-    private enum CodingKeys: String, CodingKey {
-        case id, name, description, version, resources, catalogs, types, idPrefixes
-        case logoURL = "logo"
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = container.decodeFlexibleString(forKey: .id) ?? "unknown-addon"
-        name = container.decodeFlexibleString(forKey: .name) ?? "Unnamed addon"
-        description = container.decodeFlexibleString(forKey: .description)
-        version = container.decodeFlexibleString(forKey: .version)
-        resources = container.decodeLossyArray(ManifestResource.self, forKey: .resources)
-        catalogs = container.decodeLossyArray(AddonCatalog.self, forKey: .catalogs)
-        types = (try? container.decode([String].self, forKey: .types)) ?? []
-        idPrefixes = (try? container.decode([String].self, forKey: .idPrefixes)) ?? []
-        logoURL = container.decodeFlexibleString(forKey: .logoURL)
-    }
-
-    var providesStreams: Bool {
-        resources.contains { $0.name == "stream" }
-    }
-}
-
-struct ManifestResource: Decodable {
-    let name: String
-    let types: [String]
-    let idPrefixes: [String]
-
-    private enum CodingKeys: String, CodingKey { case name, types, idPrefixes }
-
-    init(from decoder: Decoder) throws {
-        if let value = try? decoder.singleValueContainer().decode(String.self) {
-            name = value
-            types = []
-            idPrefixes = []
-            return
-        }
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        name = container.decodeFlexibleString(forKey: .name) ?? "unknown"
-        types = (try? container.decode([String].self, forKey: .types)) ?? []
-        idPrefixes = (try? container.decode([String].self, forKey: .idPrefixes)) ?? []
-    }
-}
-
-struct AddonCatalog: Decodable, Hashable {
-    let type: String
-    let id: String
-    let name: String
-    let extra: [AddonExtra]
-
-    private enum CodingKeys: String, CodingKey { case type, id, name, extra }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        type = container.decodeFlexibleString(forKey: .type) ?? "movie"
-        id = container.decodeFlexibleString(forKey: .id) ?? "top"
-        name = container.decodeFlexibleString(forKey: .name) ?? "Catalog"
-        extra = container.decodeLossyArray(AddonExtra.self, forKey: .extra)
-    }
-}
-
-struct AddonExtra: Decodable, Hashable {
-    let name: String
-    let isRequired: Bool
-    let options: [String]
-
-    private enum CodingKeys: String, CodingKey { case name, isRequired, options }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        name = container.decodeFlexibleString(forKey: .name) ?? ""
-        isRequired = (try? container.decode(Bool.self, forKey: .isRequired)) ?? false
-        options = (try? container.decode([String].self, forKey: .options)) ?? []
     }
 }
 
@@ -338,6 +265,21 @@ struct AddonEndpoint: Codable, Hashable, Identifiable {
     let name: String
     let detail: String?
     let providesStreams: Bool
+    let manifest: AddonManifest?
+
+    init(
+        baseURL: String,
+        name: String,
+        detail: String?,
+        providesStreams: Bool,
+        manifest: AddonManifest? = nil
+    ) {
+        self.baseURL = baseURL
+        self.name = name
+        self.detail = detail
+        self.providesStreams = providesStreams
+        self.manifest = manifest
+    }
 
     var id: String { baseURL }
 }
@@ -354,7 +296,15 @@ struct StreamFetchReport {
     let failures: [String]
 }
 
-private extension KeyedDecodingContainer {
+extension KeyedDecodingContainer {
+    func decodeRequiredFlexibleString(forKey key: Key) throws -> String {
+        if let value = decodeFlexibleString(forKey: key)?.trimmedNonEmpty { return value }
+        throw DecodingError.valueNotFound(
+            String.self,
+            DecodingError.Context(codingPath: codingPath + [key], debugDescription: "Required string is missing")
+        )
+    }
+
     func decodeFlexibleString(forKey key: Key) -> String? {
         if let value = try? decode(String.self, forKey: key) { return value }
         if let value = try? decode(Int.self, forKey: key) { return String(value) }
@@ -386,7 +336,7 @@ private extension KeyedDecodingContainer {
     }
 }
 
-private struct Lossy<Value: Decodable>: Decodable {
+struct Lossy<Value: Decodable>: Decodable {
     let value: Value?
 
     init(from decoder: Decoder) throws {

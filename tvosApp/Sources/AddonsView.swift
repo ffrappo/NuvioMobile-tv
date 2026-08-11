@@ -120,7 +120,7 @@ struct AddonsView: View {
             }
             Spacer()
             Button(role: .destructive) {
-                store.remove(addon)
+                Task { await store.remove(addon) }
             } label: {
                 Label("Remove", systemImage: "trash")
             }

@@ -6,6 +6,7 @@ final class HomePreferencesStore: ObservableObject {
 
     private let defaults: UserDefaults
     private let key = "nuvio.tv.home.preferences.v2"
+    private var pushTask: Task<Void, Never>?
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -71,8 +72,33 @@ final class HomePreferencesStore: ObservableObject {
     }
 
     func applyRemote(_ preferences: HomePreferences) {
+        let localHeroEnabled = value.heroEnabled
         value = preferences
+        value.heroEnabled = localHeroEnabled
         save()
+    }
+
+    func clearForLogout() {
+        pushTask?.cancel()
+        value = HomePreferences()
+        defaults.removeObject(forKey: key)
+        objectWillChange.send()
+    }
+
+    func schedulePush(auth: AuthStore, profileID: Int, service: NuvioAccountService = NuvioAccountService()) {
+        guard auth.session != nil else { return }
+        pushTask?.cancel()
+        let payload = value
+        pushTask = Task {
+            try? await Task.sleep(for: .milliseconds(500))
+            guard !Task.isCancelled else { return }
+            do {
+                let token = try await auth.validAccessToken()
+                try await service.saveHomePreferences(payload, accessToken: token, profileID: profileID)
+            } catch {
+                AppLog.sync.error("Home preferences push failed profile=\(profileID) detail=\(AppLog.safeDescription(error), privacy: .public)")
+            }
+        }
     }
 
     private func update(_ key: String, mutation: (inout HomeCatalogPreference) -> Void) {

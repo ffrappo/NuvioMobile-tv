@@ -32,7 +32,7 @@ struct WatchProgressRecord: Codable, Equatable, Identifiable {
 
     static func key(contentID: String, videoID: String, season: Int?, episode: Int?) -> String {
         if let season, let episode { return "\(contentID)_s\(season)e\(episode)" }
-        return videoID.isEmpty ? contentID : videoID
+        return contentID
     }
 }
 
@@ -58,11 +58,11 @@ struct SyncWatchProgressRecord: Codable {
 }
 
 struct HomeCatalogSyncBlob: Decodable {
-    let settingsJSON: HomeCatalogSyncPayload
+    let settingsJSON: HomeCatalogSyncPayload?
     enum CodingKeys: String, CodingKey { case settingsJSON = "settings_json" }
 }
 
-struct HomeCatalogSyncPayload: Codable {
+struct HomeCatalogSyncPayload: Decodable {
     let showCatalogType: Bool
     let hideUnreleasedContent: Bool
     let items: [HomeCatalogSyncItem]
@@ -72,9 +72,16 @@ struct HomeCatalogSyncPayload: Codable {
         case hideUnreleasedContent = "hide_unreleased_content"
         case items
     }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        showCatalogType = try values.decodeIfPresent(Bool.self, forKey: .showCatalogType) ?? true
+        hideUnreleasedContent = try values.decodeIfPresent(Bool.self, forKey: .hideUnreleasedContent) ?? false
+        items = try values.decodeIfPresent([HomeCatalogSyncItem].self, forKey: .items) ?? []
+    }
 }
 
-struct HomeCatalogSyncItem: Codable {
+struct HomeCatalogSyncItem: Decodable {
     let addonID: String
     let type: String
     let catalogID: String
@@ -95,12 +102,30 @@ struct HomeCatalogSyncItem: Codable {
         case collectionID = "collection_id"
         case key
     }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        addonID = try values.decodeIfPresent(String.self, forKey: .addonID) ?? ""
+        type = try values.decodeIfPresent(String.self, forKey: .type) ?? ""
+        catalogID = try values.decodeIfPresent(String.self, forKey: .catalogID) ?? ""
+        enabled = try values.decodeIfPresent(Bool.self, forKey: .enabled) ?? true
+        order = try values.decodeIfPresent(Int.self, forKey: .order) ?? 0
+        customTitle = try values.decodeIfPresent(String.self, forKey: .customTitle) ?? ""
+        isCollection = try values.decodeIfPresent(Bool.self, forKey: .isCollection) ?? false
+        collectionID = try values.decodeIfPresent(String.self, forKey: .collectionID) ?? ""
+        key = try values.decodeIfPresent(String.self, forKey: .key) ?? ""
+    }
 }
 
 struct CollectionSyncBlob: Decodable {
     let collections: [TVCollection]
 
     enum CodingKeys: String, CodingKey { case collections = "collections_json" }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        collections = try values.decodeIfPresent([TVCollection].self, forKey: .collections) ?? []
+    }
 }
 
 struct LibrarySyncRecord: Decodable {

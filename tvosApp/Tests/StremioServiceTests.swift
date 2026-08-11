@@ -37,7 +37,7 @@ final class StremioServiceTests: XCTestCase {
         {
           "metas": [
             {"id": 42, "name": "Example", "type": "movie", "releaseInfo": 2026, "genre": "Drama"},
-            {"id": "tt2", "name": "Second"},
+            {"id": "tt2", "name": "Second", "type": "series"},
             "malformed entry"
           ]
         }
@@ -48,7 +48,21 @@ final class StremioServiceTests: XCTestCase {
         XCTAssertEqual(response.metas[0].id, "42")
         XCTAssertEqual(response.metas[0].releaseInfo, "2026")
         XCTAssertEqual(response.metas[0].genres, ["Drama"])
-        XCTAssertEqual(response.metas[1].type, "movie")
+        XCTAssertEqual(response.metas[1].type, "series")
+    }
+
+    func testCatalogFixtureDropsItemsMissingRequiredIdentity() throws {
+        let fixture = #"""
+        {"metas":[
+          {"id":"tt1","name":"Complete","type":"movie"},
+          {"name":"Missing id","type":"movie"},
+          {"id":"tt2","type":"movie"},
+          {"id":"tt3","name":"Missing type"}
+        ]}
+        """#.data(using: .utf8)!
+
+        let response = try JSONDecoder().decode(CatalogResponse.self, from: fixture)
+        XCTAssertEqual(response.metas.map(\.id), ["tt1"])
     }
 
     func testCollectionFixtureUsesMobileDefaultsAndLegacyCatalogSources() throws {
@@ -82,6 +96,46 @@ final class StremioServiceTests: XCTestCase {
         """#.data(using: .utf8)!
         let rows = try JSONDecoder().decode([CollectionSyncBlob].self, from: fixture)
         XCTAssertEqual(rows.first?.collections.first?.folders.first?.sources.first?.traktListId, 12345)
+    }
+
+    func testCollectionNullPayloadDecodesAsEmpty() throws {
+        let fixture = #"""[{"collections_json":null}]"""#.data(using: .utf8)!
+        let rows = try JSONDecoder().decode([CollectionSyncBlob].self, from: fixture)
+        XCTAssertEqual(rows.first?.collections, [])
+    }
+
+    func testProgressKeyMatchesSharedFallback() {
+        XCTAssertEqual(
+            WatchProgressRecord.key(contentID: "tt-series", videoID: "special-video", season: nil, episode: nil),
+            "tt-series"
+        )
+        XCTAssertEqual(
+            WatchProgressRecord.key(contentID: "tt-series", videoID: "episode", season: 2, episode: 3),
+            "tt-series_s2e3"
+        )
+    }
+
+    func testHomeSettingsFixtureUsesSharedDefaults() throws {
+        let fixture = #"""
+        [{"settings_json":{"items":[{"addon_id":"a","type":"movie","catalog_id":"top"}]}}]
+        """#.data(using: .utf8)!
+        let rows = try JSONDecoder().decode([HomeCatalogSyncBlob].self, from: fixture)
+        let settings = try XCTUnwrap(rows.first?.settingsJSON)
+        XCTAssertTrue(settings.showCatalogType)
+        XCTAssertFalse(settings.hideUnreleasedContent)
+        XCTAssertTrue(settings.items.first?.enabled ?? false)
+        XCTAssertEqual(settings.items.first?.order, 0)
+        XCTAssertEqual(settings.items.first?.customTitle, "")
+    }
+
+    func testProfileFixtureUsesMobileDefaults() throws {
+        let fixture = #"""
+        [{"profile_index":2,"name":"Kids"}]
+        """#.data(using: .utf8)!
+        let profiles = try JSONDecoder().decode([TVProfile].self, from: fixture)
+        XCTAssertEqual(profiles.first?.id, "")
+        XCTAssertEqual(profiles.first?.avatarColorHex, "#1E88E5")
+        XCTAssertFalse(profiles.first?.usesPrimaryAddons ?? true)
     }
 
     func testManifestDecodesHomeEligibilityFields() throws {
@@ -173,6 +227,62 @@ final class StremioServiceTests: XCTestCase {
         let stream = try JSONDecoder().decode(StremioStream.self, from: fixture)
         XCTAssertEqual(stream.requestHeaders["Referer"], "https://example.com")
         XCTAssertEqual(stream.requestHeaders["X-Token"], "secret")
+    }
+
+    func testStreamDecodesProxyResponseHeadersSeparately() throws {
+        let fixture = #"""
+        {
+          "name": "Protected source",
+          "url": "https://video.example/movie.m3u8",
+          "behaviorHints": {
+            "proxyHeaders": {
+              "request": {"Referer": "https://example.com"},
+              "response": {"Content-Type": "application/vnd.apple.mpegurl"}
+            }
+          }
+        }
+        """#.data(using: .utf8)!
+
+        let stream = try JSONDecoder().decode(StremioStream.self, from: fixture)
+        XCTAssertEqual(stream.requestHeaders["Referer"], "https://example.com")
+        XCTAssertEqual(stream.responseHeaders["Content-Type"], "application/vnd.apple.mpegurl")
+        XCTAssertNil(stream.requestHeaders["Content-Type"])
+    }
+
+    func testManifestMetaEligibilityRespectsTypesAndIDPrefixes() throws {
+        let fixture = #"""
+        {"id":"addon.test","name":"Test","resources":[
+          {"name":"meta","types":["movie"],"idPrefixes":["tt"]},
+          {"name":"stream","types":["series"],"idPrefixes":["tt"]}
+        ]}
+        """#.data(using: .utf8)!
+        let manifest = try JSONDecoder().decode(AddonManifest.self, from: fixture)
+        XCTAssertTrue(StremioService.manifestProvidesMeta(manifest, type: "movie", id: "tt123"))
+        XCTAssertFalse(StremioService.manifestProvidesMeta(manifest, type: "series", id: "tt123"))
+        XCTAssertFalse(StremioService.manifestProvidesMeta(manifest, type: "movie", id: "kitsu:1"))
+    }
+
+    @MainActor
+    func testWatchProgressResumeRequiresExactVideoAndContent() {
+        let suiteName = "WatchProgressStoreTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let store = WatchProgressStore(defaults: defaults, accountService: NuvioAccountService())
+        let summary = MetaSummary(id: "tt-series", type: "series", name: "Series")
+        store.record(
+            summary: summary,
+            videoID: "tt-series:1:1",
+            season: 1,
+            episode: 1,
+            episodeTitle: "One",
+            episodeThumbnail: nil,
+            positionSeconds: 120,
+            durationSeconds: 600
+        )
+
+        XCTAssertEqual(store.resumablePosition(videoID: "tt-series:1:1", contentID: "tt-series"), 120)
+        XCTAssertNil(store.resumablePosition(videoID: "tt-series:1:2", contentID: "tt-series"))
+        XCTAssertNil(store.resumablePosition(videoID: "tt-series:1:1", contentID: "other-series"))
     }
 
     private func source(named name: String) throws -> String {

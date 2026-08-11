@@ -71,7 +71,7 @@ final class HomeStore: ObservableObject {
                         return (definition.id, HomeCatalogSection(definition: definition, items: items))
                     } catch {
                         let detail = AppLog.safeDescription(error)
-                        AppLog.home.error("Catalog refresh failed key=\(definition.id, privacy: .public) detail=\(detail, privacy: .public)")
+                        AppLog.home.error("Catalog refresh failed key=\(definition.id, privacy: .private(mask: .hash)) detail=\(detail, privacy: .public)")
                         return (definition.id, nil)
                     }
                 }
@@ -99,10 +99,17 @@ final class HomeStore: ObservableObject {
         )
     }
 
+    func clearForLogout() {
+        generation += 1
+        cachedSections = [:]
+        snapshot = HomeSnapshot()
+    }
+
     private func syncPreferences(auth: AuthStore, profileID: Int) async {
         do {
             let token = try await auth.validAccessToken()
-            if let remote = try await accountService.homePreferences(accessToken: token, profileID: profileID) {
+            if let remote = try await accountService.homePreferences(accessToken: token, profileID: profileID),
+               !remote.items.isEmpty {
                 preferences.applyRemote(remote)
             }
         } catch {
@@ -147,7 +154,7 @@ final class HomeStore: ObservableObject {
                 detail = try await service.details(type: record.contentType, id: record.contentID)
             } catch {
                 let errorDetail = AppLog.safeDescription(error)
-                AppLog.home.error("Upcoming enrichment failed content=\(record.contentID, privacy: .public) detail=\(errorDetail, privacy: .public)")
+                AppLog.home.error("Upcoming enrichment failed content=\(record.contentID, privacy: .private(mask: .hash)) detail=\(errorDetail, privacy: .public)")
                 continue
             }
             guard let next = HomeUpcomingResolver.nextEpisode(after: record, videos: detail.videos) else { continue }

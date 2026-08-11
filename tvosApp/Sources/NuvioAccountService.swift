@@ -117,7 +117,48 @@ struct NuvioAccountService {
         let entries = records.map(SyncWatchProgressRecord.init)
         try await requestVoid(
             path: "/rest/v1/rpc/sync_push_watch_progress",
-            jsonBody: ["p_profile_id": profileID, "p_entries": entries.map(\.jsonObject)],
+            jsonBody: [
+                "p_profile_id": profileID,
+                "p_entries": entries.map(\.jsonObject),
+                "p_origin_client_id": TVSyncClientIdentity.current(),
+            ],
+            accessToken: accessToken
+        )
+    }
+
+    func saveAddons(_ addons: [AddonEndpoint], accessToken: String, profileID: Int) async throws {
+        let rows: [[String: Any]] = addons.enumerated().map { index, addon in
+            [
+                "url": addon.baseURL,
+                "name": addon.name,
+                "enabled": true,
+                "sort_order": index,
+            ]
+        }
+        try await requestVoid(
+            path: "/rest/v1/rpc/sync_push_addons",
+            jsonBody: [
+                "p_profile_id": profileID,
+                "p_addons": rows,
+                "p_origin_client_id": TVSyncClientIdentity.current(),
+            ],
+            accessToken: accessToken
+        )
+    }
+
+    func saveHomePreferences(
+        _ preferences: HomePreferences,
+        accessToken: String,
+        profileID: Int
+    ) async throws {
+        try await requestVoid(
+            path: "/rest/v1/rpc/sync_push_home_catalog_settings",
+            jsonBody: [
+                "p_profile_id": profileID,
+                "p_platform": "home_catalog_shared",
+                "p_settings_json": preferences.syncJSONObject,
+                "p_origin_client_id": TVSyncClientIdentity.current(),
+            ],
             accessToken: accessToken
         )
     }

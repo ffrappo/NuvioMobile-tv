@@ -27,6 +27,7 @@ struct PlayerSourceOption: Identifiable, Hashable {
     let name: String
     let addonName: String
     let requestHeaders: [String: String]
+    let responseHeaders: [String: String]
 }
 
 struct PlayerEpisodeOption: Identifiable, Hashable {
@@ -90,7 +91,8 @@ struct PlayerView: View {
             session.load(
                 url: route.url,
                 startPosition: resumePosition,
-                requestHeaders: route.initialSource?.requestHeaders ?? [:]
+                requestHeaders: route.initialSource?.requestHeaders ?? [:],
+                responseHeaders: route.initialSource?.responseHeaders ?? [:]
             )
             let controller = TVNowPlayingController(session: session)
             controller.updateMetadata(title: route.title, subtitle: route.sourceName)
@@ -158,7 +160,8 @@ struct PlayerView: View {
         session.load(
             url: source.url,
             startPosition: session.position,
-            requestHeaders: source.requestHeaders
+            requestHeaders: source.requestHeaders,
+            responseHeaders: source.responseHeaders
         )
     }
 

@@ -39,6 +39,11 @@ final class CollectionStore: ObservableObject {
         }
     }
 
+    func clearForLogout() {
+        collections = []
+        message = nil
+    }
+
     func items(
         for folder: TVCollectionFolder,
         addons: [HomeAddon],

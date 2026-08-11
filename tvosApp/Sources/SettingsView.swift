@@ -5,8 +5,12 @@ struct SettingsView: View {
     @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var addons: AddonStore
     @EnvironmentObject private var integrations: IntegrationStore
+    @EnvironmentObject private var library: LibraryStore
     @EnvironmentObject private var profiles: TVProfileStore
     @EnvironmentObject private var homePreferences: HomePreferencesStore
+    @EnvironmentObject private var watchProgress: WatchProgressStore
+    @EnvironmentObject private var collections: CollectionStore
+    @EnvironmentObject private var home: HomeStore
     @State private var cacheMessage: String?
     @State private var showLogout = false
     @FocusState private var focus: Action?
@@ -38,6 +42,14 @@ struct SettingsView: View {
             Button("Sign Out", role: .destructive) {
                 Task {
                     addons.clearForLogout()
+                    library.clearForLogout()
+                    watchProgress.clearForLogout()
+                    collections.clearForLogout()
+                    home.clearForLogout()
+                    profiles.clear()
+                    integrations.clearForLogout()
+                    homePreferences.clearForLogout()
+                    PlaybackProgressStore().clearAll()
                     await auth.logout()
                 }
             }
@@ -124,17 +136,17 @@ struct SettingsView: View {
             Text("Home").font(.title2.weight(.semibold))
             Toggle("Show featured hero", isOn: Binding(
                 get: { homePreferences.value.heroEnabled },
-                set: homePreferences.setHeroEnabled
+                set: { homePreferences.setHeroEnabled($0); pushHomePreferences() }
             ))
             .focused($focus, equals: .hero)
             Toggle("Show catalog media type", isOn: Binding(
                 get: { homePreferences.value.showCatalogType },
-                set: homePreferences.setShowCatalogType
+                set: { homePreferences.setShowCatalogType($0); pushHomePreferences() }
             ))
             .focused($focus, equals: .catalogType)
             Toggle("Hide unreleased content", isOn: Binding(
                 get: { homePreferences.value.hideUnreleasedContent },
-                set: homePreferences.setHideUnreleasedContent
+                set: { homePreferences.setHideUnreleasedContent($0); pushHomePreferences() }
             ))
             .focused($focus, equals: .unreleased)
 
@@ -142,15 +154,17 @@ struct SettingsView: View {
                 HStack(spacing: 14) {
                     Toggle(item.customTitle.trimmedNonEmpty ?? homeItemName(item.key), isOn: Binding(
                         get: { homePreferences.value.preference(for: item.key)?.enabled ?? true },
-                        set: { homePreferences.setEnabled(key: item.key, enabled: $0) }
+                        set: { homePreferences.setEnabled(key: item.key, enabled: $0); pushHomePreferences() }
                     ))
                     Spacer()
                     NuvioButton(title: "Up", symbol: "arrow.up", focused: focus == .homeItem(item.key, -1)) {
                         homePreferences.move(key: item.key, direction: -1)
+                        pushHomePreferences()
                     }
                     .frame(width: 150).focused($focus, equals: .homeItem(item.key, -1))
                     NuvioButton(title: "Down", symbol: "arrow.down", focused: focus == .homeItem(item.key, 1)) {
                         homePreferences.move(key: item.key, direction: 1)
+                        pushHomePreferences()
                     }
                     .frame(width: 170).focused($focus, equals: .homeItem(item.key, 1))
                 }
@@ -158,6 +172,10 @@ struct SettingsView: View {
         }
         .padding(28)
         .background(NuvioTheme.panel, in: RoundedRectangle(cornerRadius: 22))
+    }
+
+    private func pushHomePreferences() {
+        homePreferences.schedulePush(auth: auth, profileID: profiles.activeProfileID)
     }
 
     private func homeItemName(_ key: String) -> String {

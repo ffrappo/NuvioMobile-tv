@@ -82,6 +82,10 @@ final class PlaybackProgressStore {
         persist(values)
     }
 
+    func clearAll() {
+        defaults.removeObject(forKey: key)
+    }
+
     private func load() -> [String: PlaybackProgress] {
         guard let data = defaults.data(forKey: key),
               let values = try? JSONDecoder().decode([String: PlaybackProgress].self, from: data) else {

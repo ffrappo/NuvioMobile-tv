@@ -33,6 +33,26 @@ struct HomePreferences: Codable, Equatable {
     var hideUnreleasedContent = false
     var items: [HomeCatalogPreference] = []
 
+    var syncJSONObject: [String: Any] {
+        [
+            "show_catalog_type": showCatalogType,
+            "hide_unreleased_content": hideUnreleasedContent,
+            "items": items.map { item in
+                [
+                    "addon_id": item.key.split(separator: ":").first.map(String.init) ?? "",
+                    "type": item.key.split(separator: ":").dropFirst().first.map(String.init) ?? "",
+                    "catalog_id": item.key.split(separator: ":").dropFirst(2).first.map(String.init) ?? "",
+                    "enabled": item.enabled,
+                    "order": item.order,
+                    "custom_title": item.customTitle,
+                    "is_collection": item.key.hasPrefix("collection_"),
+                    "collection_id": item.key.hasPrefix("collection_") ? String(item.key.dropFirst("collection_".count)) : "",
+                    "key": item.key,
+                ] as [String: Any]
+            },
+        ]
+    }
+
     func preference(for key: String) -> HomeCatalogPreference? {
         items.first { $0.key == key }
     }
@@ -164,7 +184,7 @@ private extension KeyedDecodingContainer {
     }
 }
 
-struct TVProfile: Codable, Equatable, Identifiable {
+struct TVProfile: Decodable, Equatable, Identifiable {
     let id: String
     let profileIndex: Int
     let name: String
@@ -178,5 +198,15 @@ struct TVProfile: Codable, Equatable, Identifiable {
         case avatarColorHex = "avatar_color_hex"
         case avatarURL = "avatar_url"
         case usesPrimaryAddons = "uses_primary_addons"
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decodeIfPresent(String.self, forKey: .id) ?? ""
+        profileIndex = try values.decodeIfPresent(Int.self, forKey: .profileIndex) ?? 1
+        name = try values.decodeIfPresent(String.self, forKey: .name) ?? "Profile"
+        avatarColorHex = try values.decodeIfPresent(String.self, forKey: .avatarColorHex) ?? "#1E88E5"
+        avatarURL = try values.decodeIfPresent(String.self, forKey: .avatarURL)
+        usesPrimaryAddons = try values.decodeIfPresent(Bool.self, forKey: .usesPrimaryAddons) ?? false
     }
 }
