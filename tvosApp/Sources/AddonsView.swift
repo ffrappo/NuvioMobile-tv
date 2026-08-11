@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct AddonsView: View {
+    let entryFocusRequest: Int
+
     @EnvironmentObject private var store: AddonStore
     @State private var manifestURL = ""
     @State private var statusMessage: String?
@@ -38,6 +40,9 @@ struct AddonsView: View {
             .padding(48)
         }
         .defaultFocus($focus, .field)
+        .onChange(of: entryFocusRequest) { _, _ in
+            focus = .field
+        }
     }
 
     private var builtInCard: some View {

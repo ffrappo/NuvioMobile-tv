@@ -44,4 +44,11 @@ final class StremioServiceTests: XCTestCase {
             "https://v3-cinemeta.strem.io/catalog/movie/top/search=The%20Matrix%20%26%20Neo%2FTrinity.json"
         )
     }
+
+    func testSidebarFocusRouterEntersContentOnlyWhenMovingRight() {
+        XCTAssertTrue(SidebarFocusRouter.shouldEnterContent(.right))
+        XCTAssertFalse(SidebarFocusRouter.shouldEnterContent(.left))
+        XCTAssertFalse(SidebarFocusRouter.shouldEnterContent(.up))
+        XCTAssertFalse(SidebarFocusRouter.shouldEnterContent(.down))
+    }
 }
