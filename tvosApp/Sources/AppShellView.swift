@@ -41,7 +41,9 @@ struct AppShellView: View {
         NavigationStack(path: $path) {
             HStack(spacing: 0) {
                 sidebar
+                    .focusSection()
                 content
+                    .focusSection()
             }
             .background(NuvioTheme.background.ignoresSafeArea())
             .navigationDestination(for: MetaSummary.self) { summary in
