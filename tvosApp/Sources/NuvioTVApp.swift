@@ -53,6 +53,7 @@ enum NuvioTheme {
     static let panel = Color.white.opacity(0.075)
     static let panelFocused = Color.white.opacity(0.20)
     static let accent = Color(red: 0.56, green: 0.38, blue: 1.0)
+    static let accentLight = Color(red: 0.76, green: 0.68, blue: 1.0)
     static let secondaryText = Color.white.opacity(0.68)
 }
 

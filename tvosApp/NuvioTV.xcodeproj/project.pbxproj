@@ -45,6 +45,7 @@
 		D149CD3FC476E0D153D26867 /* NuvioControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51FCD104A61FCAE3B60D12FD /* NuvioControls.swift */; };
 		D33458ABE58562C1F6756C41 /* PlayerOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5829013B950D4606B42F8C2 /* PlayerOptionsView.swift */; };
 		D7A204DDB089392F63AC4A21 /* AddonsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D101E15479EA8BF6F8B8B1AE /* AddonsView.swift */; };
+		D91C7E56946233EB62D40BD9 /* StreamSourcesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB64C4919946C587C5324E0C /* StreamSourcesView.swift */; };
 		E67EFD118537FF0B04A36A1F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C4C9739C9C26824BF9517638 /* Assets.xcassets */; };
 		F591B69D29765F08FE7AC204 /* Stores.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0239D059AEB5C413463A3FFA /* Stores.swift */; };
 		F869D817DBC83F02DC5362C6 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41328A9E47B9DC5A7AB3F11A /* LibraryView.swift */; };
@@ -101,6 +102,7 @@
 		CE240C1E5873B2E908D10D36 /* IntegrationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationStore.swift; sourceTree = "<group>"; };
 		D101E15479EA8BF6F8B8B1AE /* AddonsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddonsView.swift; sourceTree = "<group>"; };
 		DB33DAAC2888C4E929BE8E32 /* NuvioTVApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NuvioTVApp.swift; sourceTree = "<group>"; };
+		DB64C4919946C587C5324E0C /* StreamSourcesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamSourcesView.swift; sourceTree = "<group>"; };
 		DE2FEDA020CC691768F55DBE /* CatalogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogView.swift; sourceTree = "<group>"; };
 		DE4CBBD7A31E58DE8D2CB62F /* StremioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StremioService.swift; sourceTree = "<group>"; };
 		E082ACA18B306E4D2DFC76F4 /* NuvioTV.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = NuvioTV.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -158,6 +160,7 @@
 				44E8A9DA69945B36709DBC01 /* SettingsView.swift */,
 				C4967F64D741AB65B25526B8 /* SkipSegmentsService.swift */,
 				0239D059AEB5C413463A3FFA /* Stores.swift */,
+				DB64C4919946C587C5324E0C /* StreamSourcesView.swift */,
 				DE4CBBD7A31E58DE8D2CB62F /* StremioService.swift */,
 				8CA8D158F406C206AD751836 /* TVNowPlayingController.swift */,
 				0793D8511263AD11562CA2F5 /* TVProfileStore.swift */,
@@ -344,6 +347,7 @@
 				A0BD3A24E14F3967135F0D89 /* SettingsView.swift in Sources */,
 				C982CCCBA6EDFF6871AF16D0 /* SkipSegmentsService.swift in Sources */,
 				F591B69D29765F08FE7AC204 /* Stores.swift in Sources */,
+				D91C7E56946233EB62D40BD9 /* StreamSourcesView.swift in Sources */,
 				A7399FFC8DB765DFFFC36554 /* StremioService.swift in Sources */,
 				ABB53549A923F9D74484E51B /* TVNowPlayingController.swift in Sources */,
 				46CEF7E4D525E0D17C2C81AF /* TVProfileStore.swift in Sources */,
