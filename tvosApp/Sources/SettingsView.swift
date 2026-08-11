@@ -86,7 +86,7 @@ struct SettingsView: View {
                     .font(.title3.weight(.semibold))
                 Text(addons.syncMessage ?? "Your account addons are synchronized on this Apple TV.")
                     .foregroundStyle(NuvioTheme.secondaryText)
-                NuvioButton(title: "Sign Out", symbol: "rectangle.portrait.and.arrow.right", focused: focus == .logout, destructive: true) {
+                NuvioButton(title: "Sign Out", symbol: "rectangle.portrait.and.arrow.right", destructive: true) {
                     showLogout = true
                 }
                 .frame(width: 280)
@@ -94,7 +94,7 @@ struct SettingsView: View {
             } else {
                 Text("Guest mode stores library and addons on this Apple TV.")
                     .foregroundStyle(NuvioTheme.secondaryText)
-                NuvioButton(title: "Sign In", symbol: "person.crop.circle.badge.checkmark", focused: focus == .account, prominent: true) {
+                NuvioButton(title: "Sign In", symbol: "person.crop.circle.badge.checkmark", prominent: true) {
                     auth.showSignIn()
                 }
                 .frame(width: 280)
@@ -116,7 +116,6 @@ struct SettingsView: View {
                         NuvioButton(
                             title: profile.name.tvSafe,
                             symbol: profile.profileIndex == profiles.activeProfileID ? "checkmark.circle.fill" : "person.circle",
-                            focused: focus == .profile(profile.profileIndex),
                             prominent: profile.profileIndex == profiles.activeProfileID
                         ) {
                             profiles.select(profile.profileIndex)
@@ -157,12 +156,12 @@ struct SettingsView: View {
                         set: { homePreferences.setEnabled(key: item.key, enabled: $0); pushHomePreferences() }
                     ))
                     Spacer()
-                    NuvioButton(title: "Up", symbol: "arrow.up", focused: focus == .homeItem(item.key, -1)) {
+                    NuvioButton(title: "Up", symbol: "arrow.up") {
                         homePreferences.move(key: item.key, direction: -1)
                         pushHomePreferences()
                     }
                     .frame(width: 150).focused($focus, equals: .homeItem(item.key, -1))
-                    NuvioButton(title: "Down", symbol: "arrow.down", focused: focus == .homeItem(item.key, 1)) {
+                    NuvioButton(title: "Down", symbol: "arrow.down") {
                         homePreferences.move(key: item.key, direction: 1)
                         pushHomePreferences()
                     }
@@ -215,8 +214,7 @@ struct SettingsView: View {
             if auth.session != nil {
                 NuvioButton(
                     title: "Sync Mobile Integrations",
-                    symbol: "arrow.triangle.2.circlepath",
-                    focused: focus == .syncIntegrations
+                    symbol: "arrow.triangle.2.circlepath"
                 ) {
                     Task { await integrations.syncFromAccount(auth: auth) }
                 }
@@ -258,7 +256,7 @@ struct SettingsView: View {
             Text("Network Cache").font(.title2.weight(.semibold))
             Text("Clear cached artwork and addon responses. Your library and addon list stay saved.")
                 .foregroundStyle(NuvioTheme.secondaryText)
-            NuvioButton(title: "Clear Cache", symbol: "trash", focused: focus == .clearCache) {
+            NuvioButton(title: "Clear Cache", symbol: "trash") {
                 URLCache.shared.removeAllCachedResponses()
                 cacheMessage = "Cache cleared."
             }

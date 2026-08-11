@@ -80,12 +80,12 @@ struct SignInView: View {
             }
 
             HStack(spacing: 18) {
-                NuvioButton(title: "Refresh QR", symbol: "arrow.clockwise", focused: focus == .refresh) {
+                NuvioButton(title: "Refresh QR", symbol: "arrow.clockwise") {
                     Task { await auth.startQRLogin() }
                 }
                 .focused($focus, equals: .refresh)
 
-                NuvioButton(title: "Continue as Guest", symbol: "person", focused: focus == .guest) {
+                NuvioButton(title: "Continue as Guest", symbol: "person") {
                     auth.continueAsGuest()
                 }
                 .focused($focus, equals: .guest)
@@ -103,7 +103,6 @@ struct SignInView: View {
             NuvioButton(
                 title: auth.isWorking ? "Signing In..." : "Sign In",
                 symbol: "person.crop.circle.badge.checkmark",
-                focused: focus == .signIn,
                 prominent: true,
                 disabled: email.trimmingCharacters(in: .whitespaces).isEmpty || password.isEmpty || auth.isWorking
             ) {

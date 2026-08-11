@@ -31,7 +31,7 @@ private struct ProgressButton: View {
         Button(action: action) {
             ProgressCard(item: item, focused: focused)
         }
-        .buttonStyle(NuvioBareButtonStyle())
+        .buttonStyle(.card)
         .focused($focused)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityHint("Opens details")
@@ -121,7 +121,7 @@ struct FolderButton: View {
         Button(action: action) {
             FolderCard(folder: folder, count: count, focused: focused)
         }
-        .buttonStyle(NuvioBareButtonStyle())
+        .buttonStyle(.card)
         .focused($focused)
         .accessibilityLabel(folder.title.tvSafe)
         .accessibilityHint("Shows this collection")

@@ -18,10 +18,7 @@ struct SearchView: View {
                     ProgressView("Searching Cinemeta")
                         .frame(maxWidth: .infinity, minHeight: 240)
                 } else if let errorMessage {
-                    Label(errorMessage.tvSafe, systemImage: "exclamationmark.triangle.fill")
-                        .font(.title3)
-                        .foregroundStyle(.red)
-                        .padding(30)
+                    ErrorPanel(message: errorMessage) { search() }
                 } else if results.isEmpty {
                     searchPrompt
                 } else {
@@ -45,7 +42,7 @@ struct SearchView: View {
                 } label: {
                     PosterCard(item: item, isFocused: focusedResult == item.id)
                 }
-                .buttonStyle(NuvioBareButtonStyle())
+                .buttonStyle(.card)
                 .focused($focusedResult, equals: item.id)
             }
         }

@@ -43,7 +43,7 @@ struct HomeHeroView: View {
                 .padding(.bottom, 48)
             }
         }
-        .buttonStyle(NuvioBareButtonStyle())
+        .buttonStyle(.card)
         .focused($focused)
         .defaultFocus($focused, true)
         .accessibilityLabel("\(item.name), featured")
@@ -91,7 +91,7 @@ private struct PosterButton: View {
         Button(action: action) {
             PosterCard(item: item, isFocused: focused)
         }
-        .buttonStyle(NuvioBareButtonStyle())
+        .buttonStyle(.card)
         .focused($focused)
         .accessibilityLabel(
             [item.name, item.releaseInfo, item.type.capitalized]

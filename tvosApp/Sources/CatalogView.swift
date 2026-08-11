@@ -153,7 +153,7 @@ struct CatalogView: View {
             Text("Your Home is ready for content").font(.largeTitle.weight(.bold))
             Text("Enable an addon with catalogs, or retry when your connection returns.")
                 .font(.title3).foregroundStyle(NuvioTheme.secondaryText)
-            NuvioButton(title: "Retry", symbol: "arrow.clockwise", focused: retryFocused) {
+            NuvioButton(title: "Retry", symbol: "arrow.clockwise") {
                 Task { await reload(force: true) }
             }
             .focused($retryFocused)

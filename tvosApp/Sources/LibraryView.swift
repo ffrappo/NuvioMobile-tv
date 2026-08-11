@@ -13,15 +13,11 @@ struct LibraryView: View {
                     .font(.largeTitle.weight(.bold))
 
                 if library.items.isEmpty {
-                    VStack(spacing: 18) {
-                        Image(systemName: "heart")
-                            .font(.system(size: 70))
-                        Text("Your library is empty")
-                            .font(.title2)
-                        Text("Open any title and add it to your favorites.")
-                            .foregroundStyle(NuvioTheme.secondaryText)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 420)
+                NuvioUnavailableView(
+                    title: "Your Library Is Empty",
+                    symbol: "heart",
+                    message: "Open any title and add it to your library."
+                )
                 } else {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 220), spacing: 34)], spacing: 42) {
                         ForEach(library.items) { item in
@@ -30,7 +26,7 @@ struct LibraryView: View {
                             } label: {
                                 PosterCard(item: item, isFocused: focusedID == item.id)
                             }
-                            .buttonStyle(NuvioBareButtonStyle())
+                            .buttonStyle(.card)
                             .focused($focusedID, equals: item.id)
                         }
                     }
