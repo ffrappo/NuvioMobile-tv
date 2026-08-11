@@ -173,7 +173,11 @@ struct DetailsView: View {
         isLoading = true
         errorMessage = nil
         do {
-            let loaded = try await service.details(type: summary.type, id: summary.id)
+            let loaded = try await service.details(
+                type: summary.type,
+                id: summary.id,
+                baseURL: summary.metadataBaseURL ?? StremioService.cinemetaBaseURL.absoluteString
+            )
             detail = loaded
             selectedVideo = summary.playbackVideoID.flatMap { videoID in
                 loaded.videos.first { $0.id == videoID }

@@ -62,7 +62,7 @@ final class CollectionStore: ObservableObject {
                     type: type,
                     id: catalogID,
                     genre: source.genre
-                )
+                ).map { $0.withMetadataBaseURL(addon.baseURL) }
             } catch {
                 let detail = AppLog.safeDescription(error)
                 AppLog.provider.error("Collection catalog failed folder=\(folder.id, privacy: .public) addon=\(addon.manifest.id, privacy: .public) type=\(type, privacy: .public) catalog=\(catalogID, privacy: .public) detail=\(detail, privacy: .public)")

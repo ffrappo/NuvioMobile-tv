@@ -66,7 +66,7 @@ final class HomeStore: ObservableObject {
                             baseURL: definition.addonBaseURL,
                             type: definition.type,
                             id: definition.catalogID
-                        )
+                        ).map { $0.withMetadataBaseURL(definition.addonBaseURL) }
                         let items = HomeReleaseFilter.releasedItems(result, enabled: hideUnreleasedContent)
                         return (definition.id, HomeCatalogSection(definition: definition, items: items))
                     } catch {
