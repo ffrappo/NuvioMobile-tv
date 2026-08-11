@@ -74,24 +74,53 @@ struct ContinueWatchingCard: Identifiable, Equatable {
     }
 }
 
-struct TVCollection: Codable, Equatable, Identifiable {
+struct TVCollection: Decodable, Equatable, Identifiable {
     let id: String
     let title: String
     let backdropImageUrl: String?
     let pinToTop: Bool
     let folders: [TVCollectionFolder]
+
+    private enum CodingKeys: String, CodingKey {
+        case id, title, backdropImageUrl, pinToTop, folders
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decodeIfPresent(String.self, forKey: .id) ?? UUID().uuidString
+        title = try values.decodeIfPresent(String.self, forKey: .title) ?? "Collection"
+        backdropImageUrl = try values.decodeIfPresent(String.self, forKey: .backdropImageUrl)
+        pinToTop = try values.decodeIfPresent(Bool.self, forKey: .pinToTop) ?? false
+        folders = try values.decodeIfPresent([TVCollectionFolder].self, forKey: .folders) ?? []
+    }
 }
 
-struct TVCollectionFolder: Codable, Equatable, Identifiable {
+struct TVCollectionFolder: Decodable, Equatable, Identifiable {
     let id: String
     let title: String
     let coverImageUrl: String?
     let tileShape: String
     let hideTitle: Bool
     let sources: [TVCollectionSource]
+
+    private enum CodingKeys: String, CodingKey {
+        case id, title, coverImageUrl, tileShape, hideTitle, sources, catalogSources
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decodeIfPresent(String.self, forKey: .id) ?? UUID().uuidString
+        title = try values.decodeIfPresent(String.self, forKey: .title) ?? "Folder"
+        coverImageUrl = try values.decodeIfPresent(String.self, forKey: .coverImageUrl)
+        tileShape = try values.decodeIfPresent(String.self, forKey: .tileShape) ?? "poster"
+        hideTitle = try values.decodeIfPresent(Bool.self, forKey: .hideTitle) ?? false
+        sources = try values.decodeIfPresent([TVCollectionSource].self, forKey: .sources)
+            ?? values.decodeIfPresent([TVCollectionSource].self, forKey: .catalogSources)
+            ?? []
+    }
 }
 
-struct TVCollectionSource: Codable, Equatable {
+struct TVCollectionSource: Decodable, Equatable {
     let provider: String
     let addonId: String?
     let type: String?
@@ -104,6 +133,35 @@ struct TVCollectionSource: Codable, Equatable {
     let mediaType: String?
     let sortBy: String?
     let sortHow: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case provider, addonId, type, catalogId, genre, title, tmdbSourceType
+        case tmdbId, traktListId, mediaType, sortBy, sortHow
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        provider = try values.decodeIfPresent(String.self, forKey: .provider) ?? "addon"
+        addonId = try values.decodeIfPresent(String.self, forKey: .addonId)
+        type = try values.decodeIfPresent(String.self, forKey: .type)
+        catalogId = try values.decodeIfPresent(String.self, forKey: .catalogId)
+        genre = try values.decodeIfPresent(String.self, forKey: .genre)
+        title = try values.decodeIfPresent(String.self, forKey: .title)
+        tmdbSourceType = try values.decodeIfPresent(String.self, forKey: .tmdbSourceType)
+        tmdbId = try values.decodeIfPresent(Int.self, forKey: .tmdbId)
+        traktListId = try values.decodeFlexibleInt64IfPresent(forKey: .traktListId)
+        mediaType = try values.decodeIfPresent(String.self, forKey: .mediaType)
+        sortBy = try values.decodeIfPresent(String.self, forKey: .sortBy)
+        sortHow = try values.decodeIfPresent(String.self, forKey: .sortHow)
+    }
+}
+
+private extension KeyedDecodingContainer {
+    func decodeFlexibleInt64IfPresent(forKey key: Key) throws -> Int64? {
+        if let value = try decodeIfPresent(Int64.self, forKey: key) { return value }
+        if let value = try decodeIfPresent(String.self, forKey: key) { return Int64(value) }
+        return nil
+    }
 }
 
 struct TVProfile: Codable, Equatable, Identifiable {

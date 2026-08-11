@@ -35,6 +35,7 @@
 		AED6026EFE342B8EEA89392D /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33449435FC3BF87503CD4A8F /* SearchView.swift */; };
 		B08120C4F269B799CFC54713 /* MPVPlayerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 302544E09DAD6A87C91FB11C /* MPVPlayerController.swift */; };
 		B8E1A89BE3C55F69E60FBB34 /* HomePreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9465F850C56F7A461E6C744 /* HomePreferencesStore.swift */; };
+		BD786E3FFBE7C65FF6FAD08C /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786FC58A58F4DEFF56C9B9BF /* AppLog.swift */; };
 		C5B42C6571A7116E8AC62C71 /* AccountViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFEAEBBF5ED07016B5CC82C /* AccountViews.swift */; };
 		C8EF625AE98D1023FE7DE19A /* PlayerControlsOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2AFC2D037541A3D7A11A6E2 /* PlayerControlsOverlay.swift */; };
 		C982CCCBA6EDFF6871AF16D0 /* SkipSegmentsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4967F64D741AB65B25526B8 /* SkipSegmentsService.swift */; };
@@ -83,6 +84,7 @@
 		6D6169A51B12FA3CED04AC6E /* DetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsView.swift; sourceTree = "<group>"; };
 		6F624ED2E01AFD6E2561BA84 /* CollectionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionStore.swift; sourceTree = "<group>"; };
 		728F8B7A925C4B231A981A64 /* AppShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShellView.swift; sourceTree = "<group>"; };
+		786FC58A58F4DEFF56C9B9BF /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
 		8114FE8958B0BEE9C07AF7F6 /* NuvioTVTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NuvioTVTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BC5DAEE5C7D57F67EB0F0CB /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		8CA8D158F406C206AD751836 /* TVNowPlayingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TVNowPlayingController.swift; sourceTree = "<group>"; };
@@ -124,6 +126,7 @@
 				1EFEAEBBF5ED07016B5CC82C /* AccountViews.swift */,
 				D101E15479EA8BF6F8B8B1AE /* AddonsView.swift */,
 				40377AAD4E194D473EC8DFFC /* AddonTransport.swift */,
+				786FC58A58F4DEFF56C9B9BF /* AppLog.swift */,
 				728F8B7A925C4B231A981A64 /* AppShellView.swift */,
 				CC2BAA7F1FD89709C92D44FE /* AuthModels.swift */,
 				4F7D7B62F6F49435D9DF63AE /* AuthStore.swift */,
@@ -309,6 +312,7 @@
 				C5B42C6571A7116E8AC62C71 /* AccountViews.swift in Sources */,
 				CC3096D4FA59031ACD995472 /* AddonTransport.swift in Sources */,
 				D7A204DDB089392F63AC4A21 /* AddonsView.swift in Sources */,
+				BD786E3FFBE7C65FF6FAD08C /* AppLog.swift in Sources */,
 				4492E0066035C1098B1BD4B4 /* AppShellView.swift in Sources */,
 				A838EF00ACFDCEE61E603671 /* AuthModels.swift in Sources */,
 				27D61384067C9BD73191E897 /* AuthStore.swift in Sources */,

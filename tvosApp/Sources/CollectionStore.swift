@@ -25,7 +25,9 @@ final class CollectionStore: ObservableObject {
                 }
             message = nil
         } catch {
-            message = "Collections could not be synchronized."
+            let detail = AppLog.safeDescription(error)
+            AppLog.sync.error("Collections sync failed profile=\(profileID) detail=\(detail, privacy: .public)")
+            message = "Collections could not be synchronized. \(detail)"
         }
     }
 
@@ -40,13 +42,20 @@ final class CollectionStore: ObservableObject {
                   let addon = addons.first(where: { $0.manifest.id == addonID }),
                   let type = source.type,
                   let catalogID = source.catalogId else { continue }
-            let items = try? await service.catalog(
-                baseURL: addon.baseURL,
-                type: type,
-                id: catalogID,
-                genre: source.genre
-            )
-            loaded.append(contentsOf: items ?? [])
+            let items: [MetaSummary]
+            do {
+                items = try await service.catalog(
+                    baseURL: addon.baseURL,
+                    type: type,
+                    id: catalogID,
+                    genre: source.genre
+                )
+            } catch {
+                let detail = AppLog.safeDescription(error)
+                AppLog.provider.error("Collection catalog failed folder=\(folder.id, privacy: .public) addon=\(addon.manifest.id, privacy: .public) type=\(type, privacy: .public) catalog=\(catalogID, privacy: .public) detail=\(detail, privacy: .public)")
+                continue
+            }
+            loaded.append(contentsOf: items)
         }
         var seen = Set<String>()
         return loaded.filter { seen.insert("\($0.type):\($0.id)").inserted }

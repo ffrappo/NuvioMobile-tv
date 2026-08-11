@@ -6,7 +6,7 @@ final class StremioServiceTests: XCTestCase {
         let base = try StremioService.normalizeManifestURL(
             " https://example.com/config/user/manifest.json?token=ignored "
         )
-        XCTAssertEqual(base.absoluteString, "https://example.com/config/user")
+        XCTAssertEqual(base.absoluteString, "https://example.com/config/user?token=ignored")
     }
 
     func testBaseURLNormalization() throws {
@@ -49,6 +49,39 @@ final class StremioServiceTests: XCTestCase {
         XCTAssertEqual(response.metas[0].releaseInfo, "2026")
         XCTAssertEqual(response.metas[0].genres, ["Drama"])
         XCTAssertEqual(response.metas[1].type, "movie")
+    }
+
+    func testCollectionFixtureUsesMobileDefaultsAndLegacyCatalogSources() throws {
+        let fixture = #"""
+        [{
+          "profile_id": 1,
+          "collections_json": [{
+            "id": "favorites", "title": "Favorites",
+            "folders": [{
+              "id": "movies", "title": "Movies",
+              "catalogSources": [{"addonId":"cinemeta","type":"movie","catalogId":"top"}]
+            }]
+          }]
+        }]
+        """#.data(using: .utf8)!
+        let rows = try JSONDecoder().decode([CollectionSyncBlob].self, from: fixture)
+        let collection = try XCTUnwrap(rows.first?.collections.first)
+        XCTAssertFalse(collection.pinToTop)
+        let folder = try XCTUnwrap(collection.folders.first)
+        XCTAssertEqual(folder.tileShape, "poster")
+        XCTAssertFalse(folder.hideTitle)
+        XCTAssertEqual(folder.sources.first?.provider, "addon")
+        XCTAssertEqual(folder.sources.first?.catalogId, "top")
+    }
+
+    func testCollectionFixtureAcceptsStringTraktListID() throws {
+        let fixture = #"""
+        [{"collections_json":[{"id":"lists","title":"Lists","folders":[{
+          "id":"trakt","title":"Trakt","sources":[{"provider":"trakt","traktListId":"12345"}]
+        }]}]}]
+        """#.data(using: .utf8)!
+        let rows = try JSONDecoder().decode([CollectionSyncBlob].self, from: fixture)
+        XCTAssertEqual(rows.first?.collections.first?.folders.first?.sources.first?.traktListId, 12345)
     }
 
     func testManifestDecodesHomeEligibilityFields() throws {

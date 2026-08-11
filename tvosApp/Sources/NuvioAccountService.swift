@@ -201,10 +201,12 @@ struct NuvioAccountService {
         request.httpMethod = "POST"
         addHeaders(to: &request, accessToken: accessToken)
         request.httpBody = try JSONSerialization.data(withJSONObject: jsonBody)
-        let (_, response) = try await session.data(for: request)
-        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-            throw AuthError.invalidResponse
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw AccountServiceError.invalidResponse }
+        guard (200..<300).contains(http.statusCode) else {
+            throw AccountServiceError.http(status: http.statusCode, message: serverMessage(from: data))
         }
+        AppLog.account.debug("POST \(path, privacy: .public) completed status=\(http.statusCode)")
     }
 
     private func request<T: Decodable, B: Encodable>(
@@ -230,11 +232,44 @@ struct NuvioAccountService {
 
     private func execute<T: Decodable>(_ request: URLRequest) async throws -> T {
         let (data, response) = try await session.data(for: request)
-        guard let http = response as? HTTPURLResponse else { throw AuthError.invalidResponse }
+        guard let http = response as? HTTPURLResponse else { throw AccountServiceError.invalidResponse }
+        let endpoint = request.url?.path ?? "unknown endpoint"
         guard (200..<300).contains(http.statusCode) else {
-            throw AuthError.server(serverMessage(from: data) ?? "Account request failed (\(http.statusCode)).")
+            throw AccountServiceError.http(status: http.statusCode, message: serverMessage(from: data))
         }
-        return try decoder.decode(T.self, from: data)
+        do {
+            let decoded = try decoder.decode(T.self, from: data)
+            AppLog.account.debug("\(request.httpMethod ?? "REQUEST", privacy: .public) \(endpoint, privacy: .public) completed status=\(http.statusCode) bytes=\(data.count)")
+            return decoded
+        } catch {
+            let detail = Self.decodeFailureDetail(error)
+            AppLog.account.error("Decode failed endpoint=\(endpoint, privacy: .public) type=\(String(describing: T.self), privacy: .public) detail=\(detail, privacy: .public) bytes=\(data.count)")
+            throw AccountServiceError.decoding(
+                endpoint: endpoint,
+                type: String(describing: T.self),
+                detail: detail
+            )
+        }
+    }
+
+    private static func decodeFailureDetail(_ error: Error) -> String {
+        switch error {
+        case DecodingError.keyNotFound(let key, let context):
+            return "missing key \(key.stringValue) at \(codingPath(context.codingPath))"
+        case DecodingError.typeMismatch(let type, let context):
+            return "expected \(type) at \(codingPath(context.codingPath))"
+        case DecodingError.valueNotFound(let type, let context):
+            return "missing \(type) at \(codingPath(context.codingPath))"
+        case DecodingError.dataCorrupted(let context):
+            return "corrupt data at \(codingPath(context.codingPath))"
+        default:
+            let nsError = error as NSError
+            return "\(nsError.domain) code=\(nsError.code)"
+        }
+    }
+
+    private static func codingPath(_ path: [CodingKey]) -> String {
+        path.map(\.stringValue).joined(separator: ".").isEmpty ? "root" : path.map(\.stringValue).joined(separator: ".")
     }
 
     private func serverMessage(from data: Data) -> String? {
