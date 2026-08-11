@@ -4,6 +4,7 @@ import SwiftUI
 struct NuvioTVApp: App {
     @StateObject private var authStore = AuthStore()
     @StateObject private var addonStore = AddonStore()
+    @StateObject private var integrationStore = IntegrationStore()
     @StateObject private var libraryStore = LibraryStore()
 
     var body: some Scene {
@@ -11,6 +12,7 @@ struct NuvioTVApp: App {
             AccountGateView()
                 .environmentObject(authStore)
                 .environmentObject(addonStore)
+                .environmentObject(integrationStore)
                 .environmentObject(libraryStore)
                 .preferredColorScheme(.dark)
         }

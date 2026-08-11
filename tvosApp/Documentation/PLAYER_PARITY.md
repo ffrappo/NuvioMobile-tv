@@ -19,6 +19,7 @@ The reference is the established Compose player under `composeApp/src/commonMain
 | Resume and progress persistence | `PlayerScreenRuntimePlaybackActions.kt` | Implemented locally, resumes from 15 seconds through 92 percent, keeps the newest 250 items |
 | Source and episode metadata | `PlayerScreenArgs.kt` | Implemented in the player header and option panels |
 | Network request headers | stream `behaviorHints.proxyHeaders.request` | Implemented with validation and MPV `http-header-fields` |
+| Skip intro, recap, and ending | `SkipIntroRepository.kt`, Anime Skip, AniSkip | Implemented with synchronized mobile integration settings and focused in-player skip actions |
 | Addon subtitle discovery | `SubtitleRepository.kt` | Deferred until the tvOS service implements the subtitle resource endpoint |
 | Subtitle size and delay | `SubtitleStylePanel.kt` | Implemented with native MPV font-size controls and 100 ms delay adjustment |
 | Next-episode autoplay | `PlayerNextEpisodeAutoPlay.kt` | Deferred, manual episode selection is available |
@@ -37,4 +38,6 @@ The reference is the established Compose player under `composeApp/src/commonMain
 - Xcode 27.0 build 27A5228h and AppleTVOS 27.0 SDK reviewed.
 - SwiftUI installed interface confirms `focusSection()` is available on tvOS.
 - Generic tvOS Debug build with signing disabled passes.
+- Integration settings decode from the mobile profile settings blob, including Anime Skip enablement and client ID.
+- AniSkip and Anime Skip segment lookup drives contextual skip actions in the native player controls.
 - Signed physical Apple TV Debug build and hands-on remote smoke testing remain pending until the paired device reconnects.

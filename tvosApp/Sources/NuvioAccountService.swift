@@ -97,6 +97,36 @@ struct NuvioAccountService {
         return try await execute(request)
     }
 
+    func profileSettings(accessToken: String, profileID: Int = 1) async throws -> TVIntegrationSettings? {
+        let params = ["p_profile_id": profileID, "p_platform": "mobile"] as [String: Any]
+        let body = try JSONSerialization.data(withJSONObject: params)
+        var request = URLRequest(url: Self.baseURL.appending(path: "/rest/v1/rpc/sync_pull_profile_settings_blob"))
+        request.httpMethod = "POST"
+        addHeaders(to: &request, accessToken: accessToken)
+        request.httpBody = body
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw AuthError.invalidResponse
+        }
+        guard let rows = try JSONSerialization.jsonObject(with: data) as? [[String: Any]],
+              let settingsJSON = rows.first?["settings_json"] as? [String: Any],
+              let features = settingsJSON["features"] as? [String: Any],
+              let player = features["player_settings"] as? [String: Any] else { return nil }
+        return TVIntegrationSettings(
+            skipIntroEnabled: syncBoolean("skip_intro_enabled", in: player) ?? true,
+            animeSkipEnabled: syncBoolean("animeskip_enabled", in: player) ?? false,
+            animeSkipClientID: syncString("animeskip_client_id", in: player) ?? ""
+        )
+    }
+
+    private func syncBoolean(_ key: String, in payload: [String: Any]) -> Bool? {
+        (payload[key] as? [String: Any])?["value"] as? Bool
+    }
+
+    private func syncString(_ key: String, in payload: [String: Any]) -> String? {
+        (payload[key] as? [String: Any])?["value"] as? String
+    }
+
     private func request<T: Decodable, B: Encodable>(
         path: String,
         body: B,

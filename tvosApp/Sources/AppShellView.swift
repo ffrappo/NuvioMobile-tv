@@ -33,6 +33,7 @@ enum AppSection: String, CaseIterable, Identifiable {
 struct AppShellView: View {
     @EnvironmentObject private var authStore: AuthStore
     @EnvironmentObject private var addonStore: AddonStore
+    @EnvironmentObject private var integrationStore: IntegrationStore
     @State private var selection: AppSection = .home
     @State private var path: [MetaSummary] = []
     @FocusState private var focusedSection: AppSection?
@@ -52,7 +53,9 @@ struct AppShellView: View {
         }
         .task(id: authStore.signedInEmail) {
             if authStore.session != nil {
-                await addonStore.syncFromAccount(auth: authStore)
+                async let addons: Void = addonStore.syncFromAccount(auth: authStore)
+                async let integrations: Void = integrationStore.syncFromAccount(auth: authStore)
+                _ = await (addons, integrations)
             } else {
                 await addonStore.refreshManifests()
             }

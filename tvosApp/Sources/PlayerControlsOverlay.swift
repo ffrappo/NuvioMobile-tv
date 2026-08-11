@@ -4,6 +4,8 @@ struct PlayerControlsOverlay: View {
     let route: PlayerRoute
     @ObservedObject var session: MPVPlaybackSession
     let selectedSourceURL: URL
+    let activeSkipInterval: SkipInterval?
+    let onSkip: (SkipInterval) -> Void
     let onSelectSource: (PlayerSourceOption) -> Void
     let onSelectEpisode: (PlayerEpisodeOption) -> Void
 
@@ -12,26 +14,19 @@ struct PlayerControlsOverlay: View {
     @State private var isScrubbing = false
     @FocusState private var focus: Control?
 
-    private enum Control: Hashable {
-        case seekBack, playPause, seekForward, options
-    }
+    private enum Control: Hashable { case playPause, skip, options }
 
     var body: some View {
         VStack {
             header
             Spacer()
+            if let activeSkipInterval { skipButton(activeSkipInterval) }
             transport
         }
-        .padding(52)
-        .background(
-            LinearGradient(
-                colors: [.black.opacity(0.7), .clear, .black.opacity(0.88)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-        )
-        .defaultFocus($focus, .playPause)
+        .padding(.horizontal, 62)
+        .padding(.vertical, 48)
+        .background(overlayGradient.ignoresSafeArea())
+        .defaultFocus($focus, activeSkipInterval == nil ? .playPause : .skip)
         .sheet(isPresented: $showOptions) {
             PlayerOptionsView(
                 route: route,
@@ -44,87 +39,141 @@ struct PlayerControlsOverlay: View {
         .onChange(of: session.position) { _, position in
             if !isScrubbing { scrubPosition = position }
         }
+        .onMoveCommand { direction in
+            guard !showOptions else { return }
+            switch direction {
+            case .left: scrub(by: -10)
+            case .right: scrub(by: 10)
+            default: break
+            }
+        }
     }
 
     private var header: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 8) {
+        HStack(alignment: .top, spacing: 28) {
+            VStack(alignment: .leading, spacing: 7) {
                 Text(route.title.tvSafe)
-                    .font(.title.weight(.bold))
+                    .font(.system(size: 38, weight: .bold, design: .rounded))
+                    .lineLimit(1)
                 if let episode = episodeLabel {
-                    Text(episode.tvSafe).font(.title3)
+                    Text(episode.tvSafe).font(.title3.weight(.medium))
                 }
-                Text(route.sourceName.tvSafe)
+                Label(route.sourceName.tvSafe, systemImage: "antenna.radiowaves.left.and.right")
+                    .font(.callout.weight(.semibold))
                     .foregroundStyle(NuvioTheme.secondaryText)
             }
             Spacer()
-            if session.isLoading { ProgressView("Loading") }
+            if session.isLoading { ProgressView().controlSize(.large) }
             Button { showOptions = true } label: {
-                Label("Playback Options", systemImage: "slider.horizontal.3")
+                Image(systemName: "slider.horizontal.3")
+                    .font(.title2.weight(.semibold))
+                    .frame(width: 58, height: 58)
             }
             .buttonStyle(.bordered)
+            .buttonBorderShape(.circle)
             .focused($focus, equals: .options)
+            .accessibilityLabel("Playback Options")
         }
     }
 
     private var transport: some View {
-        VStack(spacing: 18) {
-            ProgressView(value: scrubPosition, total: max(session.duration, 1))
-                .tint(NuvioTheme.accent)
+        VStack(spacing: 20) {
+            timeline
+            HStack(spacing: 26) {
+                transportButton("gobackward.10", label: "Back 10 Seconds") { scrub(by: -10) }
+                Button { session.toggle() } label: {
+                    Image(systemName: session.isPaused ? "play.fill" : "pause.fill")
+                        .font(.system(size: 34, weight: .bold))
+                        .frame(width: 82, height: 82)
+                }
+                .buttonStyle(.borderedProminent)
+                .buttonBorderShape(.circle)
+                .tint(.white)
+                .foregroundStyle(.black)
+                .focused($focus, equals: .playPause)
+                transportButton("goforward.10", label: "Forward 10 Seconds") { scrub(by: 10) }
+            }
+        }
+        .padding(.horizontal, 34)
+        .padding(.vertical, 28)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 30, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 30).stroke(.white.opacity(0.12), lineWidth: 1))
+    }
 
+    private var timeline: some View {
+        VStack(spacing: 10) {
+            GeometryReader { proxy in
+                let width = proxy.size.width
+                ZStack(alignment: .leading) {
+                    Capsule().fill(.white.opacity(0.24)).frame(height: 7)
+                    Capsule().fill(.white).frame(width: width * progress, height: 7)
+                    Circle().fill(.white).frame(width: 20, height: 20).offset(x: max(0, width * progress - 10))
+                }
+                .frame(maxHeight: .infinity)
+            }
+            .frame(height: 20)
             HStack {
                 Text(PlayerTimeFormatter.string(scrubPosition))
                 Spacer()
-                Button { session.seek(by: -10) } label: {
-                    Label("Back 10 Seconds", systemImage: "gobackward.10")
-                }
-                .focused($focus, equals: .seekBack)
-                Button { session.toggle() } label: {
-                    Label(
-                        session.isPaused ? "Play" : "Pause",
-                        systemImage: session.isPaused ? "play.fill" : "pause.fill"
-                    )
-                }
-                .focused($focus, equals: .playPause)
-                Button { session.seek(by: 10) } label: {
-                    Label("Forward 10 Seconds", systemImage: "goforward.10")
-                }
-                .focused($focus, equals: .seekForward)
-                Button { scrub(by: -30) } label: {
-                    Label("Back 30 Seconds", systemImage: "gobackward.30")
-                }
-                Button { scrub(by: 30) } label: {
-                    Label("Forward 30 Seconds", systemImage: "goforward.30")
-                }
-                Spacer()
-                Text(PlayerTimeFormatter.string(session.duration))
+                Text("-\(PlayerTimeFormatter.string(max(0, session.duration - scrubPosition)))")
             }
-            .buttonStyle(.bordered)
-            .font(.callout.monospacedDigit())
+            .font(.callout.monospacedDigit().weight(.semibold))
+            .foregroundStyle(.white.opacity(0.82))
         }
-        .padding(28)
-        .background(.black.opacity(0.75), in: RoundedRectangle(cornerRadius: 24))
+    }
+
+    private func skipButton(_ interval: SkipInterval) -> some View {
+        HStack {
+            Spacer()
+            Button { onSkip(interval) } label: {
+                Label(interval.actionTitle, systemImage: "forward.end.fill")
+                    .font(.headline.weight(.bold))
+                    .padding(.horizontal, 10)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.white)
+            .foregroundStyle(.black)
+            .focused($focus, equals: .skip)
+        }
+        .padding(.bottom, 22)
+    }
+
+    private func transportButton(_ symbol: String, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol).font(.system(size: 28, weight: .semibold)).frame(width: 60, height: 60)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+    }
+
+    private var overlayGradient: LinearGradient {
+        LinearGradient(
+            stops: [
+                .init(color: .black.opacity(0.76), location: 0),
+                .init(color: .clear, location: 0.42),
+                .init(color: .black.opacity(0.96), location: 1),
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+
+    private var progress: Double {
+        guard session.duration > 0 else { return 0 }
+        return min(max(scrubPosition / session.duration, 0), 1)
     }
 
     private func scrub(by seconds: Double) {
         isScrubbing = true
-        scrubPosition = (scrubPosition + seconds).clamped(to: 0...max(session.duration, 0))
+        scrubPosition = min(max(scrubPosition + seconds, 0), max(session.duration, 0))
         session.seek(to: scrubPosition)
         isScrubbing = false
     }
 
     private var episodeLabel: String? {
-        guard let season = route.seasonNumber, let episode = route.episodeNumber else {
-            return route.episodeTitle
-        }
+        guard let season = route.seasonNumber, let episode = route.episodeNumber else { return route.episodeTitle }
         let code = "S\(season) E\(episode)"
         return route.episodeTitle.map { "\(code)  \($0)" } ?? code
-    }
-}
-
-private extension Comparable {
-    func clamped(to range: ClosedRange<Self>) -> Self {
-        min(max(self, range.lowerBound), range.upperBound)
     }
 }
 

@@ -4,11 +4,12 @@ import UIKit
 struct SettingsView: View {
     @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var addons: AddonStore
+    @EnvironmentObject private var integrations: IntegrationStore
     @State private var cacheMessage: String?
     @State private var showLogout = false
     @FocusState private var focus: Action?
 
-    private enum Action: Hashable { case clearCache, account, logout }
+    private enum Action: Hashable { case clearCache, account, logout, skipIntro, syncIntegrations }
 
     var body: some View {
         ScrollView {
@@ -17,8 +18,9 @@ struct SettingsView: View {
                     .font(.largeTitle.weight(.bold))
                 appCard
                 accountCard
+                integrationsCard
                 cacheCard
-                Text("Playback uses the native Apple TV player for direct HTTP and HTTPS video URLs.")
+                Text("Direct HTTP and HTTPS playback uses MPV with Apple TV system media controls.")
                     .font(.callout)
                     .foregroundStyle(NuvioTheme.secondaryText)
             }
@@ -82,6 +84,77 @@ struct SettingsView: View {
         }
         .padding(28)
         .background(NuvioTheme.panel, in: RoundedRectangle(cornerRadius: 22))
+    }
+
+    private var integrationsCard: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            HStack {
+                Text("Integrations").font(.title2.weight(.semibold))
+                Spacer()
+                if integrations.isSyncing { ProgressView() }
+            }
+            integrationRow(
+                title: "AniSkip",
+                detail: "Community anime opening, ending, and recap timestamps",
+                symbol: "forward.end.circle.fill",
+                status: integrations.settings.skipIntroEnabled ? "Active" : "Disabled"
+            )
+            integrationRow(
+                title: "Anime Skip",
+                detail: "Synchronized from your mobile playback settings",
+                symbol: "sparkles.tv.fill",
+                status: integrations.settings.animeSkipReady ? "Connected" : "Set up on mobile"
+            )
+            integrationRow(
+                title: "Stremio Addons",
+                detail: "Catalogs, metadata, streams, and source request headers",
+                symbol: "puzzlepiece.extension.fill",
+                status: "\(addons.addons.count) enabled"
+            )
+            Toggle("Show skip controls during playback", isOn: Binding(
+                get: { integrations.settings.skipIntroEnabled },
+                set: integrations.setSkipIntroEnabled
+            ))
+            .focused($focus, equals: .skipIntro)
+            if auth.session != nil {
+                NuvioButton(
+                    title: "Sync Mobile Integrations",
+                    symbol: "arrow.triangle.2.circlepath",
+                    focused: focus == .syncIntegrations
+                ) {
+                    Task { await integrations.syncFromAccount(auth: auth) }
+                }
+                .frame(width: 360)
+                .focused($focus, equals: .syncIntegrations)
+            }
+            if let message = integrations.syncMessage {
+                Text(message.tvSafe).font(.callout).foregroundStyle(NuvioTheme.secondaryText)
+            }
+        }
+        .padding(28)
+        .background(NuvioTheme.panel, in: RoundedRectangle(cornerRadius: 22))
+    }
+
+    private func integrationRow(
+        title: String,
+        detail: String,
+        symbol: String,
+        status: String
+    ) -> some View {
+        HStack(spacing: 18) {
+            Image(systemName: symbol)
+                .font(.title2)
+                .foregroundStyle(NuvioTheme.accent)
+                .frame(width: 42)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title).font(.headline)
+                Text(detail).font(.callout).foregroundStyle(NuvioTheme.secondaryText)
+            }
+            Spacer()
+            Text(status)
+                .font(.callout.weight(.semibold))
+                .foregroundStyle(.white.opacity(0.82))
+        }
     }
 
     private var cacheCard: some View {

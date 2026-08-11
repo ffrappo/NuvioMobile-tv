@@ -253,6 +253,7 @@ private struct StreamSourcesView: View {
                                 onPlay(PlayerRoute(
                                     url: url,
                                     contentID: contentID,
+                                    imdbID: imdbID(from: contentID),
                                     title: title,
                                     sourceName: source.stream.name,
                                     seasonNumber: seasonNumber,
@@ -302,6 +303,12 @@ private struct StreamSourcesView: View {
 
     private var requestID: String {
         ([type, videoID] + addons.map(\.baseURL)).joined(separator: "|")
+    }
+
+    private func imdbID(from contentID: String) -> String? {
+        guard let prefix = contentID.split(separator: ":").first.map(String.init),
+              prefix.hasPrefix("tt") else { return nil }
+        return prefix
     }
 
     @MainActor

@@ -4,6 +4,7 @@ struct PlayerRoute: Identifiable {
     let id = UUID()
     let url: URL
     let contentID: String
+    let imdbID: String?
     let title: String
     let sourceName: String
     let seasonNumber: Int?
@@ -47,14 +48,18 @@ struct PlayerView: View {
     let route: PlayerRoute
 
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var integrations: IntegrationStore
     @StateObject private var session = MPVPlaybackSession()
     @State private var controlsVisible = true
     @State private var selectedSourceURL: URL?
     @State private var resumePosition: Double?
     @State private var lastSavedPosition = 0.0
     @State private var nowPlaying: TVNowPlayingController?
+    @State private var skipIntervals: [SkipInterval] = []
+    @State private var dismissedSkipIntervalIDs: Set<String> = []
 
     private let progressStore = PlaybackProgressStore()
+    private let skipService = SkipSegmentsService()
 
     var body: some View {
         ZStack {
@@ -65,6 +70,8 @@ struct PlayerView: View {
                     route: route,
                     session: session,
                     selectedSourceURL: selectedSourceURL ?? route.url,
+                    activeSkipInterval: activeSkipInterval,
+                    onSkip: skip,
                     onSelectSource: switchSource,
                     onSelectEpisode: selectEpisode
                 )
@@ -82,6 +89,7 @@ struct PlayerView: View {
             let controller = TVNowPlayingController(session: session)
             controller.updateMetadata(title: route.title, subtitle: route.sourceName)
             nowPlaying = controller
+            loadSkipIntervals()
         }
         .onDisappear {
             saveProgress()
@@ -110,6 +118,31 @@ struct PlayerView: View {
             session.stop()
             dismiss()
         }
+    }
+
+    private var activeSkipInterval: SkipInterval? {
+        skipIntervals.first {
+            $0.contains(session.position) && !dismissedSkipIntervalIDs.contains($0.id)
+        }
+    }
+
+    private func loadSkipIntervals() {
+        guard let imdbID = route.imdbID,
+              let season = route.seasonNumber,
+              let episode = route.episodeNumber else { return }
+        Task {
+            skipIntervals = await skipService.intervals(
+                imdbID: imdbID,
+                season: season,
+                episode: episode,
+                settings: integrations.settings
+            )
+        }
+    }
+
+    private func skip(_ interval: SkipInterval) {
+        dismissedSkipIntervalIDs.insert(interval.id)
+        session.seek(to: interval.endTime)
     }
 
     private func switchSource(_ source: PlayerSourceOption) {
