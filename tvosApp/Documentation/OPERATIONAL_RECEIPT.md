@@ -108,9 +108,10 @@ Confirmed fixes:
 
 Evidence:
 
-- `xcodebuild ... CODE_SIGNING_ALLOWED=NO build-for-testing`: `TEST BUILD SUCCEEDED`, log `build/tvos-audit-build.log`.
-- Signed Seminterrato build, install, and launch: `BUILD SUCCEEDED`, log `build/tvos-audit-final2-device-build.log`.
-- Device console: `collections.complete profile=1 count=8`, twice, with no Nuvio failure or crash line during a 30-second launch capture. Log `build/tvos-audit-final2-live-console.log`.
+- Confirmed focus remediation landed in `bacb3af6`, `90e6ffe9`, and `55ecce7f`: custom focus borders were replaced with native tvOS controls or scale and shadow treatment.
+- `xcodebuild ... CODE_SIGNING_ALLOWED=NO build-for-testing`: `TEST BUILD SUCCEEDED`, log `build/tvos-final-build.log`.
+- Signed Seminterrato build, install, and launch: `BUILD SUCCEEDED`, log `build/tvos-final-device-build.log`.
+- Device console: `collections.complete profile=1 count=8`, twice, with no Nuvio failure or crash line during a 30-second launch capture. Log `build/tvos-final-live-console.log`.
 - Every Swift source and test file is at most 400 lines. `git diff --check` and the prohibited-dash scan passed.
 - Runtime XCTest execution remains unavailable because this Mac has no installed tvOS Simulator runtime. Test compilation and linking passed in the generic test build.
 
