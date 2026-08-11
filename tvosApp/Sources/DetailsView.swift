@@ -38,6 +38,7 @@ struct DetailsView: View {
                             episodePicker(detail.videos)
                         }
                         StreamSourcesView(
+                            summary: detail.summary,
                             type: detail.type,
                             videoID: selectedVideo?.id ?? detail.id,
                             contentID: selectedVideo?.id ?? detail.id,
@@ -210,6 +211,7 @@ struct DetailsView: View {
 }
 
 private struct StreamSourcesView: View {
+    let summary: MetaSummary
     let type: String
     let videoID: String
     let contentID: String
@@ -256,6 +258,8 @@ private struct StreamSourcesView: View {
                                     imdbID: imdbID(from: contentID),
                                     title: title,
                                     sourceName: source.stream.name,
+                                    summary: summary,
+                                    videoID: videoID,
                                     seasonNumber: seasonNumber,
                                     episodeNumber: episodeNumber,
                                     episodeTitle: episodeTitle,

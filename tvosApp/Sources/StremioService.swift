@@ -51,18 +51,33 @@ struct StremioService {
         return (base, manifest)
     }
 
-    func catalog(type: String, id: String = "top", query: String? = nil) async throws -> [MetaSummary] {
-        let url = try Self.catalogURL(type: type, id: id, query: query)
+    func catalog(
+        baseURL: String = Self.cinemetaBaseURL.absoluteString,
+        type: String,
+        id: String = "top",
+        query: String? = nil,
+        genre: String? = nil,
+        skip: Int? = nil
+    ) async throws -> [MetaSummary] {
+        let url = try AddonTransport.catalogURL(
+            baseURL: baseURL,
+            type: type,
+            id: id,
+            genre: genre,
+            search: query,
+            skip: skip
+        )
         let response: CatalogResponse = try await request(url)
         return response.metas
     }
 
-    func details(type: String, id: String) async throws -> MetaDetail {
-        let url = Self.cinemetaBaseURL
-            .appendingPathComponent("meta")
-            .appendingPathComponent(type)
-            .appendingPathComponent(id)
-            .appendingPathExtension("json")
+    func details(type: String, id: String, baseURL: String = Self.cinemetaBaseURL.absoluteString) async throws -> MetaDetail {
+        let url = try AddonTransport.resourceURL(
+            baseURL: baseURL,
+            resource: "meta",
+            type: type,
+            id: id
+        )
         let response: MetaResponse = try await request(url)
         return response.meta
     }
@@ -73,12 +88,12 @@ struct StremioService {
 
         for addon in addons where addon.providesStreams {
             do {
-                guard let base = URL(string: addon.baseURL) else { throw StremioServiceError.invalidURL }
-                let url = base
-                    .appendingPathComponent("stream")
-                    .appendingPathComponent(type)
-                    .appendingPathComponent(id)
-                    .appendingPathExtension("json")
+                let url = try AddonTransport.resourceURL(
+                    baseURL: addon.baseURL,
+                    resource: "stream",
+                    type: type,
+                    id: id
+                )
                 let response: StreamResponse = try await request(url)
                 sources.append(contentsOf: response.streams.map {
                     StreamSource(addonName: addon.name, stream: $0)
@@ -131,43 +146,24 @@ struct StremioService {
             throw StremioServiceError.unsupportedScheme
         }
 
-        components.query = nil
         components.fragment = nil
-        guard var url = components.url else { throw StremioServiceError.invalidURL }
-        if url.lastPathComponent.lowercased() == "manifest.json" {
-            url.deleteLastPathComponent()
+        if components.path.hasSuffix("/manifest.json") {
+            components.path.removeLast("/manifest.json".count)
         }
-        guard var normalized = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
-            throw StremioServiceError.invalidURL
+        while components.path.count > 1 && components.path.hasSuffix("/") {
+            components.path.removeLast()
         }
-        while normalized.path.count > 1 && normalized.path.hasSuffix("/") {
-            normalized.path.removeLast()
-        }
-        guard let result = normalized.url else { throw StremioServiceError.invalidURL }
+        guard let result = components.url else { throw StremioServiceError.invalidURL }
         return result
     }
 
     static func catalogURL(type: String, id: String, query: String?) throws -> URL {
-        var url = cinemetaBaseURL
-            .appendingPathComponent("catalog")
-            .appendingPathComponent(type)
-            .appendingPathComponent(id)
-
-        let trimmed = query?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        guard !trimmed.isEmpty else {
-            url.appendPathExtension("json")
-            return url
-        }
-
-        var allowed = CharacterSet.alphanumerics
-        allowed.formUnion(CharacterSet(charactersIn: "-._~"))
-        guard let encodedQuery = trimmed.addingPercentEncoding(withAllowedCharacters: allowed),
-              var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
-            throw StremioServiceError.invalidURL
-        }
-        components.percentEncodedPath += "/search=\(encodedQuery).json"
-        guard let result = components.url else { throw StremioServiceError.invalidURL }
-        return result
+        try AddonTransport.catalogURL(
+            baseURL: cinemetaBaseURL.absoluteString,
+            type: type,
+            id: id,
+            search: query
+        )
     }
 }
 

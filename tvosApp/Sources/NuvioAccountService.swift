@@ -97,7 +97,76 @@ struct NuvioAccountService {
         return try await execute(request)
     }
 
+    func profiles(accessToken: String) async throws -> [TVProfile] {
+        try await request(
+            path: "/rest/v1/rpc/sync_pull_profiles",
+            body: EmptyAccountPayload(),
+            accessToken: accessToken
+        )
+    }
+
+    func watchProgress(accessToken: String, profileID: Int) async throws -> [SyncWatchProgressRecord] {
+        try await request(
+            path: "/rest/v1/rpc/sync_pull_watch_progress",
+            body: ProfilePayload(pProfileID: profileID),
+            accessToken: accessToken
+        )
+    }
+
+    func save(_ records: [WatchProgressRecord], accessToken: String, profileID: Int) async throws {
+        let entries = records.map(SyncWatchProgressRecord.init)
+        try await requestVoid(
+            path: "/rest/v1/rpc/sync_push_watch_progress",
+            jsonBody: ["p_profile_id": profileID, "p_entries": entries.map(\.jsonObject)],
+            accessToken: accessToken
+        )
+    }
+
+    func collections(accessToken: String, profileID: Int) async throws -> [TVCollection] {
+        let rows: [CollectionSyncBlob] = try await request(
+            path: "/rest/v1/rpc/sync_pull_collections",
+            body: ProfilePayload(pProfileID: profileID),
+            accessToken: accessToken
+        )
+        return rows.first?.collections ?? []
+    }
+
+    func homePreferences(accessToken: String, profileID: Int) async throws -> HomePreferences? {
+        let rows: [HomeCatalogSyncBlob] = try await request(
+            path: "/rest/v1/rpc/sync_pull_home_catalog_settings",
+            body: HomeSettingsPayload(pProfileID: profileID, pPlatform: "home_catalog_shared"),
+            accessToken: accessToken
+        )
+        guard let payload = rows.first?.settingsJSON else { return nil }
+        let items = payload.items.map { item in
+            let fallbackKey = item.isCollection
+                ? "collection_\(item.collectionID)"
+                : "\(item.addonID):\(item.type):\(item.catalogID)"
+            return HomeCatalogPreference(
+                key: item.key.isEmpty ? fallbackKey : item.key,
+                enabled: item.enabled,
+                order: item.order,
+                customTitle: item.customTitle
+            )
+        }
+        return HomePreferences(
+            heroEnabled: true,
+            showCatalogType: payload.showCatalogType,
+            hideUnreleasedContent: payload.hideUnreleasedContent,
+            items: items
+        )
+    }
+
+    func library(accessToken: String, profileID: Int) async throws -> [LibrarySyncRecord] {
+        try await request(
+            path: "/rest/v1/rpc/sync_pull_library",
+            body: LibraryPullPayload(pProfileID: profileID, pLimit: 500, pOffset: 0),
+            accessToken: accessToken
+        )
+    }
+
     func profileSettings(accessToken: String, profileID: Int = 1) async throws -> TVIntegrationSettings? {
+
         let params = ["p_profile_id": profileID, "p_platform": "mobile"] as [String: Any]
         let body = try JSONSerialization.data(withJSONObject: params)
         var request = URLRequest(url: Self.baseURL.appending(path: "/rest/v1/rpc/sync_pull_profile_settings_blob"))
@@ -125,6 +194,17 @@ struct NuvioAccountService {
 
     private func syncString(_ key: String, in payload: [String: Any]) -> String? {
         (payload[key] as? [String: Any])?["value"] as? String
+    }
+
+    private func requestVoid(path: String, jsonBody: [String: Any], accessToken: String) async throws {
+        var request = URLRequest(url: Self.baseURL.appending(path: path))
+        request.httpMethod = "POST"
+        addHeaders(to: &request, accessToken: accessToken)
+        request.httpBody = try JSONSerialization.data(withJSONObject: jsonBody)
+        let (_, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw AuthError.invalidResponse
+        }
     }
 
     private func request<T: Decodable, B: Encodable>(
@@ -160,5 +240,64 @@ struct NuvioAccountService {
     private func serverMessage(from data: Data) -> String? {
         guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
         return (object["msg"] ?? object["message"] ?? object["error_description"] ?? object["error"]) as? String
+    }
+
+}
+
+private extension SyncWatchProgressRecord {
+    init(_ record: WatchProgressRecord) {
+        self.init(
+            contentID: record.contentID,
+            contentType: record.contentType,
+            videoID: record.videoID,
+            season: record.season,
+            episode: record.episode,
+            position: record.position,
+            duration: record.duration,
+            lastWatched: record.lastWatched,
+            progressKey: record.progressKey
+        )
+    }
+
+    var jsonObject: [String: Any] {
+        var payload: [String: Any] = [
+            "content_id": contentID,
+            "content_type": contentType,
+            "video_id": videoID,
+            "position": position,
+            "duration": duration,
+            "last_watched": lastWatched,
+            "progress_key": progressKey,
+        ]
+        if let season { payload["season"] = season }
+        if let episode { payload["episode"] = episode }
+        return payload
+    }
+}
+
+private struct EmptyAccountPayload: Encodable {}
+
+private struct ProfilePayload: Encodable {
+    let pProfileID: Int
+    enum CodingKeys: String, CodingKey { case pProfileID = "p_profile_id" }
+}
+
+private struct HomeSettingsPayload: Encodable {
+    let pProfileID: Int
+    let pPlatform: String
+    enum CodingKeys: String, CodingKey {
+        case pProfileID = "p_profile_id"
+        case pPlatform = "p_platform"
+    }
+}
+
+private struct LibraryPullPayload: Encodable {
+    let pProfileID: Int
+    let pLimit: Int
+    let pOffset: Int
+    enum CodingKeys: String, CodingKey {
+        case pProfileID = "p_profile_id"
+        case pLimit = "p_limit"
+        case pOffset = "p_offset"
     }
 }

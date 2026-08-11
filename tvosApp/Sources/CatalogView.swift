@@ -3,194 +3,174 @@ import SwiftUI
 struct CatalogView: View {
     let onSelect: (MetaSummary) -> Void
 
-    @State private var movies: [MetaSummary] = []
-    @State private var series: [MetaSummary] = []
-    @State private var manifestName = "Cinemeta"
-    @State private var isLoading = true
-    @State private var errorMessage: String?
+    @EnvironmentObject private var auth: AuthStore
+    @EnvironmentObject private var addons: AddonStore
+    @EnvironmentObject private var profiles: TVProfileStore
+    @EnvironmentObject private var home: HomeStore
+    @EnvironmentObject private var preferences: HomePreferencesStore
+    @EnvironmentObject private var collections: CollectionStore
+    @State private var loadedFolders: [String: [MetaSummary]] = [:]
+    @State private var selectedFolderByCollection: [String: String] = [:]
+    @FocusState private var focus: HomeFocus?
 
-    private let service = StremioService()
+    private enum HomeFocus: Hashable {
+        case hero(String)
+        case progress(String)
+        case upcoming(String)
+        case folder(String)
+        case catalog(String, String)
+        case retry
+    }
 
     var body: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 44) {
-                header
+            LazyVStack(alignment: .leading, spacing: 42) {
+                if let message = home.snapshot.message { statusBanner(message) }
+                content
+            }
+            .padding(.bottom, 60)
+        }
+        .background(NuvioTheme.background)
+        .task(id: reloadKey) { await reload() }
+        .refreshable { await reload(force: true) }
+    }
 
-                if isLoading {
-                    ProgressView("Loading popular catalogs")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity, minHeight: 300)
-                } else if let errorMessage {
-                    ErrorPanel(message: errorMessage, retry: load)
-                } else {
-                    CatalogRail(title: "Popular Movies", items: movies, onSelect: onSelect)
-                    CatalogRail(title: "Popular Series", items: series, onSelect: onSelect)
+    @ViewBuilder
+    private var content: some View {
+        if home.snapshot.isLoading && !home.snapshot.hasContent {
+            loadingState
+        } else if !home.snapshot.hasContent {
+            emptyState
+        } else {
+            if let hero = home.snapshot.heroItems.first {
+                HomeHeroView(item: hero, focused: focus == .hero(hero.id)) {
+                    onSelect(hero)
                 }
+                .focused($focus, equals: .hero(hero.id))
+                .defaultFocus($focus, .hero(hero.id))
             }
-            .padding(.horizontal, 48)
-            .padding(.vertical, 36)
-        }
-        .task { await loadContent() }
-    }
-
-    private var header: some View {
-        HStack(spacing: 24) {
-            Image("NuvioLogo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 96, height: 96)
-                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                .shadow(color: NuvioTheme.accent.opacity(0.45), radius: 30)
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Welcome to Nuvio")
-                    .font(.largeTitle.weight(.bold))
-                Text("Popular picks from \(manifestName.tvSafe)")
-                    .font(.title3)
-                    .foregroundStyle(NuvioTheme.secondaryText)
+            if !home.snapshot.continueWatching.isEmpty {
+                ProgressRail(
+                    title: "Continue Watching",
+                    items: home.snapshot.continueWatching,
+                    focus: $focus,
+                    focusValue: { .progress($0.id) },
+                    onSelect: { onSelect($0.summary) }
+                )
+            }
+            if !home.snapshot.upcoming.isEmpty {
+                ProgressRail(
+                    title: "Upcoming",
+                    items: home.snapshot.upcoming,
+                    focus: $focus,
+                    focusValue: { .upcoming($0.id) },
+                    onSelect: { onSelect($0.summary) }
+                )
+            }
+            ForEach(home.snapshot.collections) { collection in
+                collectionRail(collection)
+            }
+            ForEach(home.snapshot.sections) { section in
+                CatalogRail(
+                    title: sectionTitle(section),
+                    subtitle: section.definition.addonName,
+                    items: Array(section.items.prefix(18)),
+                    focus: $focus,
+                    focusValue: { .catalog(section.id, $0.id) },
+                    onSelect: onSelect
+                )
             }
         }
     }
 
-    private func load() {
-        Task { await loadContent() }
+    private var reloadKey: String {
+        "\(profiles.activeProfileID):\(addons.homeAddons.map(\.baseURL).joined(separator: "|"))"
     }
 
-    @MainActor
-    private func loadContent() async {
-        isLoading = true
-        errorMessage = nil
-        do {
-            let manifest = try await service.cinemetaManifest()
-            manifestName = manifest.name
-            let movieCatalog = manifest.catalogs.first { $0.type == "movie" && $0.id == "top" }
-            let seriesCatalog = manifest.catalogs.first { $0.type == "series" && $0.id == "top" }
-            async let movieItems = service.catalog(
-                type: "movie",
-                id: movieCatalog?.id ?? "top"
-            )
-            async let seriesItems = service.catalog(
-                type: "series",
-                id: seriesCatalog?.id ?? "top"
-            )
-            let loaded = try await (movieItems, seriesItems)
-            movies = loaded.0
-            series = loaded.1
-        } catch {
-            errorMessage = error.userMessage
-        }
-        isLoading = false
+    private func reload(force: Bool = false) async {
+        await home.load(
+            addons: addons.homeAddons,
+            auth: auth,
+            profileID: profiles.activeProfileID,
+            force: force
+        )
     }
-}
 
-struct CatalogRail: View {
-    let title: String
-    let items: [MetaSummary]
-    let onSelect: (MetaSummary) -> Void
+    private func sectionTitle(_ section: HomeCatalogSection) -> String {
+        let preference = preferences.value.preference(for: section.id)
+        if let custom = preference?.customTitle.trimmedNonEmpty { return custom }
+        return section.title
+    }
 
-    @FocusState private var focusedID: String?
-
-    var body: some View {
+    private func collectionRail(_ collection: TVCollection) -> some View {
         VStack(alignment: .leading, spacing: 18) {
-            Text(title)
-                .font(.title2.weight(.semibold))
-
+            Text(collection.title.tvSafe).font(.title2.weight(.semibold)).padding(.horizontal, 48)
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 28) {
-                    ForEach(items) { item in
+                LazyHStack(spacing: 26) {
+                    ForEach(collection.folders) { folder in
                         Button {
-                            onSelect(item)
+                            selectedFolderByCollection[collection.id] = folder.id
+                            Task {
+                                loadedFolders[folder.id] = await collections.items(
+                                    for: folder,
+                                    addons: addons.homeAddons
+                                )
+                            }
                         } label: {
-                            PosterCard(item: item, isFocused: focusedID == item.id)
+                            FolderCard(folder: folder, count: loadedFolders[folder.id]?.count)
                         }
                         .buttonStyle(NuvioBareButtonStyle())
-                        .focused($focusedID, equals: item.id)
+                        .focused($focus, equals: .folder(folder.id))
                     }
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 22)
+                .padding(.horizontal, 48)
+                .padding(.vertical, 18)
+            }
+            if let selectedID = selectedFolderByCollection[collection.id] ?? collection.folders.first?.id,
+               let folder = collection.folders.first(where: { $0.id == selectedID }),
+               let items = loadedFolders[selectedID], !items.isEmpty {
+                CatalogRail(
+                    title: folder.title,
+                    subtitle: collection.title,
+                    items: items,
+                    focus: $focus,
+                    focusValue: { .catalog(folder.id, $0.id) },
+                    onSelect: onSelect
+                )
             }
         }
-        .defaultFocus($focusedID, items.first?.id)
     }
-}
 
-struct PosterCard: View {
-    let item: MetaSummary
-    let isFocused: Bool
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            RemoteArtwork(urlString: item.poster, systemPlaceholder: "film")
-                .frame(width: 220, height: 320)
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(isFocused ? NuvioTheme.accent : Color.white.opacity(0.12), lineWidth: isFocused ? 5 : 1)
-                )
-                .shadow(color: isFocused ? NuvioTheme.accent.opacity(0.75) : .black.opacity(0.45), radius: isFocused ? 24 : 10)
-
-            Text(item.name.tvSafe)
-                .font(.headline)
-                .lineLimit(1)
-                .frame(width: 220, alignment: .leading)
-
-            Text(item.releaseInfo?.tvSafe ?? item.type.capitalized)
-                .font(.subheadline)
+    private var loadingState: some View {
+        VStack(spacing: 24) {
+            ProgressView().controlSize(.large)
+            Text("Loading your Home").font(.title2.weight(.semibold))
+            Text("Synchronizing catalogs, progress, and collections")
                 .foregroundStyle(NuvioTheme.secondaryText)
         }
-        .scaleEffect(isFocused ? 1.07 : 1)
-        .animation(.easeOut(duration: 0.16), value: isFocused)
+        .frame(maxWidth: .infinity, minHeight: 640)
     }
-}
 
-struct RemoteArtwork: View {
-    let urlString: String?
-    let systemPlaceholder: String
-
-    var body: some View {
-        AsyncImage(url: urlString.flatMap(URL.init(string:))) { phase in
-            switch phase {
-            case .success(let image):
-                image.resizable().scaledToFill()
-            case .empty:
-                ZStack {
-                    NuvioTheme.panel
-                    ProgressView()
-                }
-            default:
-                ZStack {
-                    NuvioTheme.panel
-                    Image(systemName: systemPlaceholder)
-                        .font(.system(size: 54))
-                        .foregroundStyle(NuvioTheme.secondaryText)
-                }
+    private var emptyState: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "rectangle.stack.badge.plus").font(.system(size: 72))
+            Text("Your Home is ready for content").font(.largeTitle.weight(.bold))
+            Text("Enable an addon with catalogs, or retry when your connection returns.")
+                .font(.title3).foregroundStyle(NuvioTheme.secondaryText)
+            NuvioButton(title: "Retry", symbol: "arrow.clockwise", focused: focus == .retry) {
+                Task { await reload(force: true) }
             }
+            .focused($focus, equals: .retry)
         }
-        .clipped()
+        .frame(maxWidth: .infinity, minHeight: 640)
+        .defaultFocus($focus, .retry)
+    }
+
+    private func statusBanner(_ message: String) -> some View {
+        Label(message.tvSafe, systemImage: home.snapshot.isOffline ? "wifi.slash" : "exclamationmark.triangle.fill")
+            .font(.headline)
+            .padding(.horizontal, 22).padding(.vertical, 14)
+            .background(.ultraThinMaterial, in: Capsule())
+            .padding(.horizontal, 48).padding(.top, 30)
     }
 }
-
-struct ErrorPanel: View {
-    let message: String
-    let retry: () -> Void
-    @FocusState private var retryFocused: Bool
-
-    var body: some View {
-        VStack(spacing: 18) {
-            Image(systemName: "wifi.exclamationmark")
-                .font(.system(size: 54))
-            Text(message.tvSafe)
-                .font(.title3)
-                .multilineTextAlignment(.center)
-            Button("Try Again", action: retry)
-                .buttonStyle(.borderedProminent)
-                .focused($retryFocused)
-        }
-        .padding(42)
-        .frame(maxWidth: .infinity, minHeight: 300)
-        .background(NuvioTheme.panel, in: RoundedRectangle(cornerRadius: 24))
-        .defaultFocus($retryFocused, true)
-    }
-}
-

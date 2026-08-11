@@ -34,6 +34,7 @@ struct AppShellView: View {
     @EnvironmentObject private var authStore: AuthStore
     @EnvironmentObject private var addonStore: AddonStore
     @EnvironmentObject private var integrationStore: IntegrationStore
+    @EnvironmentObject private var profileStore: TVProfileStore
     @State private var selection: AppSection = .home
     @State private var path: [MetaSummary] = []
     @FocusState private var focusedSection: AppSection?
@@ -53,7 +54,11 @@ struct AppShellView: View {
         }
         .task(id: authStore.signedInEmail) {
             if authStore.session != nil {
-                async let addons: Void = addonStore.syncFromAccount(auth: authStore)
+                await profileStore.sync(auth: authStore)
+                async let addons: Void = addonStore.syncFromAccount(
+                    auth: authStore,
+                    profileID: profileStore.activeProfileID
+                )
                 async let integrations: Void = integrationStore.syncFromAccount(auth: authStore)
                 _ = await (addons, integrations)
             } else {

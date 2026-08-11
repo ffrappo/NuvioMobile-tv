@@ -7,6 +7,8 @@ struct PlayerRoute: Identifiable {
     let imdbID: String?
     let title: String
     let sourceName: String
+    let summary: MetaSummary
+    let videoID: String
     let seasonNumber: Int?
     let episodeNumber: Int?
     let episodeTitle: String?
@@ -49,6 +51,7 @@ struct PlayerView: View {
 
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var integrations: IntegrationStore
+    @EnvironmentObject private var syncedProgress: WatchProgressStore
     @StateObject private var session = MPVPlaybackSession()
     @State private var controlsVisible = true
     @State private var selectedSourceURL: URL?
@@ -80,7 +83,10 @@ struct PlayerView: View {
         }
         .onAppear {
             selectedSourceURL = route.url
-            resumePosition = progressStore.progress(for: route.contentID)?.resumablePosition
+            resumePosition = syncedProgress.resumablePosition(
+                videoID: route.videoID,
+                contentID: route.summary.id
+            ) ?? progressStore.progress(for: route.contentID)?.resumablePosition
             session.load(
                 url: route.url,
                 startPosition: resumePosition,
@@ -168,6 +174,16 @@ struct PlayerView: View {
             contentID: route.contentID,
             position: session.position,
             duration: session.duration
+        )
+        syncedProgress.record(
+            summary: route.summary,
+            videoID: route.videoID,
+            season: route.seasonNumber,
+            episode: route.episodeNumber,
+            episodeTitle: route.episodeTitle,
+            episodeThumbnail: nil,
+            positionSeconds: session.position,
+            durationSeconds: session.duration
         )
     }
 

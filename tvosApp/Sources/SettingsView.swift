@@ -5,11 +5,16 @@ struct SettingsView: View {
     @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var addons: AddonStore
     @EnvironmentObject private var integrations: IntegrationStore
+    @EnvironmentObject private var profiles: TVProfileStore
+    @EnvironmentObject private var homePreferences: HomePreferencesStore
     @State private var cacheMessage: String?
     @State private var showLogout = false
     @FocusState private var focus: Action?
 
-    private enum Action: Hashable { case clearCache, account, logout, skipIntro, syncIntegrations }
+    private enum Action: Hashable {
+        case clearCache, account, logout, skipIntro, syncIntegrations
+        case profile(Int), hero, catalogType, unreleased, homeItem(String, Int)
+    }
 
     var body: some View {
         ScrollView {
@@ -18,6 +23,8 @@ struct SettingsView: View {
                     .font(.largeTitle.weight(.bold))
                 appCard
                 accountCard
+                profileCard
+                homeCard
                 integrationsCard
                 cacheCard
                 Text("Direct HTTP and HTTPS playback uses MPV with Apple TV system media controls.")
@@ -84,6 +91,77 @@ struct SettingsView: View {
         }
         .padding(28)
         .background(NuvioTheme.panel, in: RoundedRectangle(cornerRadius: 22))
+    }
+
+    private var profileCard: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Text("Profile").font(.title2.weight(.semibold))
+            if profiles.profiles.isEmpty {
+                Text("Primary profile").foregroundStyle(NuvioTheme.secondaryText)
+            } else {
+                HStack(spacing: 16) {
+                    ForEach(profiles.profiles) { profile in
+                        NuvioButton(
+                            title: profile.name.tvSafe,
+                            symbol: profile.profileIndex == profiles.activeProfileID ? "checkmark.circle.fill" : "person.circle",
+                            focused: focus == .profile(profile.profileIndex),
+                            prominent: profile.profileIndex == profiles.activeProfileID
+                        ) {
+                            profiles.select(profile.profileIndex)
+                            Task { await addons.syncFromAccount(auth: auth, profileID: profile.profileIndex) }
+                        }
+                        .focused($focus, equals: .profile(profile.profileIndex))
+                    }
+                }
+            }
+        }
+        .padding(28)
+        .background(NuvioTheme.panel, in: RoundedRectangle(cornerRadius: 22))
+    }
+
+    private var homeCard: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Text("Home").font(.title2.weight(.semibold))
+            Toggle("Show featured hero", isOn: Binding(
+                get: { homePreferences.value.heroEnabled },
+                set: homePreferences.setHeroEnabled
+            ))
+            .focused($focus, equals: .hero)
+            Toggle("Show catalog media type", isOn: Binding(
+                get: { homePreferences.value.showCatalogType },
+                set: homePreferences.setShowCatalogType
+            ))
+            .focused($focus, equals: .catalogType)
+            Toggle("Hide unreleased content", isOn: Binding(
+                get: { homePreferences.value.hideUnreleasedContent },
+                set: homePreferences.setHideUnreleasedContent
+            ))
+            .focused($focus, equals: .unreleased)
+
+            ForEach(homePreferences.value.items.sorted(by: { $0.order < $1.order }), id: \.key) { item in
+                HStack(spacing: 14) {
+                    Toggle(item.customTitle.trimmedNonEmpty ?? homeItemName(item.key), isOn: Binding(
+                        get: { homePreferences.value.preference(for: item.key)?.enabled ?? true },
+                        set: { homePreferences.setEnabled(key: item.key, enabled: $0) }
+                    ))
+                    Spacer()
+                    NuvioButton(title: "Up", symbol: "arrow.up", focused: focus == .homeItem(item.key, -1)) {
+                        homePreferences.move(key: item.key, direction: -1)
+                    }
+                    .frame(width: 150).focused($focus, equals: .homeItem(item.key, -1))
+                    NuvioButton(title: "Down", symbol: "arrow.down", focused: focus == .homeItem(item.key, 1)) {
+                        homePreferences.move(key: item.key, direction: 1)
+                    }
+                    .frame(width: 170).focused($focus, equals: .homeItem(item.key, 1))
+                }
+            }
+        }
+        .padding(28)
+        .background(NuvioTheme.panel, in: RoundedRectangle(cornerRadius: 22))
+    }
+
+    private func homeItemName(_ key: String) -> String {
+        key.hasPrefix("collection_") ? "Collection" : key.split(separator: ":").last.map(String.init) ?? "Catalog"
     }
 
     private var integrationsCard: some View {

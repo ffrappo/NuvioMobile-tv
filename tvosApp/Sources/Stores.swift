@@ -40,6 +40,7 @@ final class LibraryStore: ObservableObject {
 @MainActor
 final class AddonStore: ObservableObject {
     @Published private(set) var addons: [AddonEndpoint] = []
+    @Published private(set) var homeAddons: [HomeAddon] = []
     @Published private(set) var isRefreshing = false
     @Published private(set) var syncMessage: String?
 
@@ -61,14 +62,19 @@ final class AddonStore: ObservableObject {
         addons = storedBases.map {
             AddonEndpoint(baseURL: $0, name: URL(string: $0)?.host ?? "Saved addon", detail: nil, providesStreams: true)
         }
+        homeAddons = []
     }
 
-    func syncFromAccount(auth: AuthStore) async {
+    func syncFromAccount(auth: AuthStore, profileID: Int = 1) async {
         syncMessage = "Syncing account addons..."
         do {
             let token = try await auth.validAccessToken()
             let owner = try await accountService.effectiveOwner(accessToken: token)
-            let remote = try await accountService.addons(accessToken: token, ownerID: owner)
+            let remote = try await accountService.addons(
+                accessToken: token,
+                ownerID: owner,
+                profileID: profileID
+            )
                 .filter(\.enabled)
                 .sorted { $0.sortOrder < $1.sortOrder }
             let remoteURLs = remote.map(\.url)
@@ -86,6 +92,7 @@ final class AddonStore: ObservableObject {
     func clearForLogout() {
         storedBases = []
         addons = []
+        homeAddons = []
         syncMessage = nil
         persist()
     }
@@ -99,10 +106,17 @@ final class AddonStore: ObservableObject {
             detail: result.manifest.description,
             providesStreams: result.manifest.providesStreams
         )
+        let homeAddon = HomeAddon(baseURL: base, name: result.manifest.name, manifest: result.manifest)
         if let index = addons.firstIndex(where: { $0.baseURL == base }) {
             addons[index] = endpoint
+            if let homeIndex = homeAddons.firstIndex(where: { $0.baseURL == base }) {
+                homeAddons[homeIndex] = homeAddon
+            } else {
+                homeAddons.append(homeAddon)
+            }
         } else {
             addons.append(endpoint)
+            homeAddons.append(homeAddon)
         }
         storedBases = addons.map(\.baseURL)
         persist()
@@ -110,6 +124,7 @@ final class AddonStore: ObservableObject {
 
     func remove(_ addon: AddonEndpoint) {
         addons.removeAll { $0.baseURL == addon.baseURL }
+        homeAddons.removeAll { $0.baseURL == addon.baseURL }
         storedBases = addons.map(\.baseURL)
         persist()
     }
@@ -120,6 +135,7 @@ final class AddonStore: ObservableObject {
         defer { isRefreshing = false }
 
         var refreshed: [AddonEndpoint] = []
+        var refreshedHomeAddons: [HomeAddon] = []
         for base in storedBases {
             do {
                 let result = try await service.manifest(at: base)
@@ -128,6 +144,11 @@ final class AddonStore: ObservableObject {
                     name: result.manifest.name,
                     detail: result.manifest.description,
                     providesStreams: result.manifest.providesStreams
+                ))
+                refreshedHomeAddons.append(HomeAddon(
+                    baseURL: result.base.absoluteString,
+                    name: result.manifest.name,
+                    manifest: result.manifest
                 ))
             } catch {
                 refreshed.append(AddonEndpoint(
@@ -139,6 +160,7 @@ final class AddonStore: ObservableObject {
             }
         }
         addons = refreshed
+        homeAddons = refreshedHomeAddons
     }
 
     private func persist() {
