@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct PlayerRoute: Identifiable {
     let id = UUID()
@@ -55,6 +56,8 @@ struct PlayerView: View {
     @EnvironmentObject private var syncedProgress: WatchProgressStore
     @StateObject private var session = MPVPlaybackSession()
     @State private var controlsVisible = true
+    @State private var controlsDismissTask: Task<Void, Never>?
+    @State private var playbackStartedAt = Date()
     @State private var selectedSourceURL: URL?
     @State private var resumePosition: Double?
     @State private var lastSavedPosition = 0.0
@@ -69,12 +72,14 @@ struct PlayerView: View {
         ZStack {
             Color.black.ignoresSafeArea()
             MPVPlayerView(session: session).ignoresSafeArea()
+                .onAppear { session.onPress = handleRemotePress }
             if controlsVisible {
                 PlayerControlsOverlay(
                     route: route,
                     session: session,
                     selectedSourceURL: selectedSourceURL ?? route.url,
                     activeSkipInterval: activeSkipInterval,
+                    onInteraction: revealControls,
                     onSkip: skip,
                     onSelectSource: switchSource,
                     onSelectEpisode: selectEpisode
@@ -84,6 +89,7 @@ struct PlayerView: View {
         }
         .onAppear {
             selectedSourceURL = route.url
+            session.updateActiveSourceName(route.initialSource?.name ?? route.sourceName)
             resumePosition = syncedProgress.resumablePosition(
                 videoID: route.videoID,
                 contentID: route.summary.id
@@ -98,8 +104,12 @@ struct PlayerView: View {
             controller.updateMetadata(title: route.title, subtitle: route.sourceName)
             nowPlaying = controller
             loadSkipIntervals()
+            revealControls()
         }
         .onDisappear {
+            session.onPress = nil
+            controlsDismissTask?.cancel()
+            controlsDismissTask = nil
             saveProgress()
             nowPlaying?.invalidate()
             nowPlaying = nil
@@ -118,13 +128,22 @@ struct PlayerView: View {
         }
         .onPlayPauseCommand {
             session.toggle()
-            controlsVisible = true
+            revealControls()
         }
-        .onTapGesture { controlsVisible.toggle() }
+        .onTapGesture {
+            revealControls()
+            pauseIfPlaybackJustStarted()
+        }
         .onExitCommand {
-            saveProgress()
-            session.stop()
-            dismiss()
+            if controlsVisible {
+                controlsVisible = false
+                controlsDismissTask?.cancel()
+                controlsDismissTask = nil
+            } else {
+                saveProgress()
+                session.stop()
+                dismiss()
+            }
         }
     }
 
@@ -151,11 +170,34 @@ struct PlayerView: View {
     private func skip(_ interval: SkipInterval) {
         dismissedSkipIntervalIDs.insert(interval.id)
         session.seek(to: interval.endTime)
+        revealControls()
+    }
+
+    private func handleRemotePress(_ type: UIPress.PressType) {
+        revealControls()
+        if type == .select { pauseIfPlaybackJustStarted() }
+    }
+
+    private func pauseIfPlaybackJustStarted() {
+        guard Date().timeIntervalSince(playbackStartedAt) < 2,
+              !session.isPaused else { return }
+        session.toggle()
+    }
+
+    private func revealControls() {
+        controlsVisible = true
+        controlsDismissTask?.cancel()
+        controlsDismissTask = Task {
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled else { return }
+            await MainActor.run { controlsVisible = false }
+        }
     }
 
     private func switchSource(_ source: PlayerSourceOption) {
         saveProgress()
         selectedSourceURL = source.url
+        session.updateActiveSourceName(source.name)
         nowPlaying?.updateMetadata(title: route.title, subtitle: source.name)
         session.load(
             url: source.url,

@@ -15,6 +15,8 @@ final class MPVPlaybackSession: ObservableObject {
     @Published private(set) var subtitleDelayMilliseconds = 0
     @Published private(set) var subtitleFontSize = 52
     @Published private(set) var errorMessage: String?
+    @Published private(set) var activeSourceName = ""
+    var onPress: ((UIPress.PressType) -> Void)?
 
     fileprivate weak var controller: MPVPlayerController?
 
@@ -42,6 +44,7 @@ final class MPVPlaybackSession: ObservableObject {
         controller?.setSubtitleDelay(milliseconds: milliseconds)
     }
     func setSubtitleFontSize(_ size: Int) { controller?.setSubtitleFontSize(size) }
+    func updateActiveSourceName(_ name: String) { activeSourceName = name }
     func switchSource(url: URL) { controller?.load(url: url) }
     func stop() { controller?.stop() }
 
@@ -128,12 +131,8 @@ final class MPVPlayerController: UIViewController {
 
     override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         guard let type = presses.first?.type else { return super.pressesBegan(presses, with: event) }
-        switch type {
-        case .playPause:
-            togglePlayback()
-        default:
-            super.pressesBegan(presses, with: event)
-        }
+        session.onPress?(type)
+        super.pressesBegan(presses, with: event)
     }
 
     func load(

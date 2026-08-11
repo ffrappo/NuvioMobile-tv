@@ -33,11 +33,24 @@ The reference is the established Compose player under `composeApp/src/commonMain
 
 `AppShellView` marks the sidebar and content containers as separate SwiftUI `focusSection()` regions. This gives the tvOS focus engine a geometric bridge from the vertical menu to dynamic poster rails while preserving native directional propagation. Explicit `onMoveCommand` routing was rejected because a handler consumes commands even when its closure takes no action, which breaks up, down, and left behavior.
 
+## Player UI structure
+
+The player copies the iOS Compose capability set into the tvOS-native layout above while using tvOS-native controls instead of mobile-style sheets:
+
+- `PlayerControlsOverlay.swift` owns the title header, focused playback timeline, transport buttons, skip action, and the lower control row.
+- `PlaybackTimelineScrubber.swift` owns the remote-first focused timeline. tvOS has no standard SwiftUI `Slider` equivalent, so the timeline is a native focusable scrubber driven by Siri Remote left and right navigation.
+- `PlayerControlMenus.swift` owns native SwiftUI `Menu` pickers for video size, playback speed, subtitles, audio tracks, sources, and episodes. This replaces the old desktop-style settings sheet with standard tvOS popover-style menus.
+- `SubtitleAppearanceView.swift` owns the only remaining modal surface, limited to subtitle delay and text size adjustments.
+- `PlayerView.swift` owns auto-hiding playback chrome. Tapping the Siri Remote touch surface reveals the controls for 5 seconds; any player interaction resets the timer. Menu and Back first hide the chrome, then leave playback on a second press. This matches Apple TV video player behavior where controls appear on demand and retreat during uninterrupted playback.
+
+The previous `PlayerOptionsView.swift` sheet was removed because it duplicated the iOS capability list in a settings-page metaphor that felt dated on tvOS. Native menus keep the same capabilities closer to Apple TV system playback UI.
+
 ## Verification
 
+- Apple TV system player conventions reviewed against [Apple HIG: Playing video](https://developer.apple.com/design/human-interface-guidelines/playing-video) and the installed AVKit/SwiftUI tvOS interfaces.
 - Xcode 27.0 build 27A5228h and AppleTVOS 27.0 SDK reviewed.
 - SwiftUI installed interface confirms `focusSection()` is available on tvOS.
-- Generic tvOS Debug build with signing disabled passes.
+- Generic tvOS Debug build with signing disabled passes after replacing the dated settings sheet with native menus, a focused Siri Remote timeline scrubber, and auto-hiding player chrome.
 - Integration settings decode from the mobile profile settings blob, including Anime Skip enablement and client ID.
 - AniSkip and Anime Skip segment lookup drives contextual skip actions in the native player controls.
 - Signed physical Apple TV Debug build and hands-on remote smoke testing remain pending until the paired device reconnects.
