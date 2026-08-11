@@ -191,10 +191,13 @@ final class StremioServiceTests: XCTestCase {
         )
     }
 
-    func testSidebarAndContentAreDeclaredAsFocusSections() throws {
+    func testShellUsesNativeAdaptiveTabs() throws {
         let shell = try source(named: "AppShellView.swift")
-        XCTAssertEqual(shell.components(separatedBy: ".focusSection()").count - 1, 2)
+        XCTAssertTrue(shell.contains("TabView(selection:"))
+        XCTAssertTrue(shell.contains(".tabViewStyle(.sidebarAdaptable)"))
+        XCTAssertTrue(shell.contains("role: .search"))
         XCTAssertFalse(shell.contains(".onMoveCommand"))
+        XCTAssertFalse(shell.contains("sidebarColor"))
     }
 
     func testPlaybackProgressResumeRules() {
