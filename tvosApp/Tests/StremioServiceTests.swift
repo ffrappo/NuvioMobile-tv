@@ -191,6 +191,46 @@ final class StremioServiceTests: XCTestCase {
         )
     }
 
+    func testSearchCatalogRequestsUseEveryCompatibleAddonCatalog() throws {
+        let first = try manifest(from: #"""
+        {
+          "id":"one", "name":"One",
+          "catalogs":[
+            {"type":"movie","id":"searchable","name":"Movies","extra":[{"name":"search","isRequired":true}]},
+            {"type":"series","id":"browse","name":"Series","extra":[{"name":"skip"}]}
+          ]
+        }
+        """#)
+        let second = try manifest(from: #"""
+        {
+          "id":"two", "name":"Two",
+          "catalogs":[
+            {"type":"series","id":"lookup","name":"Shows","extra":[{"name":"search"}]},
+            {"type":"movie","id":"blocked","name":"Blocked","extra":[
+              {"name":"search"},{"name":"token","isRequired":true}
+            ]}
+          ]
+        }
+        """#)
+        let requests = SearchCatalogRequest.compatibleRequests(from: [
+            HomeAddon(baseURL: "https://one.example", name: "One", manifest: first),
+            HomeAddon(baseURL: "https://two.example", name: "Two", manifest: second),
+        ])
+
+        XCTAssertEqual(requests, [
+            SearchCatalogRequest(baseURL: "https://one.example", addonName: "One", type: "movie", catalogID: "searchable"),
+            SearchCatalogRequest(baseURL: "https://two.example", addonName: "Two", type: "series", catalogID: "lookup"),
+        ])
+    }
+
+    func testSearchCatalogRequestsFallBackToCinemetaWithoutCompatibleCatalogs() {
+        let requests = SearchCatalogRequest.compatibleRequests(from: [])
+
+        XCTAssertEqual(requests.map(\.addonName), ["Cinemeta", "Cinemeta"])
+        XCTAssertEqual(requests.map(\.type), ["movie", "series"])
+        XCTAssertEqual(requests.map(\.catalogID), ["top", "top"])
+    }
+
     func testShellUsesNativeAdaptiveTabs() throws {
         let shell = try source(named: "AppShellView.swift")
         XCTAssertTrue(shell.contains("TabView(selection:"))
@@ -286,6 +326,10 @@ final class StremioServiceTests: XCTestCase {
         XCTAssertEqual(store.resumablePosition(videoID: "tt-series:1:1", contentID: "tt-series"), 120)
         XCTAssertNil(store.resumablePosition(videoID: "tt-series:1:2", contentID: "tt-series"))
         XCTAssertNil(store.resumablePosition(videoID: "tt-series:1:1", contentID: "other-series"))
+    }
+
+    private func manifest(from fixture: String) throws -> AddonManifest {
+        try JSONDecoder().decode(AddonManifest.self, from: Data(fixture.utf8))
     }
 
     private func source(named name: String) throws -> String {
