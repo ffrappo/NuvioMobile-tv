@@ -11,6 +11,7 @@ struct DetailsView: View {
     @State private var selectedVideo: StremioVideo?
     @State private var playerRoute: PlayerRoute?
     @FocusState private var focusedAction: DetailAction?
+    @Namespace private var episodeFocusNamespace
 
     private let service = StremioService()
 
@@ -62,6 +63,11 @@ struct DetailsView: View {
         }
         .background(NuvioTheme.background)
         .task { await loadDetail() }
+        .focusScope(episodeFocusNamespace)
+        .onChange(of: selectedVideo?.id) { _, id in
+            guard let id else { return }
+            focusedAction = .episode(id)
+        }
         .fullScreenCover(item: $playerRoute) { route in
             PlayerView(route: route)
         }
@@ -107,7 +113,6 @@ struct DetailsView: View {
             .padding(.vertical, 8)
         }
         .frame(maxWidth: 1420, minHeight: 430, alignment: .leading)
-        .defaultFocus($focusedAction, .favorite)
     }
 
     private var libraryButton: some View {
@@ -153,7 +158,7 @@ struct DetailsView: View {
                                 in: RoundedRectangle(cornerRadius: 16)
                             )
                         }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.card)
                         .focused($focusedAction, equals: .episode(video.id))
                     }
                 }

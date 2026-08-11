@@ -7,7 +7,6 @@ struct ProgressRail: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(title).font(.title2.weight(.semibold)).padding(.horizontal, 48)
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 26) {
                     ForEach(items) { item in
@@ -25,14 +24,11 @@ private struct ProgressButton: View {
     let item: ContinueWatchingCard
     let action: () -> Void
 
-    @FocusState private var focused: Bool
-
     var body: some View {
         Button(action: action) {
-            ProgressCard(item: item, focused: focused)
+            ProgressCard(item: item)
         }
         .buttonStyle(.card)
-        .focused($focused)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityHint("Opens details")
     }
@@ -49,7 +45,6 @@ private struct ProgressButton: View {
 
 struct ProgressCard: View {
     let item: ContinueWatchingCard
-    let focused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -62,7 +57,6 @@ struct ProgressCard: View {
                 .clipShape(RoundedRectangle(cornerRadius: 18))
                 if !item.isUpcoming { progressBar }
             }
-            .overlay(focusBorder(cornerRadius: 18))
             Text(item.summary.name.tvSafe)
                 .font(.headline)
                 .lineLimit(1)
@@ -71,13 +65,6 @@ struct ProgressCard: View {
                 .font(.subheadline)
                 .foregroundStyle(NuvioTheme.secondaryText)
         }
-        .scaleEffect(focused ? 1.06 : 1)
-        .shadow(
-            color: focused ? .white.opacity(0.25) : .black.opacity(0.4),
-            radius: focused ? 16 : 8,
-            y: focused ? 10 : 3
-        )
-        .animation(.easeOut(duration: 0.13), value: focused)
     }
 
     private var progressBar: some View {
@@ -91,14 +78,6 @@ struct ProgressCard: View {
         }
         .frame(height: 7)
         .padding(12)
-    }
-
-    private func focusBorder(cornerRadius: CGFloat) -> some View {
-        RoundedRectangle(cornerRadius: cornerRadius)
-            .stroke(
-                focused ? Color.white.opacity(0.95) : Color.white.opacity(0.12),
-                lineWidth: focused ? 3 : 1
-            )
     }
 
     private var metadata: String {

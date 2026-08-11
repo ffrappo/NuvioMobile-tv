@@ -39,6 +39,9 @@ struct CatalogView: View {
                 }
             }
             if !home.snapshot.continueWatching.isEmpty {
+                Text("Continue Watching")
+                    .font(.title2.weight(.semibold))
+                    .padding(.horizontal, 48)
                 ProgressRail(
                     title: "Continue Watching",
                     items: home.snapshot.continueWatching,
@@ -52,6 +55,9 @@ struct CatalogView: View {
                 )
             }
             if !home.snapshot.upcoming.isEmpty {
+                Text("Upcoming")
+                    .font(.title2.weight(.semibold))
+                    .padding(.horizontal, 48)
                 ProgressRail(
                     title: "Upcoming",
                     items: home.snapshot.upcoming,
