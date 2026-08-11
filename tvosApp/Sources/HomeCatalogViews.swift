@@ -85,14 +85,11 @@ private struct PosterButton: View {
     let item: MetaSummary
     let action: () -> Void
 
-    @FocusState private var focused: Bool
-
     var body: some View {
         Button(action: action) {
-            PosterCard(item: item, isFocused: focused)
+            PosterCard(item: item)
         }
         .buttonStyle(.card)
-        .focused($focused)
         .accessibilityLabel(
             [item.name, item.releaseInfo, item.type.capitalized]
                 .compactMap { $0 }
@@ -104,19 +101,12 @@ private struct PosterButton: View {
 
 struct PosterCard: View {
     let item: MetaSummary
-    let isFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             RemoteArtwork(urlString: item.poster, systemPlaceholder: "film")
                 .frame(width: 220, height: 320)
                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .overlay(focusBorder)
-                .shadow(
-                    color: isFocused ? .white.opacity(0.28) : .black.opacity(0.45),
-                    radius: isFocused ? 18 : 10,
-                    y: isFocused ? 10 : 4
-                )
             Text(item.name.tvSafe)
                 .font(.headline)
                 .lineLimit(1)
@@ -125,15 +115,5 @@ struct PosterCard: View {
                 .font(.subheadline)
                 .foregroundStyle(NuvioTheme.secondaryText)
         }
-        .scaleEffect(isFocused ? 1.08 : 1)
-        .animation(.easeOut(duration: 0.13), value: isFocused)
-    }
-
-    private var focusBorder: some View {
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
-            .stroke(
-                isFocused ? Color.white.opacity(0.95) : Color.white.opacity(0.12),
-                lineWidth: isFocused ? 3 : 1
-            )
     }
 }

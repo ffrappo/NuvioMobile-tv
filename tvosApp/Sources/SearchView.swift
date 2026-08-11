@@ -40,7 +40,7 @@ struct SearchView: View {
                 Button {
                     onSelect(item)
                 } label: {
-                    PosterCard(item: item, isFocused: focusedResult == item.id)
+                    PosterCard(item: item)
                 }
                 .buttonStyle(.card)
                 .focused($focusedResult, equals: item.id)

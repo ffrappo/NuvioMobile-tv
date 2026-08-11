@@ -9,8 +9,10 @@ struct LibraryView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 30) {
-                Text("Library")
-                    .font(.largeTitle.weight(.bold))
+                NuvioPageHeader(
+                    title: "Library",
+                    subtitle: "Titles saved to your active profile"
+                )
 
                 if library.items.isEmpty {
                 NuvioUnavailableView(
@@ -24,7 +26,7 @@ struct LibraryView: View {
                             Button {
                                 onSelect(item)
                             } label: {
-                                PosterCard(item: item, isFocused: focusedID == item.id)
+                                PosterCard(item: item)
                             }
                             .buttonStyle(.card)
                             .focused($focusedID, equals: item.id)
