@@ -91,8 +91,7 @@ struct AppShellView: View {
                         )
                         .scaleEffect(focusedSection == section ? 1.04 : 1)
                 }
-                .buttonStyle(.plain)
-                .focusEffectDisabled()
+                .buttonStyle(NuvioBareButtonStyle())
                 .focused($focusedSection, equals: section)
             }
 
@@ -134,7 +133,6 @@ struct AppShellView: View {
 
     private func sidebarColor(for section: AppSection) -> Color {
         if focusedSection == section { return .white }
-        if selection == section { return NuvioTheme.accent.opacity(0.65) }
         return .clear
     }
 }

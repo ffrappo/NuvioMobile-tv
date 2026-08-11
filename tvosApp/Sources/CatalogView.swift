@@ -103,8 +103,7 @@ struct CatalogRail: View {
                         } label: {
                             PosterCard(item: item, isFocused: focusedID == item.id)
                         }
-                        .buttonStyle(.plain)
-                        .focusEffectDisabled()
+                        .buttonStyle(NuvioBareButtonStyle())
                         .focused($focusedID, equals: item.id)
                     }
                 }

@@ -61,8 +61,7 @@ struct SearchView: View {
                             } label: {
                                 PosterCard(item: item, isFocused: focus == .result(item.id))
                             }
-                            .buttonStyle(.plain)
-                            .focusEffectDisabled()
+                            .buttonStyle(NuvioBareButtonStyle())
                             .focused($focus, equals: .result(item.id))
                         }
                     }
