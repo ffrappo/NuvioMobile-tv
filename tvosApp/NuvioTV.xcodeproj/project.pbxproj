@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0E98EA26B2C6F282CCFCF3AE /* StremioServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DC198665629AD3BB6EBDFC /* StremioServiceTests.swift */; };
 		27D61384067C9BD73191E897 /* AuthStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F7D7B62F6F49435D9DF63AE /* AuthStore.swift */; };
+		3E5C13C1C6F3DFDD6884062B /* MPVPlayerNetworking.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD0750902F3BA140EC65E3B /* MPVPlayerNetworking.swift */; };
 		4200128317A802BB497D33A6 /* PlayerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C27E09B744C2CE890A87E44F /* PlayerModels.swift */; };
 		4492E0066035C1098B1BD4B4 /* AppShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728F8B7A925C4B231A981A64 /* AppShellView.swift */; };
 		47E3EBC0763BA0985BE8E921 /* DetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D6169A51B12FA3CED04AC6E /* DetailsView.swift */; };
@@ -63,6 +64,7 @@
 		8114FE8958B0BEE9C07AF7F6 /* NuvioTVTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NuvioTVTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BC5DAEE5C7D57F67EB0F0CB /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		8CA8D158F406C206AD751836 /* TVNowPlayingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TVNowPlayingController.swift; sourceTree = "<group>"; };
+		AAD0750902F3BA140EC65E3B /* MPVPlayerNetworking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPVPlayerNetworking.swift; sourceTree = "<group>"; };
 		B2AFC2D037541A3D7A11A6E2 /* PlayerControlsOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerControlsOverlay.swift; sourceTree = "<group>"; };
 		C27E09B744C2CE890A87E44F /* PlayerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerModels.swift; sourceTree = "<group>"; };
 		C4C9739C9C26824BF9517638 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -102,6 +104,7 @@
 				8BC5DAEE5C7D57F67EB0F0CB /* Models.swift */,
 				158C29FFFE770CF9A32C05D2 /* MPVMetalLayer.swift */,
 				302544E09DAD6A87C91FB11C /* MPVPlayerController.swift */,
+				AAD0750902F3BA140EC65E3B /* MPVPlayerNetworking.swift */,
 				EDB1B3656C3DA6EDA345CED4 /* NuvioAccountService.swift */,
 				51FCD104A61FCAE3B60D12FD /* NuvioControls.swift */,
 				DB33DAAC2888C4E929BE8E32 /* NuvioTVApp.swift */,
@@ -271,6 +274,7 @@
 				F869D817DBC83F02DC5362C6 /* LibraryView.swift in Sources */,
 				A661038A523081A1FB24F3D9 /* MPVMetalLayer.swift in Sources */,
 				B08120C4F269B799CFC54713 /* MPVPlayerController.swift in Sources */,
+				3E5C13C1C6F3DFDD6884062B /* MPVPlayerNetworking.swift in Sources */,
 				735E71DE6BDF098559CEB269 /* Models.swift in Sources */,
 				51AA6A27E7AD07DD8D537D7A /* NuvioAccountService.swift in Sources */,
 				D149CD3FC476E0D153D26867 /* NuvioControls.swift in Sources */,

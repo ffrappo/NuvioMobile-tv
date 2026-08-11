@@ -12,6 +12,10 @@ struct PlayerRoute: Identifiable {
     let availableSources: [PlayerSourceOption]
     let episodes: [PlayerEpisodeOption]
     let onSelectEpisode: (PlayerEpisodeOption) -> Void
+
+    var initialSource: PlayerSourceOption? {
+        availableSources.first { $0.url == url }
+    }
 }
 
 struct PlayerSourceOption: Identifiable, Hashable {
@@ -19,6 +23,7 @@ struct PlayerSourceOption: Identifiable, Hashable {
     let url: URL
     let name: String
     let addonName: String
+    let requestHeaders: [String: String]
 }
 
 struct PlayerEpisodeOption: Identifiable, Hashable {
@@ -69,7 +74,11 @@ struct PlayerView: View {
         .onAppear {
             selectedSourceURL = route.url
             resumePosition = progressStore.progress(for: route.contentID)?.resumablePosition
-            session.load(url: route.url, startPosition: resumePosition)
+            session.load(
+                url: route.url,
+                startPosition: resumePosition,
+                requestHeaders: route.initialSource?.requestHeaders ?? [:]
+            )
             let controller = TVNowPlayingController(session: session)
             controller.updateMetadata(title: route.title, subtitle: route.sourceName)
             nowPlaying = controller
@@ -107,7 +116,11 @@ struct PlayerView: View {
         saveProgress()
         selectedSourceURL = source.url
         nowPlaying?.updateMetadata(title: route.title, subtitle: source.name)
-        session.load(url: source.url, startPosition: session.position)
+        session.load(
+            url: source.url,
+            startPosition: session.position,
+            requestHeaders: source.requestHeaders
+        )
     }
 
     private func selectEpisode(_ episode: PlayerEpisodeOption) {

@@ -18,8 +18,16 @@ final class MPVPlaybackSession: ObservableObject {
 
     fileprivate weak var controller: MPVPlayerController?
 
-    func load(url: URL, startPosition: Double? = nil) {
-        controller?.load(url: url, startPosition: startPosition)
+    func load(
+        url: URL,
+        startPosition: Double? = nil,
+        requestHeaders: [String: String] = [:]
+    ) {
+        controller?.load(
+            url: url,
+            startPosition: startPosition,
+            requestHeaders: requestHeaders
+        )
     }
     func toggle() { controller?.togglePlayback() }
     func seek(by seconds: Double) { controller?.seek(by: seconds) }
@@ -75,7 +83,7 @@ final class MPVPlayerController: UIViewController {
     private let session: MPVPlaybackSession
     private let metalLayer = MPVMetalLayer()
     private let eventQueue = DispatchQueue(label: "nuvio.tv.mpv.events", qos: .userInitiated)
-    private var mpv: OpaquePointer?
+    var mpv: OpaquePointer?
     private var progressTimer: Timer?
     private var pendingURL: URL?
     private var pendingStartPosition: Double?
@@ -127,7 +135,12 @@ final class MPVPlayerController: UIViewController {
         }
     }
 
-    func load(url: URL, startPosition: Double? = nil) {
+    func load(
+        url: URL,
+        startPosition: Double? = nil,
+        requestHeaders: [String: String] = [:]
+    ) {
+        applyRequestHeaders(requestHeaders)
         pendingStartPosition = startPosition
         Task { @MainActor in
             session.beginLoading()
@@ -140,6 +153,13 @@ final class MPVPlayerController: UIViewController {
         }
     }
 
+    func setSubtitleDelay(milliseconds: Int) {
+        guard let mpv else { return }
+        let clamped = min(max(milliseconds, -60_000), 60_000)
+        var seconds = Double(clamped) / 1_000
+        mpv_set_property(mpv, "sub-delay", MPV_FORMAT_DOUBLE, &seconds)
+        Task { @MainActor in session.updateSubtitle(delayMilliseconds: clamped) }
+    }
     private func applyPendingStartPosition() {
         guard let position = pendingStartPosition, position > 0 else { return }
         pendingStartPosition = nil
@@ -201,14 +221,6 @@ final class MPVPlayerController: UIViewController {
             mpv_set_property_string(mpv, "sid", "no")
         }
         publishPlaybackOptions()
-    }
-
-    func setSubtitleDelay(milliseconds: Int) {
-        guard let mpv else { return }
-        let clamped = min(max(milliseconds, -60_000), 60_000)
-        var seconds = Double(clamped) / 1_000
-        mpv_set_property(mpv, "sub-delay", MPV_FORMAT_DOUBLE, &seconds)
-        Task { @MainActor in session.updateSubtitle(delayMilliseconds: clamped) }
     }
 
     func setSubtitleFontSize(_ size: Int) {

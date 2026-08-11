@@ -175,8 +175,11 @@ struct StremioStream: Decodable, Hashable, Identifiable {
     let title: String?
     let description: String?
     let url: String?
+    let requestHeaders: [String: String]
 
-    private enum CodingKeys: String, CodingKey { case name, title, description, url }
+    private enum CodingKeys: String, CodingKey { case name, title, description, url, behaviorHints }
+    private enum BehaviorHintKeys: String, CodingKey { case proxyHeaders }
+    private enum ProxyHeaderKeys: String, CodingKey { case request }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -187,6 +190,9 @@ struct StremioStream: Decodable, Hashable, Identifiable {
         title = container.decodeFlexibleString(forKey: .title)
         description = container.decodeFlexibleString(forKey: .description)
         url = container.decodeFlexibleString(forKey: .url)
+        let hints = try? container.nestedContainer(keyedBy: BehaviorHintKeys.self, forKey: .behaviorHints)
+        let proxy = try? hints?.nestedContainer(keyedBy: ProxyHeaderKeys.self, forKey: .proxyHeaders)
+        requestHeaders = (try? proxy?.decode([String: String].self, forKey: .request)) ?? [:]
     }
 
     var directURL: URL? {

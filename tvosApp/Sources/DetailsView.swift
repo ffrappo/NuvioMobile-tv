@@ -319,7 +319,13 @@ private struct StreamSourcesView: View {
 private extension PlayerSourceOption {
     init?(_ source: StreamSource) {
         guard let url = source.stream.directURL else { return nil }
-        self.init(id: source.id, url: url, name: source.stream.name, addonName: source.addonName)
+        self.init(
+            id: source.id,
+            url: url,
+            name: source.stream.name,
+            addonName: source.addonName,
+            requestHeaders: source.stream.requestHeaders
+        )
     }
 }
 

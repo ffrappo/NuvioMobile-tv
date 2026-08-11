@@ -18,7 +18,7 @@ The reference is the established Compose player under `composeApp/src/commonMain
 | Episode navigation | `PlayerEpisodesPanel.kt` | Implemented by returning to details with the selected episode active |
 | Resume and progress persistence | `PlayerScreenRuntimePlaybackActions.kt` | Implemented locally, resumes from 15 seconds through 92 percent, keeps the newest 250 items |
 | Source and episode metadata | `PlayerScreenArgs.kt` | Implemented in the player header and option panels |
-| Network response headers | platform engines | Deferred because the current tvOS Stremio model does not decode stream headers |
+| Network request headers | stream `behaviorHints.proxyHeaders.request` | Implemented with validation and MPV `http-header-fields` |
 | Addon subtitle discovery | `SubtitleRepository.kt` | Deferred until the tvOS service implements the subtitle resource endpoint |
 | Subtitle size and delay | `SubtitleStylePanel.kt` | Implemented with native MPV font-size controls and 100 ms delay adjustment |
 | Next-episode autoplay | `PlayerNextEpisodeAutoPlay.kt` | Deferred, manual episode selection is available |
