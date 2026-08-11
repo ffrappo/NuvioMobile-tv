@@ -65,6 +65,24 @@ final class StremioServiceTests: XCTestCase {
         XCTAssertEqual(PlayerTimeFormatter.string(3_661), "1:01:01")
     }
 
+    func testStreamDecodesProxyRequestHeaders() throws {
+        let fixture = #"""
+        {
+          "name": "Protected source",
+          "url": "https://video.example/movie.m3u8",
+          "behaviorHints": {
+            "proxyHeaders": {
+              "request": {"Referer": "https://example.com", "X-Token": "secret"}
+            }
+          }
+        }
+        """#.data(using: .utf8)!
+
+        let stream = try JSONDecoder().decode(StremioStream.self, from: fixture)
+        XCTAssertEqual(stream.requestHeaders["Referer"], "https://example.com")
+        XCTAssertEqual(stream.requestHeaders["X-Token"], "secret")
+    }
+
     private func source(named name: String) throws -> String {
         let tests = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         let url = tests.deletingLastPathComponent().appendingPathComponent("Sources/\(name)")
