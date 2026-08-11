@@ -61,11 +61,23 @@ final class WatchProgressStore: ObservableObject {
     }
 
     func resumablePosition(videoID: String, contentID: String) -> Double? {
+        resumableRecord(videoID: videoID, contentID: contentID).map {
+            Double($0.position) / 1_000
+        }
+    }
+
+    func latestResumableRecord(contentID: String) -> WatchProgressRecord? {
+        records
+            .filter { $0.contentID == contentID && !$0.isCompleted && $0.position >= 15_000 }
+            .max(by: WatchProgressRecord.isOlder)
+    }
+
+    private func resumableRecord(videoID: String, contentID: String) -> WatchProgressRecord? {
         let record = records
             .filter { $0.videoID == videoID && $0.contentID == contentID }
-            .max { $0.lastWatched < $1.lastWatched }
+            .max(by: WatchProgressRecord.isOlder)
         guard let record, !record.isCompleted, record.position >= 15_000 else { return nil }
-        return Double(record.position) / 1_000
+        return record
     }
 
     func clearForLogout() {
@@ -116,6 +128,7 @@ final class WatchProgressStore: ObservableObject {
 
     var continueWatching: [ContinueWatchingCard] {
         records
+            .latestRecordPerContent()
             .filter { !$0.isCompleted && $0.position >= 5_000 && $0.summary != nil }
             .sorted { $0.lastWatched > $1.lastWatched }
             .prefix(30)
@@ -178,5 +191,26 @@ final class WatchProgressStore: ObservableObject {
         } catch {
             AppLog.sync.error("Local progress encode failed profile=\(self.profileID) detail=\(AppLog.safeDescription(error), privacy: .public)")
         }
+    }
+}
+
+private extension Array where Element == WatchProgressRecord {
+    func latestRecordPerContent() -> [WatchProgressRecord] {
+        var latest: [String: WatchProgressRecord] = [:]
+        for record in self {
+            let key = "\(record.contentType.lowercased()):\(record.contentID)"
+            if let current = latest[key], !WatchProgressRecord.isOlder(current, record) { continue }
+            latest[key] = record
+        }
+        return Array(latest.values)
+    }
+}
+
+private extension WatchProgressRecord {
+    static func isOlder(_ left: WatchProgressRecord, _ right: WatchProgressRecord) -> Bool {
+        if left.lastWatched != right.lastWatched { return left.lastWatched < right.lastWatched }
+        if left.season != right.season { return (left.season ?? 0) < (right.season ?? 0) }
+        if left.episode != right.episode { return (left.episode ?? 0) < (right.episode ?? 0) }
+        return left.position < right.position
     }
 }

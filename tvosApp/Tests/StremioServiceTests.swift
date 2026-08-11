@@ -231,6 +231,46 @@ final class StremioServiceTests: XCTestCase {
         XCTAssertEqual(requests.map(\.catalogID), ["top", "top"])
     }
 
+    func testBrowseCatalogRequestsIncludeCompatibleCatalogsAndResolveRequiredGenre() throws {
+        let addon = try manifest(from: #"""
+        {
+          "id":"browse", "name":"Browse",
+          "catalogs":[
+            {"type":"movie","id":"popular","name":"Popular","extra":[{"name":"skip"}]},
+            {"type":"series","id":"genre","name":"By Genre","extra":[{"name":"genre","isRequired":true,"options":["Drama","Comedy"]}]},
+            {"type":"movie","id":"search-only","name":"Search","extra":[{"name":"search","isRequired":true}]},
+            {"type":"movie","id":"token","name":"Token","extra":[{"name":"token","isRequired":true}]}
+          ]
+        }
+        """#)
+
+        let requests = BrowseCatalogRequest.compatibleRequests(from: [
+            HomeAddon(baseURL: "https://browse.example", name: "Browse", manifest: addon),
+        ])
+
+        XCTAssertEqual(requests, [
+            BrowseCatalogRequest(baseURL: "https://browse.example", addonName: "Browse", type: "movie", catalogID: "popular", catalogName: "Popular", genre: nil),
+            BrowseCatalogRequest(baseURL: "https://browse.example", addonName: "Browse", type: "series", catalogID: "genre", catalogName: "By Genre", genre: "Drama"),
+        ])
+    }
+
+    @MainActor
+    func testContinueWatchingKeepsLatestEpisodeForEachShow() {
+        let defaults = isolatedDefaults()
+        let store = WatchProgressStore(defaults: defaults)
+        let show = MetaSummary(id: "tt-show", type: "series", name: "Show")
+        let film = MetaSummary(id: "tt-film", type: "movie", name: "Film")
+
+        store.record(summary: show, videoID: "tt-show:1:1", season: 1, episode: 1, episodeTitle: "One", episodeThumbnail: nil, positionSeconds: 50, durationSeconds: 1_000)
+        store.record(summary: show, videoID: "tt-show:1:4", season: 1, episode: 4, episodeTitle: "Four", episodeThumbnail: nil, positionSeconds: 80, durationSeconds: 1_000)
+        store.record(summary: film, videoID: "tt-film", season: nil, episode: nil, episodeTitle: nil, episodeThumbnail: nil, positionSeconds: 90, durationSeconds: 1_000)
+
+        let cards = store.continueWatching
+        XCTAssertEqual(cards.count, 2)
+        XCTAssertEqual(cards.first(where: { $0.summary.id == "tt-show" })?.episode, 4)
+        XCTAssertEqual(store.latestResumableRecord(contentID: "tt-show")?.videoID, "tt-show:1:4")
+    }
+
     func testShellUsesNativeAdaptiveTabs() throws {
         let shell = try source(named: "AppShellView.swift")
         XCTAssertTrue(shell.contains("TabView(selection:"))
@@ -326,6 +366,13 @@ final class StremioServiceTests: XCTestCase {
         XCTAssertEqual(store.resumablePosition(videoID: "tt-series:1:1", contentID: "tt-series"), 120)
         XCTAssertNil(store.resumablePosition(videoID: "tt-series:1:2", contentID: "tt-series"))
         XCTAssertNil(store.resumablePosition(videoID: "tt-series:1:1", contentID: "other-series"))
+    }
+
+    private func isolatedDefaults() -> UserDefaults {
+        let suite = "NuvioTVTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.removePersistentDomain(forName: suite)
+        return defaults
     }
 
     private func manifest(from fixture: String) throws -> AddonManifest {

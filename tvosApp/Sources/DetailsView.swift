@@ -5,6 +5,7 @@ struct DetailsView: View {
 
     @EnvironmentObject private var library: LibraryStore
     @EnvironmentObject private var addonStore: AddonStore
+    @EnvironmentObject private var watchProgress: WatchProgressStore
     @State private var detail: MetaDetail?
     @State private var isLoading = true
     @State private var errorMessage: String?
@@ -180,10 +181,16 @@ struct DetailsView: View {
                 baseURL: summary.metadataBaseURL ?? StremioService.cinemetaBaseURL.absoluteString
             )
             detail = loaded
+            let latestResume = watchProgress.latestResumableRecord(contentID: summary.id)
             selectedVideo = summary.playbackVideoID.flatMap { videoID in
                 loaded.videos.first { $0.id == videoID }
             } ?? loaded.videos.first { video in
                 video.season == summary.playbackSeason && video.episode == summary.playbackEpisode
+            } ?? latestResume.flatMap { record in
+                loaded.videos.first { video in
+                    video.id == record.videoID ||
+                        (video.season == record.season && video.episode == record.episode)
+                }
             } ?? loaded.videos.first
         } catch {
             errorMessage = error.userMessage
