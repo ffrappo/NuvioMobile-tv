@@ -38,9 +38,11 @@ struct StreamSourcesView: View {
             sourceContent
 
             ForEach(report.failures, id: \.self) { failure in
-                Label(failure.tvSafe, systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption)
-                    .foregroundStyle(.orange)
+                NuvioStatusMessage(
+                    message: failure,
+                    symbol: "exclamationmark.triangle.fill",
+                    tint: .orange
+                )
             }
         }
         .task(id: requestID) { await loadStreams() }
@@ -88,7 +90,6 @@ struct StreamSourcesView: View {
 
     private func sourceButton(_ source: StreamSource) -> some View {
         let isPlayable = source.stream.directURL != nil
-        let isFocused = focusedSource == source.id
 
         return Button {
             play(source)
@@ -96,43 +97,32 @@ struct StreamSourcesView: View {
             HStack(spacing: 18) {
                 Image(systemName: isPlayable ? "play.fill" : "link.badge.plus")
                     .font(.title3.weight(.bold))
-                    .foregroundStyle(isFocused ? .black : (isPlayable ? .white : NuvioTheme.secondaryText))
+                    .foregroundStyle(isPlayable ? .white : .secondary)
                     .frame(width: 48, height: 48)
-                    .background(
-                        isFocused ? Color.black.opacity(0.10) : Color.white.opacity(0.08),
-                        in: Circle()
-                    )
+                    .background(Color.white.opacity(0.08), in: Circle())
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text(source.stream.name.tvSafe)
                         .font(.headline)
-                        .foregroundStyle(isFocused ? .black : .white)
                         .lineLimit(1)
                     Text(source.addonName.tvSafe)
                         .font(.caption)
-                        .foregroundStyle(isFocused ? .black.opacity(0.6) : NuvioTheme.secondaryText)
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
 
                 Spacer(minLength: 8)
 
-                Text(isPlayable ? "PLAY" : "INFO")
-                    .font(.caption2.weight(.bold))
-                    .tracking(1.4)
-                    .foregroundStyle(isFocused ? .black : .secondary)
+                Text(isPlayable ? "Play" : "Unavailable")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
             }
             .padding(.horizontal, 20)
             .frame(maxWidth: .infinity, minHeight: 88)
-            .background(isFocused ? Color.white : NuvioTheme.panel)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .scaleEffect(isFocused ? 1.02 : 1)
-            .shadow(color: isFocused ? .black.opacity(0.45) : .clear, radius: 14, y: 7)
         }
-        .buttonStyle(.plain)
-        .focusEffectDisabled()
+        .buttonStyle(.card)
         .disabled(!isPlayable)
         .focused($focusedSource, equals: source.id)
-        .animation(.easeOut(duration: 0.14), value: isFocused)
     }
 
     private func play(_ source: StreamSource) {
