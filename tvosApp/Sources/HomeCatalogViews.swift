@@ -100,17 +100,14 @@ struct PosterCard: View {
                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(
-                            isFocused ? Color.white.opacity(0.95) : Color.white.opacity(0.12),
-                            lineWidth: isFocused ? 3 : 1
-                        )
+                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
                 )
                 .shadow(
-                    color: isFocused ? Color.white.opacity(0.28) : .black.opacity(0.45),
-                    radius: isFocused ? 18 : 10,
-                    y: isFocused ? 10 : 4
+                    color: .black.opacity(isFocused ? 0.70 : 0.45),
+                    radius: isFocused ? 22 : 10,
+                    y: isFocused ? 12 : 4
                 )
-                .scaleEffect(isFocused ? 1.08 : 1)
+                .scaleEffect(isFocused ? 1.06 : 1)
             Text(item.name.tvSafe).font(.headline).lineLimit(1).frame(width: 220, alignment: .leading)
             Text(item.releaseInfo?.tvSafe ?? item.type.capitalized)
                 .font(.subheadline).foregroundStyle(NuvioTheme.secondaryText)
