@@ -53,4 +53,4 @@ The previous `PlayerOptionsView.swift` sheet was removed because it duplicated t
 - Generic tvOS Debug build with signing disabled passes after replacing the dated settings sheet with native menus, a focused Siri Remote timeline scrubber, and auto-hiding player chrome.
 - Integration settings decode from the mobile profile settings blob, including Anime Skip enablement and client ID.
 - AniSkip and Anime Skip segment lookup drives contextual skip actions in the native player controls.
-- Signed physical Apple TV Debug build and hands-on remote smoke testing remain pending until the paired device reconnects.
+- Signed physical Apple TV Debug build, install, launch, and running-process verification passed on Seminterrato after the 2026 interface review. Full hands-on Siri Remote and accessibility testing remains listed in `APPLE_TV_2026_REVIEW.md`.
