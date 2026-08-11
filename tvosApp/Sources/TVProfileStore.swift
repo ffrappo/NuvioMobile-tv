@@ -27,7 +27,8 @@ final class TVProfileStore: ObservableObject {
                 select(first.profileIndex)
             }
         } catch {
-            profiles = []
+            let detail = AppLog.safeDescription(error)
+            AppLog.sync.error("Profile sync failed detail=\(detail, privacy: .public)")
         }
     }
 

@@ -100,7 +100,8 @@ final class WatchProgressStore: ObservableObject {
             try await accountService.save(records, accessToken: token, profileID: profileID)
             save()
         } catch {
-            return
+            let detail = AppLog.safeDescription(error)
+            AppLog.sync.error("Watch progress sync failed profile=\(profileID) detail=\(detail, privacy: .public)")
         }
     }
 
@@ -129,7 +130,13 @@ final class WatchProgressStore: ObservableObject {
     }
 
     private func metadataSummary(for item: SyncWatchProgressRecord, service: StremioService) async -> MetaSummary? {
-        try? await service.details(type: item.contentType, id: item.contentID).summary
+        do {
+            return try await service.details(type: item.contentType, id: item.contentID).summary
+        } catch {
+            let detail = AppLog.safeDescription(error)
+            AppLog.sync.warning("Progress metadata unavailable content=\(item.contentID, privacy: .public) detail=\(detail, privacy: .public)")
+            return nil
+        }
     }
 
     private func upsert(_ record: WatchProgressRecord) {
@@ -143,12 +150,24 @@ final class WatchProgressStore: ObservableObject {
     private var storageKey: String { "nuvio.tv.watchProgress.v2.\(profileID)" }
 
     private func load() {
-        records = defaults.data(forKey: storageKey)
-            .flatMap { try? JSONDecoder().decode([WatchProgressRecord].self, from: $0) } ?? []
+        guard let data = defaults.data(forKey: storageKey) else {
+            records = []
+            return
+        }
+        do {
+            records = try JSONDecoder().decode([WatchProgressRecord].self, from: data)
+        } catch {
+            AppLog.sync.error("Local progress decode failed profile=\(self.profileID) detail=\(AppLog.safeDescription(error), privacy: .public)")
+            records = []
+        }
     }
 
     private func save() {
         let newest = records.sorted { $0.lastWatched > $1.lastWatched }.prefix(300)
-        defaults.set(try? JSONEncoder().encode(Array(newest)), forKey: storageKey)
+        do {
+            defaults.set(try JSONEncoder().encode(Array(newest)), forKey: storageKey)
+        } catch {
+            AppLog.sync.error("Local progress encode failed profile=\(self.profileID) detail=\(AppLog.safeDescription(error), privacy: .public)")
+        }
     }
 }

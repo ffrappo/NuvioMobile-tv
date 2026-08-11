@@ -10,6 +10,13 @@ enum AppLog {
     static let provider = Logger(subsystem: subsystem, category: "provider")
     static let playback = Logger(subsystem: subsystem, category: "playback")
 
+    static func console(_ message: String) {
+#if DEBUG
+        print("NUVIO_LOG \(message)")
+        fflush(stdout)
+#endif
+    }
+
     static func safeDescription(_ error: Error) -> String {
         if let accountError = error as? AccountServiceError {
             return accountError.errorDescription ?? "Account service error"

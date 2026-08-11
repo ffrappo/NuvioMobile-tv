@@ -16,7 +16,9 @@ final class CollectionStore: ObservableObject {
             collections = []
             return
         }
-        AppLog.sync.notice("Collections sync started profile=\(profileID)")
+        let startMessage = "collections.start profile=\(profileID)"
+        AppLog.sync.notice("\(startMessage, privacy: .public)")
+        AppLog.console(startMessage)
         do {
             let token = try await auth.validAccessToken()
             collections = try await accountService.collections(accessToken: token, profileID: profileID)
@@ -25,10 +27,14 @@ final class CollectionStore: ObservableObject {
                     return first.title.localizedCaseInsensitiveCompare(second.title) == .orderedAscending
                 }
             message = nil
-            AppLog.sync.notice("Collections sync completed profile=\(profileID) collections=\(self.collections.count)")
+            let successMessage = "collections.complete profile=\(profileID) count=\(self.collections.count)"
+            AppLog.sync.notice("\(successMessage, privacy: .public)")
+            AppLog.console(successMessage)
         } catch {
             let detail = AppLog.safeDescription(error)
-            AppLog.sync.error("Collections sync failed profile=\(profileID) detail=\(detail, privacy: .public)")
+            let failureMessage = "collections.fail profile=\(profileID) detail=\(detail)"
+            AppLog.sync.error("\(failureMessage, privacy: .public)")
+            AppLog.console(failureMessage)
             message = "Collections could not be synchronized. \(detail)"
         }
     }

@@ -85,7 +85,9 @@ final class AddonStore: ObservableObject {
             await refreshManifests()
             syncMessage = "Synced \(remoteURLs.count) account addon\(remoteURLs.count == 1 ? "" : "s")."
         } catch {
-            syncMessage = "Addon sync failed: \(error.localizedDescription)"
+            let detail = AppLog.safeDescription(error)
+            AppLog.sync.error("Addon sync failed profile=\(profileID) detail=\(detail, privacy: .public)")
+            syncMessage = "Addon sync failed: \(detail)"
         }
     }
 
@@ -151,6 +153,8 @@ final class AddonStore: ObservableObject {
                     manifest: result.manifest
                 ))
             } catch {
+                let detail = AppLog.safeDescription(error)
+                AppLog.provider.error("Manifest refresh failed base=\(Self.safeEndpointLabel(base), privacy: .public) detail=\(detail, privacy: .public)")
                 refreshed.append(AddonEndpoint(
                     baseURL: base,
                     name: URL(string: base)?.host ?? "Unavailable addon",
@@ -161,6 +165,10 @@ final class AddonStore: ObservableObject {
         }
         addons = refreshed
         homeAddons = refreshedHomeAddons
+    }
+
+    private static func safeEndpointLabel(_ value: String) -> String {
+        URL(string: value)?.host ?? "invalid-host"
     }
 
     private func persist() {

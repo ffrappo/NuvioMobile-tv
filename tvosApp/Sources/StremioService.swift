@@ -122,6 +122,8 @@ struct StremioService {
             do {
                 return try decoder.decode(T.self, from: data)
             } catch {
+                let detail = Self.decodeFailureDetail(error)
+                AppLog.provider.error("Provider decode failed host=\(url.host ?? "unknown", privacy: .public) path=\(url.path, privacy: .public) type=\(String(describing: T.self), privacy: .public) detail=\(detail, privacy: .public) bytes=\(data.count)")
                 throw StremioServiceError.invalidPayload
             }
         } catch let error as StremioServiceError {
@@ -133,6 +135,27 @@ struct StremioService {
                 userInfo: [NSLocalizedDescriptionKey: "Network request failed: \(error.localizedDescription)"]
             )
         }
+    }
+
+    private static func decodeFailureDetail(_ error: Error) -> String {
+        switch error {
+        case DecodingError.keyNotFound(let key, let context):
+            return "missing \(key.stringValue) at \(codingPath(context.codingPath))"
+        case DecodingError.typeMismatch(let type, let context):
+            return "expected \(type) at \(codingPath(context.codingPath))"
+        case DecodingError.valueNotFound(let type, let context):
+            return "missing \(type) at \(codingPath(context.codingPath))"
+        case DecodingError.dataCorrupted(let context):
+            return "corrupt data at \(codingPath(context.codingPath))"
+        default:
+            let nsError = error as NSError
+            return "\(nsError.domain) code=\(nsError.code)"
+        }
+    }
+
+    private static func codingPath(_ path: [CodingKey]) -> String {
+        let value = path.map(\.stringValue).joined(separator: ".")
+        return value.isEmpty ? "root" : value
     }
 
     static func normalizeManifestURL(_ input: String) throws -> URL {

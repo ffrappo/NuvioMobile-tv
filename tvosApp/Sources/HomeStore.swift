@@ -61,15 +61,19 @@ final class HomeStore: ObservableObject {
         await withTaskGroup(of: (String, HomeCatalogSection?).self) { group in
             for definition in active where force || sections[definition.id] == nil {
                 group.addTask { [service] in
-                    let result = try? await service.catalog(
-                        baseURL: definition.addonBaseURL,
-                        type: definition.type,
-                        id: definition.catalogID
-                    )
-                    let items = result.map {
-                        HomeReleaseFilter.releasedItems($0, enabled: hideUnreleasedContent)
+                    do {
+                        let result = try await service.catalog(
+                            baseURL: definition.addonBaseURL,
+                            type: definition.type,
+                            id: definition.catalogID
+                        )
+                        let items = HomeReleaseFilter.releasedItems(result, enabled: hideUnreleasedContent)
+                        return (definition.id, HomeCatalogSection(definition: definition, items: items))
+                    } catch {
+                        let detail = AppLog.safeDescription(error)
+                        AppLog.home.error("Catalog refresh failed key=\(definition.id, privacy: .public) detail=\(detail, privacy: .public)")
+                        return (definition.id, nil)
                     }
-                    return (definition.id, items.map { HomeCatalogSection(definition: definition, items: $0) })
                 }
             }
             for await (key, section) in group {
@@ -102,7 +106,8 @@ final class HomeStore: ObservableObject {
                 preferences.applyRemote(remote)
             }
         } catch {
-            return
+            let detail = AppLog.safeDescription(error)
+            AppLog.sync.error("Home preferences sync failed profile=\(profileID) detail=\(detail, privacy: .public)")
         }
     }
 
@@ -136,9 +141,16 @@ final class HomeStore: ObservableObject {
     private func buildUpcoming(from records: [WatchProgressRecord]) async -> [ContinueWatchingCard] {
         var upcoming: [ContinueWatchingCard] = []
         for record in records.filter({ $0.contentType.lowercased() == "series" && $0.isCompleted }).prefix(12) {
-            guard let summary = record.summary,
-                  let detail = try? await service.details(type: record.contentType, id: record.contentID),
-                  let next = HomeUpcomingResolver.nextEpisode(after: record, videos: detail.videos) else { continue }
+            guard let summary = record.summary else { continue }
+            let detail: MetaDetail
+            do {
+                detail = try await service.details(type: record.contentType, id: record.contentID)
+            } catch {
+                let errorDetail = AppLog.safeDescription(error)
+                AppLog.home.error("Upcoming enrichment failed content=\(record.contentID, privacy: .public) detail=\(errorDetail, privacy: .public)")
+                continue
+            }
+            guard let next = HomeUpcomingResolver.nextEpisode(after: record, videos: detail.videos) else { continue }
             upcoming.append(ContinueWatchingCard(
                 id: "upcoming:\(record.contentID):\(next.id)",
                 summary: summary,
