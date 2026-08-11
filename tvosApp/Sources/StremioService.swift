@@ -1,0 +1,178 @@
+import Foundation
+
+enum StremioServiceError: LocalizedError {
+    case invalidURL
+    case unsupportedScheme
+    case badResponse
+    case serverStatus(Int)
+    case invalidPayload
+    case noPlayableURL
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL: return "Enter a complete addon manifest URL."
+        case .unsupportedScheme: return "Addon URLs must use HTTP or HTTPS."
+        case .badResponse: return "The addon returned an unreadable response."
+        case .serverStatus(let status): return "The addon returned status \(status)."
+        case .invalidPayload: return "The addon response did not match the Stremio format."
+        case .noPlayableURL: return "This source does not include a direct playback URL."
+        }
+    }
+}
+
+struct StremioService {
+    static let cinemetaBaseURL = URL(string: "https://v3-cinemeta.strem.io")!
+    static let cinemetaManifestURL = URL(string: "https://v3-cinemeta.strem.io/manifest.json")!
+
+    private let session: URLSession
+    private let decoder: JSONDecoder
+
+    init(session: URLSession? = nil) {
+        if let session {
+            self.session = session
+        } else {
+            let configuration = URLSessionConfiguration.default
+            configuration.timeoutIntervalForRequest = 20
+            configuration.timeoutIntervalForResource = 45
+            configuration.requestCachePolicy = .useProtocolCachePolicy
+            configuration.urlCache = .shared
+            self.session = URLSession(configuration: configuration)
+        }
+        decoder = JSONDecoder()
+    }
+
+    func cinemetaManifest() async throws -> AddonManifest {
+        try await request(Self.cinemetaManifestURL)
+    }
+
+    func manifest(at input: String) async throws -> (base: URL, manifest: AddonManifest) {
+        let base = try Self.normalizeManifestURL(input)
+        let manifest: AddonManifest = try await request(base.appendingPathComponent("manifest.json"))
+        return (base, manifest)
+    }
+
+    func catalog(type: String, id: String = "top", query: String? = nil) async throws -> [MetaSummary] {
+        let url = try Self.catalogURL(type: type, id: id, query: query)
+        let response: CatalogResponse = try await request(url)
+        return response.metas
+    }
+
+    func details(type: String, id: String) async throws -> MetaDetail {
+        let url = Self.cinemetaBaseURL
+            .appendingPathComponent("meta")
+            .appendingPathComponent(type)
+            .appendingPathComponent(id)
+            .appendingPathExtension("json")
+        let response: MetaResponse = try await request(url)
+        return response.meta
+    }
+
+    func streams(type: String, id: String, addons: [AddonEndpoint]) async -> StreamFetchReport {
+        var sources: [StreamSource] = []
+        var failures: [String] = []
+
+        for addon in addons where addon.providesStreams {
+            do {
+                guard let base = URL(string: addon.baseURL) else { throw StremioServiceError.invalidURL }
+                let url = base
+                    .appendingPathComponent("stream")
+                    .appendingPathComponent(type)
+                    .appendingPathComponent(id)
+                    .appendingPathExtension("json")
+                let response: StreamResponse = try await request(url)
+                sources.append(contentsOf: response.streams.map {
+                    StreamSource(addonName: addon.name, stream: $0)
+                })
+            } catch {
+                failures.append("\(addon.name): \(error.userMessage)")
+            }
+        }
+
+        return StreamFetchReport(sources: sources, failures: failures)
+    }
+
+    func request<T: Decodable>(_ url: URL) async throws -> T {
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("NuvioTV/1.0", forHTTPHeaderField: "User-Agent")
+
+        do {
+            let (data, response) = try await session.data(for: request)
+            guard let http = response as? HTTPURLResponse else {
+                throw StremioServiceError.badResponse
+            }
+            guard (200...299).contains(http.statusCode) else {
+                throw StremioServiceError.serverStatus(http.statusCode)
+            }
+            do {
+                return try decoder.decode(T.self, from: data)
+            } catch {
+                throw StremioServiceError.invalidPayload
+            }
+        } catch let error as StremioServiceError {
+            throw error
+        } catch {
+            throw NSError(
+                domain: "NuvioTV.Network",
+                code: (error as NSError).code,
+                userInfo: [NSLocalizedDescriptionKey: "Network request failed: \(error.localizedDescription)"]
+            )
+        }
+    }
+
+    static func normalizeManifestURL(_ input: String) throws -> URL {
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard var components = URLComponents(string: trimmed),
+              let scheme = components.scheme?.lowercased(),
+              components.host != nil else {
+            throw StremioServiceError.invalidURL
+        }
+        guard scheme == "http" || scheme == "https" else {
+            throw StremioServiceError.unsupportedScheme
+        }
+
+        components.query = nil
+        components.fragment = nil
+        guard var url = components.url else { throw StremioServiceError.invalidURL }
+        if url.lastPathComponent.lowercased() == "manifest.json" {
+            url.deleteLastPathComponent()
+        }
+        guard var normalized = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            throw StremioServiceError.invalidURL
+        }
+        while normalized.path.count > 1 && normalized.path.hasSuffix("/") {
+            normalized.path.removeLast()
+        }
+        guard let result = normalized.url else { throw StremioServiceError.invalidURL }
+        return result
+    }
+
+    static func catalogURL(type: String, id: String, query: String?) throws -> URL {
+        var url = cinemetaBaseURL
+            .appendingPathComponent("catalog")
+            .appendingPathComponent(type)
+            .appendingPathComponent(id)
+
+        let trimmed = query?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !trimmed.isEmpty else {
+            url.appendPathExtension("json")
+            return url
+        }
+
+        var allowed = CharacterSet.alphanumerics
+        allowed.formUnion(CharacterSet(charactersIn: "-._~"))
+        guard let encodedQuery = trimmed.addingPercentEncoding(withAllowedCharacters: allowed),
+              var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            throw StremioServiceError.invalidURL
+        }
+        components.percentEncodedPath += "/search=\(encodedQuery).json"
+        guard let result = components.url else { throw StremioServiceError.invalidURL }
+        return result
+    }
+}
+
+extension Error {
+    var userMessage: String {
+        (self as? LocalizedError)?.errorDescription ?? localizedDescription
+    }
+}

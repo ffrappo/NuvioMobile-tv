@@ -1,0 +1,70 @@
+name: NuvioTV
+options:
+  deploymentTarget:
+    tvOS: "16.0"
+  xcodeVersion: "27.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: 2V6YSU4HFB
+    CODE_SIGN_STYLE: Manual
+    SWIFT_VERSION: "5.0"
+
+targets:
+  NuvioTV:
+    type: application
+    platform: tvOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: Sources
+      - path: Resources
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.nuviace.app.tvos
+        PRODUCT_NAME: Nuvio
+        PRODUCT_MODULE_NAME: NuvioTV
+        CODE_SIGN_IDENTITY: "Apple Development"
+        PROVISIONING_PROFILE_SPECIFIER: "Nuvio tvOS Development"
+        ASSETCATALOG_COMPILER_APPICON_NAME: ""
+        TARGETED_DEVICE_FAMILY: "3"
+        ENABLE_USER_SCRIPT_SANDBOXING: YES
+    info:
+      path: Generated/Info.plist
+      properties:
+        CFBundleDisplayName: Nuvio
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        LSApplicationCategoryType: public.app-category.entertainment
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+        UIApplicationSupportsIndirectInputEvents: true
+
+  NuvioTVTests:
+    type: bundle.unit-test
+    platform: tvOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Tests
+    dependencies:
+      - target: NuvioTV
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.nuviace.app.tvos.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Nuvio.app/Nuvio"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
+schemes:
+  NuvioTV:
+    build:
+      targets:
+        NuvioTV: all
+        NuvioTVTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - NuvioTVTests
