@@ -17,13 +17,15 @@ Installed help reviewed before implementation:
 - `xcrun devicectl help list devices`
 - `xcrun devicectl help device install app`
 - `xcrun devicectl help device process launch`
-- Installed AppleTVOS SDK Swift interfaces for `NavigationStack`, `defaultFocus`, `focusable`, `onPlayPauseCommand`, `onExitCommand`, and URLSession `data(for:)`
+- Installed AppleTVOS SDK Swift interfaces for `NavigationStack`, `defaultFocus`, `focusable`, `onPlayPauseCommand`, `onExitCommand`, URLSession `data(for:)`, and the AVKit `AVRoutePickerView` tvOS API
 
 ## Official documentation
 
 - Apple SwiftUI focus: https://developer.apple.com/documentation/swiftui/focus
 - Apple navigation stack: https://developer.apple.com/documentation/swiftui/understanding-the-navigation-stack
 - Apple AVPlayerViewController: https://developer.apple.com/documentation/avkit/avplayerviewcontroller
+- Apple AVRoutePickerView: https://developer.apple.com/documentation/avkit/avroutepickerview
+- Apple AVAudioSession: https://developer.apple.com/documentation/avfaudio/avaudiosession
 - Apple playback experience: https://developer.apple.com/documentation/avkit/customizing-the-tvos-playback-experience
 - libmpv client API: https://mpv.io/manual/master/#client-api
 - XcodeGen project spec: https://github.com/yonaskolb/XcodeGen/blob/master/Docs/ProjectSpec.md

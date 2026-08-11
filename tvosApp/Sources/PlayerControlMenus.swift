@@ -18,6 +18,9 @@ struct PlayerControlMenus: View {
             speedMenu
             subtitlesMenu
             if !session.audioTracks.isEmpty { audioMenu }
+            AudioRoutePicker(onInteraction: onInteraction)
+                .frame(width: 68, height: 52)
+                .accessibilityLabel("Audio Output")
             if route.availableSources.count > 1 { sourcesMenu }
             if route.episodes.count > 1 { episodesMenu }
         }

@@ -14,6 +14,7 @@
 		27C199D33D48FE16E1F27FBA /* PlayerControlMenus.swift in Sources */ = {isa = PBXBuildFile; fileRef = E723FE2419E3A281C9A1C792 /* PlayerControlMenus.swift */; };
 		27D61384067C9BD73191E897 /* AuthStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F7D7B62F6F49435D9DF63AE /* AuthStore.swift */; };
 		3DF7651B0D6F6D02C2D4820F /* MPVPlayerStatePublishing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5130437B6988CB319EA38E68 /* MPVPlayerStatePublishing.swift */; };
+		3E0DA39CFE3089B4C3D39234 /* AudioRoutePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 660DC53C71DE152831CC0C12 /* AudioRoutePicker.swift */; };
 		3E5C13C1C6F3DFDD6884062B /* MPVPlayerNetworking.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD0750902F3BA140EC65E3B /* MPVPlayerNetworking.swift */; };
 		3F4B6950113090D001FB9A73 /* IntegrationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE240C1E5873B2E908D10D36 /* IntegrationStore.swift */; };
 		41EDEC0FD1E0EA9846D553D7 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958FD18C6EA14520C046C529 /* SignInView.swift */; };
@@ -96,6 +97,7 @@
 		543DA650106C90A093A2E954 /* HomeSyncModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeSyncModels.swift; sourceTree = "<group>"; };
 		570D4AE11EF03EE695E15707 /* SettingsAccountSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAccountSection.swift; sourceTree = "<group>"; };
 		60FD5664E979436B49C41ADA /* HomeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeModels.swift; sourceTree = "<group>"; };
+		660DC53C71DE152831CC0C12 /* AudioRoutePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRoutePicker.swift; sourceTree = "<group>"; };
 		6D6169A51B12FA3CED04AC6E /* DetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsView.swift; sourceTree = "<group>"; };
 		6F624ED2E01AFD6E2561BA84 /* CollectionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionStore.swift; sourceTree = "<group>"; };
 		728F8B7A925C4B231A981A64 /* AppShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShellView.swift; sourceTree = "<group>"; };
@@ -151,6 +153,7 @@
 				40377AAD4E194D473EC8DFFC /* AddonTransport.swift */,
 				786FC58A58F4DEFF56C9B9BF /* AppLog.swift */,
 				728F8B7A925C4B231A981A64 /* AppShellView.swift */,
+				660DC53C71DE152831CC0C12 /* AudioRoutePicker.swift */,
 				CC2BAA7F1FD89709C92D44FE /* AuthModels.swift */,
 				4F7D7B62F6F49435D9DF63AE /* AuthStore.swift */,
 				DE2FEDA020CC691768F55DBE /* CatalogView.swift */,
@@ -348,6 +351,7 @@
 				D7A204DDB089392F63AC4A21 /* AddonsView.swift in Sources */,
 				BD786E3FFBE7C65FF6FAD08C /* AppLog.swift in Sources */,
 				4492E0066035C1098B1BD4B4 /* AppShellView.swift in Sources */,
+				3E0DA39CFE3089B4C3D39234 /* AudioRoutePicker.swift in Sources */,
 				A838EF00ACFDCEE61E603671 /* AuthModels.swift in Sources */,
 				27D61384067C9BD73191E897 /* AuthStore.swift in Sources */,
 				CBED960FE44E31B33CA37821 /* CatalogView.swift in Sources */,
