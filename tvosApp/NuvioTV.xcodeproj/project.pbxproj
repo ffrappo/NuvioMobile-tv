@@ -54,6 +54,7 @@
 		CBED960FE44E31B33CA37821 /* CatalogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE2FEDA020CC691768F55DBE /* CatalogView.swift */; };
 		CC3096D4FA59031ACD995472 /* AddonTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40377AAD4E194D473EC8DFFC /* AddonTransport.swift */; };
 		D149CD3FC476E0D153D26867 /* NuvioControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51FCD104A61FCAE3B60D12FD /* NuvioControls.swift */; };
+		D40896A4FD7538537AF42EBF /* PlayerControlsVisibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96D5B2597935756E1FBADFBE /* PlayerControlsVisibility.swift */; };
 		D7A204DDB089392F63AC4A21 /* AddonsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D101E15479EA8BF6F8B8B1AE /* AddonsView.swift */; };
 		D91C7E56946233EB62D40BD9 /* StreamSourcesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB64C4919946C587C5324E0C /* StreamSourcesView.swift */; };
 		E67EFD118537FF0B04A36A1F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C4C9739C9C26824BF9517638 /* Assets.xcassets */; };
@@ -107,6 +108,7 @@
 		8CA8D158F406C206AD751836 /* TVNowPlayingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TVNowPlayingController.swift; sourceTree = "<group>"; };
 		94F6C839C63851E17F71A673 /* SettingsHomeSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHomeSection.swift; sourceTree = "<group>"; };
 		958FD18C6EA14520C046C529 /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
+		96D5B2597935756E1FBADFBE /* PlayerControlsVisibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerControlsVisibility.swift; sourceTree = "<group>"; };
 		AAD0750902F3BA140EC65E3B /* MPVPlayerNetworking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPVPlayerNetworking.swift; sourceTree = "<group>"; };
 		B2AFC2D037541A3D7A11A6E2 /* PlayerControlsOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerControlsOverlay.swift; sourceTree = "<group>"; };
 		B5716F31FB038AFA879C132F /* SubtitleAppearanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleAppearanceView.swift; sourceTree = "<group>"; };
@@ -180,6 +182,7 @@
 				DD4B08B0E68A9C97F695E1A8 /* PlaybackTimelineScrubber.swift */,
 				E723FE2419E3A281C9A1C792 /* PlayerControlMenus.swift */,
 				B2AFC2D037541A3D7A11A6E2 /* PlayerControlsOverlay.swift */,
+				96D5B2597935756E1FBADFBE /* PlayerControlsVisibility.swift */,
 				0E063DF1A7166F7F4FDC0C3F /* PlayerErrorView.swift */,
 				C27E09B744C2CE890A87E44F /* PlayerModels.swift */,
 				10F96A6131AF0A35CE5B3E10 /* PlayerView.swift */,
@@ -378,6 +381,7 @@
 				748E9D90F76FD77C838E8898 /* PlaybackTimelineScrubber.swift in Sources */,
 				27C199D33D48FE16E1F27FBA /* PlayerControlMenus.swift in Sources */,
 				C8EF625AE98D1023FE7DE19A /* PlayerControlsOverlay.swift in Sources */,
+				D40896A4FD7538537AF42EBF /* PlayerControlsVisibility.swift in Sources */,
 				B84723186883CFAC61BDD514 /* PlayerErrorView.swift in Sources */,
 				4200128317A802BB497D33A6 /* PlayerModels.swift in Sources */,
 				706E70B6FAC13B7501F295A0 /* PlayerView.swift in Sources */,
@@ -421,7 +425,7 @@
 		00F04F10507014776986D391 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -602,7 +606,7 @@
 		E3DE35313F78F6B87ABAB7D8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;

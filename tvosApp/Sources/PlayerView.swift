@@ -55,8 +55,7 @@ struct PlayerView: View {
     @EnvironmentObject private var integrations: IntegrationStore
     @EnvironmentObject private var syncedProgress: WatchProgressStore
     @StateObject private var session = MPVPlaybackSession()
-    @State private var controlsVisible = true
-    @State private var controlsDismissTask: Task<Void, Never>?
+    @StateObject private var controls = PlayerControlsVisibility()
     @State private var playbackStartedAt = Date()
     @State private var selectedSourceURL: URL?
     @State private var resumePosition: Double?
@@ -73,13 +72,13 @@ struct PlayerView: View {
             Color.black.ignoresSafeArea()
             MPVPlayerView(session: session).ignoresSafeArea()
                 .onAppear { session.onPress = handleRemotePress }
-            if controlsVisible {
+            if controls.isVisible {
                 PlayerControlsOverlay(
                     route: route,
                     session: session,
                     selectedSourceURL: selectedSourceURL ?? route.url,
                     activeSkipInterval: activeSkipInterval,
-                    onInteraction: revealControls,
+                    onInteraction: controls.registerInteraction,
                     onSkip: skip,
                     onSelectSource: switchSource,
                     onSelectEpisode: selectEpisode
@@ -106,12 +105,11 @@ struct PlayerView: View {
             controller.updateMetadata(title: route.title, subtitle: route.sourceName)
             nowPlaying = controller
             loadSkipIntervals()
-            revealControls()
+            controls.registerInteraction()
         }
         .onDisappear {
             session.onPress = nil
-            controlsDismissTask?.cancel()
-            controlsDismissTask = nil
+            controls.cancel()
             saveProgress()
             nowPlaying?.invalidate()
             nowPlaying = nil
@@ -130,17 +128,15 @@ struct PlayerView: View {
         }
         .onPlayPauseCommand {
             session.toggle()
-            revealControls()
+            controls.registerInteraction()
         }
         .onTapGesture {
-            revealControls()
+            controls.registerInteraction()
             pauseIfPlaybackJustStarted()
         }
         .onExitCommand {
-            if controlsVisible {
-                controlsVisible = false
-                controlsDismissTask?.cancel()
-                controlsDismissTask = nil
+            if controls.isVisible {
+                controls.hide()
             } else {
                 saveProgress()
                 session.stop()
@@ -172,11 +168,11 @@ struct PlayerView: View {
     private func skip(_ interval: SkipInterval) {
         dismissedSkipIntervalIDs.insert(interval.id)
         session.seek(to: interval.endTime)
-        revealControls()
+        controls.registerInteraction()
     }
 
     private func handleRemotePress(_ type: UIPress.PressType) {
-        revealControls()
+        controls.registerInteraction()
         if type == .select { pauseIfPlaybackJustStarted() }
     }
 
@@ -184,16 +180,6 @@ struct PlayerView: View {
         guard Date().timeIntervalSince(playbackStartedAt) < 2,
               !session.isPaused else { return }
         session.toggle()
-    }
-
-    private func revealControls() {
-        controlsVisible = true
-        controlsDismissTask?.cancel()
-        controlsDismissTask = Task {
-            try? await Task.sleep(for: .seconds(5))
-            guard !Task.isCancelled else { return }
-            await MainActor.run { controlsVisible = false }
-        }
     }
 
     private func switchSource(_ source: PlayerSourceOption) {
