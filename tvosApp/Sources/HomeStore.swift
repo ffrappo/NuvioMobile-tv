@@ -90,8 +90,8 @@ final class HomeStore: ObservableObject {
             upcoming: await buildUpcoming(from: progress.records),
             collections: collectionRows,
             isLoading: false,
-            message: failures > 0 ? "Some Home sections could not be refreshed." : collections.message,
-            isOffline: failures > 0 && !orderedSections.isEmpty
+            message: failures > 0 ? "Some Home sections could not be refreshed. Check the connection and retry." : collections.message,
+            isOffline: failures > 0
         )
     }
 
