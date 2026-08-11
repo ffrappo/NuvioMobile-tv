@@ -81,7 +81,7 @@ struct AppShellView: View {
                 } label: {
                     Label(section.title, systemImage: section.symbol)
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(focusedSection == section ? .black : .white)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 18)
                         .padding(.vertical, 14)
@@ -89,7 +89,6 @@ struct AppShellView: View {
                             RoundedRectangle(cornerRadius: 14, style: .continuous)
                                 .fill(sidebarColor(for: section))
                         )
-                        .overlay(NuvioFocusBorder(focused: focusedSection == section, cornerRadius: 14))
                         .scaleEffect(focusedSection == section ? 1.04 : 1)
                 }
                 .buttonStyle(.plain)
@@ -134,7 +133,7 @@ struct AppShellView: View {
     }
 
     private func sidebarColor(for section: AppSection) -> Color {
-        if focusedSection == section { return NuvioTheme.panelFocused }
+        if focusedSection == section { return .white }
         if selection == section { return NuvioTheme.accent.opacity(0.65) }
         return .clear
     }
