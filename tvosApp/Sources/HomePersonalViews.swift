@@ -94,14 +94,11 @@ struct FolderButton: View {
     let count: Int?
     let action: () -> Void
 
-    @FocusState private var focused: Bool
-
     var body: some View {
         Button(action: action) {
-            FolderCard(folder: folder, count: count, focused: focused)
+            FolderCard(folder: folder, count: count)
         }
         .buttonStyle(.card)
-        .focused($focused)
         .accessibilityLabel(folder.title.tvSafe)
         .accessibilityHint("Shows this collection")
     }
@@ -110,20 +107,12 @@ struct FolderButton: View {
 struct FolderCard: View {
     let folder: TVCollectionFolder
     let count: Int?
-    let focused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             RemoteArtwork(urlString: folder.coverImageUrl, systemPlaceholder: "folder.fill")
                 .frame(width: 250, height: folder.tileShape.lowercased() == "landscape" ? 150 : 250)
                 .clipShape(RoundedRectangle(cornerRadius: 18))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18)
-                        .stroke(
-                            focused ? Color.white.opacity(0.95) : Color.white.opacity(0.12),
-                            lineWidth: focused ? 3 : 1
-                        )
-                )
             if !folder.hideTitle {
                 Text(folder.title.tvSafe)
                     .font(.headline)
@@ -134,13 +123,6 @@ struct FolderCard: View {
                 Text("\(count) titles").font(.caption).foregroundStyle(NuvioTheme.secondaryText)
             }
         }
-        .scaleEffect(focused ? 1.06 : 1)
-        .shadow(
-            color: focused ? .white.opacity(0.25) : .black.opacity(0.4),
-            radius: focused ? 16 : 8,
-            y: focused ? 10 : 3
-        )
-        .animation(.easeOut(duration: 0.13), value: focused)
     }
 }
 

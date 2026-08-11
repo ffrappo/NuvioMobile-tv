@@ -1,13 +1,5 @@
 import SwiftUI
 
-struct NuvioBareButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .contentShape(Rectangle())
-            .opacity(configuration.isPressed ? 0.82 : 1)
-    }
-}
-
 struct NuvioButton: View {
     let title: String
     let symbol: String
