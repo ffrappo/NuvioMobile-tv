@@ -43,30 +43,30 @@ final class MPVPlaybackSession: ObservableObject {
     func switchSource(url: URL) { controller?.load(url: url) }
     func stop() { controller?.stop() }
 
-    fileprivate func beginLoading() {
+    func beginLoading() {
         isLoading = true
         errorMessage = nil
         audioTracks = []
         subtitleTracks = []
     }
 
-    fileprivate func update(paused: Bool? = nil, loading: Bool? = nil, error: String? = nil) {
+    func update(paused: Bool? = nil, loading: Bool? = nil, error: String? = nil) {
         if let paused { isPaused = paused }
         if let loading { isLoading = loading }
         if let error { errorMessage = error }
     }
 
-    fileprivate func update(position: Double, duration: Double) {
+    func update(position: Double, duration: Double) {
         self.position = position
         self.duration = duration
     }
 
-    fileprivate func updateSubtitle(delayMilliseconds: Int? = nil, fontSize: Int? = nil) {
+    func updateSubtitle(delayMilliseconds: Int? = nil, fontSize: Int? = nil) {
         if let delayMilliseconds { subtitleDelayMilliseconds = delayMilliseconds }
         if let fontSize { subtitleFontSize = fontSize }
     }
 
-    fileprivate func update(
+    func update(
         speed: Double,
         resizeMode: PlayerResizeMode,
         audioTracks: [PlaybackTrack],
@@ -80,7 +80,7 @@ final class MPVPlaybackSession: ObservableObject {
 }
 
 final class MPVPlayerController: UIViewController {
-    private let session: MPVPlaybackSession
+    let session: MPVPlaybackSession
     private let metalLayer = MPVMetalLayer()
     private let eventQueue = DispatchQueue(label: "nuvio.tv.mpv.events", qos: .userInitiated)
     var mpv: OpaquePointer?
@@ -309,80 +309,7 @@ final class MPVPlayerController: UIViewController {
         }
     }
 
-    private func publishProgress() {
-        guard let mpv else { return }
-        var position = 0.0
-        var duration = 0.0
-        var paused: Int32 = 0
-        var cachePaused: Int32 = 0
-        var seeking: Int32 = 0
-        mpv_get_property(mpv, "time-pos", MPV_FORMAT_DOUBLE, &position)
-        mpv_get_property(mpv, "duration", MPV_FORMAT_DOUBLE, &duration)
-        mpv_get_property(mpv, "pause", MPV_FORMAT_FLAG, &paused)
-        mpv_get_property(mpv, "paused-for-cache", MPV_FORMAT_FLAG, &cachePaused)
-        mpv_get_property(mpv, "seeking", MPV_FORMAT_FLAG, &seeking)
-        Task { @MainActor in
-            session.update(position: position, duration: duration)
-            session.update(
-                paused: paused != 0,
-                loading: cachePaused != 0 || seeking != 0
-            )
-        }
-    }
-
-    private func publishPlaybackOptions(resizeMode: PlayerResizeMode? = nil) {
-        guard let mpv else { return }
-        var speed = 1.0
-        mpv_get_property(mpv, "speed", MPV_FORMAT_DOUBLE, &speed)
-        let audio = readTracks(kind: .audio)
-        let subtitles = readTracks(kind: .subtitle)
-        Task { @MainActor in
-            session.update(
-                speed: speed,
-                resizeMode: resizeMode ?? session.resizeMode,
-                audioTracks: audio,
-                subtitleTracks: subtitles
-            )
-        }
-    }
-
-    private func readTracks(kind: PlaybackTrack.Kind) -> [PlaybackTrack] {
-        let count = Int(propertyInt("track-list/count"))
-        return (0..<count).compactMap { index in
-            guard propertyString("track-list/\(index)/type") == kind.rawValue else { return nil }
-            let id = propertyInt("track-list/\(index)/id")
-            guard id >= 0 else { return nil }
-            return PlaybackTrack(
-                id: id,
-                kind: kind,
-                title: propertyString("track-list/\(index)/title") ?? "",
-                language: propertyString("track-list/\(index)/lang"),
-                isSelected: propertyFlag("track-list/\(index)/selected")
-            )
-        }
-    }
-
-    private func propertyInt(_ name: String) -> Int64 {
-        guard let mpv else { return -1 }
-        var value: Int64 = -1
-        mpv_get_property(mpv, name, MPV_FORMAT_INT64, &value)
-        return value
-    }
-
-    private func propertyFlag(_ name: String) -> Bool {
-        guard let mpv else { return false }
-        var value: Int32 = 0
-        mpv_get_property(mpv, name, MPV_FORMAT_FLAG, &value)
-        return value != 0
-    }
-
-    private func propertyString(_ name: String) -> String? {
-        guard let mpv, let value = mpv_get_property_string(mpv, name) else { return nil }
-        defer { mpv_free(value) }
-        return String(cString: value)
-    }
-
-    private func command(_ values: String...) {
+    func command(_ values: String...) {
         guard let mpv else { return }
         var cStrings: [UnsafePointer<CChar>?] = values.map { value in
             guard let pointer = strdup(value) else { return nil }
