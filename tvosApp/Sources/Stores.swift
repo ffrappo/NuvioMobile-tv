@@ -6,6 +6,7 @@ final class LibraryStore: ObservableObject {
 
     private let defaults: UserDefaults
     private let key = "nuvio.tv.library.v1"
+    private var accountContext: (auth: AuthStore, profileID: Int)?
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -17,27 +18,48 @@ final class LibraryStore: ObservableObject {
     }
 
     func toggle(_ item: MetaSummary) {
-        if let index = items.firstIndex(where: { $0.id == item.id }) {
+        let removed: Bool
+        if let index = items.firstIndex(where: { $0.id == item.id && $0.type == item.type }) {
             items.remove(at: index)
+            removed = true
         } else {
             items.insert(item, at: 0)
+            removed = false
         }
         save()
+        Task { await pushMutation(item, removed: removed) }
     }
 
     func clearForLogout() {
         items = []
+        accountContext = nil
         defaults.removeObject(forKey: key)
     }
 
     func syncFromAccount(auth: AuthStore, profileID: Int, service: NuvioAccountService = NuvioAccountService()) async {
         guard auth.session != nil else { return }
+        accountContext = (auth, profileID)
         do {
             let token = try await auth.validAccessToken()
             items = try await service.library(accessToken: token, profileID: profileID).map(\.summary)
             save()
         } catch {
             AppLog.sync.error("Library sync failed profile=\(profileID) detail=\(AppLog.safeDescription(error), privacy: .public)")
+        }
+    }
+
+    private func pushMutation(_ item: MetaSummary, removed: Bool) async {
+        guard let context = accountContext else { return }
+        do {
+            let token = try await context.auth.validAccessToken()
+            let service = NuvioAccountService()
+            if removed {
+                try await service.deleteLibraryItem(item, accessToken: token, profileID: context.profileID)
+            } else {
+                try await service.saveLibraryItem(item, accessToken: token, profileID: context.profileID)
+            }
+        } catch {
+            AppLog.sync.error("Library mutation push failed profile=\(context.profileID) detail=\(AppLog.safeDescription(error), privacy: .public)")
         }
     }
 

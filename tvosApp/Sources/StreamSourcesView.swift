@@ -96,10 +96,10 @@ struct StreamSourcesView: View {
             HStack(spacing: 18) {
                 Image(systemName: isPlayable ? "play.fill" : "link.badge.plus")
                     .font(.title3.weight(.bold))
-                    .foregroundStyle(isFocused ? NuvioTheme.accent : (isPlayable ? .white : NuvioTheme.secondaryText))
+                    .foregroundStyle(isFocused ? .black : (isPlayable ? .white : NuvioTheme.secondaryText))
                     .frame(width: 48, height: 48)
                     .background(
-                        isFocused ? NuvioTheme.accent.opacity(0.18) : (isPlayable ? NuvioTheme.accent : Color.white.opacity(0.08)),
+                        isFocused ? Color.black.opacity(0.10) : Color.white.opacity(0.08),
                         in: Circle()
                     )
 
@@ -119,7 +119,7 @@ struct StreamSourcesView: View {
                 Text(isPlayable ? "PLAY" : "INFO")
                     .font(.caption2.weight(.bold))
                     .tracking(1.4)
-                    .foregroundStyle(isFocused ? NuvioTheme.accent : NuvioTheme.accentLight)
+                    .foregroundStyle(isFocused ? .black : .secondary)
             }
             .padding(.horizontal, 20)
             .frame(maxWidth: .infinity, minHeight: 88)
@@ -185,9 +185,9 @@ private struct SourceEmptyState: View {
         HStack(spacing: 20) {
             Image(systemName: symbol)
                 .font(.system(size: 30, weight: .semibold))
-                .foregroundStyle(NuvioTheme.accentLight)
+                .foregroundStyle(.secondary)
                 .frame(width: 62, height: 62)
-                .background(NuvioTheme.accent.opacity(0.18), in: Circle())
+                .background(Color.white.opacity(0.10), in: Circle())
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)

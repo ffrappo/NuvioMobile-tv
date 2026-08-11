@@ -44,7 +44,7 @@ struct AddonsView: View {
         HStack(spacing: 22) {
             Image(systemName: "checkmark.seal.fill")
                 .font(.system(size: 42))
-                .foregroundStyle(NuvioTheme.accent)
+                .foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: 7) {
                 Text("Cinemeta")
                     .font(.title3.weight(.semibold))
@@ -56,7 +56,7 @@ struct AddonsView: View {
                 .font(.callout.weight(.bold))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(NuvioTheme.accent.opacity(0.45), in: Capsule())
+                .background(Color.white.opacity(0.14), in: Capsule())
         }
         .padding(24)
         .background(NuvioTheme.panel, in: RoundedRectangle(cornerRadius: 20))
@@ -69,12 +69,9 @@ struct AddonsView: View {
 
             HStack(spacing: 18) {
                 TextField("https://example.com/manifest.json", text: $manifestURL)
-                    .textFieldStyle(.plain)
-                    .font(.title3)
-                    .padding(.horizontal, 20)
-                    .frame(height: 66)
-                    .background(NuvioTheme.panel, in: RoundedRectangle(cornerRadius: 15))
-                    .overlay(border(for: .field))
+                    .keyboardType(.URL)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
                     .focused($focus, equals: .field)
                     .onSubmit(add)
 
@@ -129,11 +126,6 @@ struct AddonsView: View {
         }
         .padding(24)
         .background(NuvioTheme.panel, in: RoundedRectangle(cornerRadius: 20))
-        .overlay(border(for: .remove(addon.id)))
-    }
-
-    private func border(for target: AddonFocus) -> some View {
-        NuvioFocusBorder(focused: focus == target, cornerRadius: 16)
     }
 
     private func add() {

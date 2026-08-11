@@ -39,9 +39,6 @@ struct HomeHeroView: View {
                 }
                 .padding(.horizontal, 56).padding(.bottom, 48)
             }
-            .overlay(alignment: .bottom) {
-                Rectangle().fill(focused ? NuvioTheme.accent : .clear).frame(height: 5)
-            }
         }
         .buttonStyle(NuvioBareButtonStyle())
         .accessibilityLabel("\(item.name), featured")
@@ -103,14 +100,21 @@ struct PosterCard: View {
                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(isFocused ? NuvioTheme.accent : Color.white.opacity(0.12), lineWidth: isFocused ? 5 : 1)
+                        .stroke(
+                            isFocused ? Color.white.opacity(0.95) : Color.white.opacity(0.12),
+                            lineWidth: isFocused ? 3 : 1
+                        )
                 )
-                .shadow(color: isFocused ? NuvioTheme.accent.opacity(0.75) : .black.opacity(0.45), radius: isFocused ? 24 : 10)
+                .shadow(
+                    color: isFocused ? Color.white.opacity(0.28) : .black.opacity(0.45),
+                    radius: isFocused ? 18 : 10,
+                    y: isFocused ? 10 : 4
+                )
+                .scaleEffect(isFocused ? 1.08 : 1)
             Text(item.name.tvSafe).font(.headline).lineLimit(1).frame(width: 220, alignment: .leading)
             Text(item.releaseInfo?.tvSafe ?? item.type.capitalized)
                 .font(.subheadline).foregroundStyle(NuvioTheme.secondaryText)
         }
-        .scaleEffect(isFocused ? 1.07 : 1)
         .animation(.easeOut(duration: 0.16), value: isFocused)
     }
 }

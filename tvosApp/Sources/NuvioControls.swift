@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// Card-like labels own their visuals while tvOS manages focus routing.
 struct NuvioBareButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -8,17 +9,8 @@ struct NuvioBareButtonStyle: ButtonStyle {
     }
 }
 
-struct NuvioFocusBorder: View {
-    let focused: Bool
-    var cornerRadius: CGFloat = 16
-
-    var body: some View {
-        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-            .stroke(focused ? NuvioTheme.accent : Color.white.opacity(0.10), lineWidth: focused ? 4 : 1)
-            .shadow(color: focused ? NuvioTheme.accent.opacity(0.65) : .clear, radius: 12)
-    }
-}
-
+/// Shared actions use the system tvOS button styles. Focus, elevation, scale,
+/// contrast, and press feedback are owned by tvOS.
 struct NuvioButton: View {
     let title: String
     let symbol: String
@@ -29,26 +21,31 @@ struct NuvioButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
-            Label(title, systemImage: symbol)
-                .font(.headline)
-                .foregroundStyle(.white.opacity(disabled ? 0.45 : 1))
-                .padding(.horizontal, 22)
-                .frame(minHeight: 60)
-                .frame(maxWidth: .infinity)
-                .background(background, in: RoundedRectangle(cornerRadius: 15))
-                .overlay(NuvioFocusBorder(focused: focused, cornerRadius: 15))
-                .scaleEffect(focused ? 1.035 : 1)
+        Group {
+            if destructive {
+                Button(role: .destructive, action: action) {
+                    Label(title, systemImage: symbol)
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+            } else if prominent {
+                Button(action: action) {
+                    Label(title, systemImage: symbol)
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+            } else {
+                Button(action: action) {
+                    Label(title, systemImage: symbol)
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+            }
         }
-        .buttonStyle(.plain)
-        .focusEffectDisabled()
+        .controlSize(.large)
         .disabled(disabled)
-        .animation(.easeOut(duration: 0.14), value: focused)
-    }
-
-    private var background: Color {
-        if destructive { return Color.red.opacity(focused ? 0.70 : 0.38) }
-        if prominent { return NuvioTheme.accent.opacity(focused ? 0.95 : 0.70) }
-        return focused ? NuvioTheme.accent.opacity(0.55) : NuvioTheme.panelFocused
     }
 }

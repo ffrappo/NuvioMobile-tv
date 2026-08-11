@@ -237,7 +237,7 @@ struct NuvioAccountService {
         (payload[key] as? [String: Any])?["value"] as? String
     }
 
-    private func requestVoid(path: String, jsonBody: [String: Any], accessToken: String) async throws {
+    func requestVoid(path: String, jsonBody: [String: Any], accessToken: String) async throws {
         var request = URLRequest(url: Self.baseURL.appending(path: path))
         request.httpMethod = "POST"
         addHeaders(to: &request, accessToken: accessToken)

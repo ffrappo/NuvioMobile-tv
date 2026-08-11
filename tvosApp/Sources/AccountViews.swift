@@ -160,13 +160,8 @@ struct SignInView: View {
             }
         }
         .textContentType(contentType)
-        .textFieldStyle(.plain)
-        .focusEffectDisabled()
-        .font(.title3)
-        .padding(.horizontal, 20)
-        .frame(height: 64)
-        .background(NuvioTheme.panelFocused, in: RoundedRectangle(cornerRadius: 14))
-        .overlay(NuvioFocusBorder(focused: focus == field, cornerRadius: 14))
+        .textInputAutocapitalization(.never)
+        .autocorrectionDisabled()
         .focused($focus, equals: field)
         .onSubmit { focus = field == .email ? .password : .signIn }
     }

@@ -53,17 +53,28 @@ struct ProgressCard: View {
                     GeometryReader { proxy in
                         ZStack(alignment: .leading) {
                             Capsule().fill(.black.opacity(0.52))
-                            Capsule().fill(NuvioTheme.accent).frame(width: proxy.size.width * item.progress)
+                            Capsule().fill(Color.white.opacity(0.78)).frame(width: proxy.size.width * item.progress)
                         }
                     }
                     .frame(height: 7).padding(12)
                 }
             }
-            .overlay(RoundedRectangle(cornerRadius: 18).stroke(focused ? .white : .clear, lineWidth: 5))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(
+                        focused ? Color.white.opacity(0.95) : Color.white.opacity(0.12),
+                        lineWidth: focused ? 3 : 1
+                    )
+            )
             Text(item.summary.name.tvSafe).font(.headline).lineLimit(1).frame(width: 370, alignment: .leading)
             Text(metadata.tvSafe).font(.subheadline).foregroundStyle(NuvioTheme.secondaryText)
         }
-        .scaleEffect(focused ? 1.05 : 1)
+        .scaleEffect(focused ? 1.06 : 1)
+        .shadow(
+            color: focused ? Color.white.opacity(0.25) : .black.opacity(0.4),
+            radius: focused ? 16 : 8,
+            y: focused ? 10 : 3
+        )
         .animation(.easeOut(duration: 0.16), value: focused)
     }
 
@@ -79,12 +90,20 @@ struct ProgressCard: View {
 struct FolderCard: View {
     let folder: TVCollectionFolder
     let count: Int?
+    let focused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             RemoteArtwork(urlString: folder.coverImageUrl, systemPlaceholder: "folder.fill")
                 .frame(width: 250, height: folder.tileShape.lowercased() == "landscape" ? 150 : 250)
                 .clipShape(RoundedRectangle(cornerRadius: 18))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(
+                            focused ? Color.white.opacity(0.95) : Color.white.opacity(0.12),
+                            lineWidth: focused ? 3 : 1
+                        )
+                )
             if !folder.hideTitle {
                 Text(folder.title.tvSafe).font(.headline).lineLimit(1).frame(width: 250, alignment: .leading)
             }
@@ -92,6 +111,13 @@ struct FolderCard: View {
                 Text("\(count) titles").font(.caption).foregroundStyle(NuvioTheme.secondaryText)
             }
         }
+        .scaleEffect(focused ? 1.06 : 1)
+        .shadow(
+            color: focused ? Color.white.opacity(0.25) : .black.opacity(0.4),
+            radius: focused ? 16 : 8,
+            y: focused ? 10 : 3
+        )
+        .animation(.easeOut(duration: 0.16), value: focused)
     }
 }
 

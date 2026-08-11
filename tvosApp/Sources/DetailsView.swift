@@ -82,7 +82,7 @@ struct DetailsView: View {
                 Text(detail?.type.uppercased() ?? summary.type.uppercased())
                     .font(.callout.weight(.bold))
                     .tracking(2.2)
-                    .foregroundStyle(NuvioTheme.accentLight)
+                    .foregroundStyle(.secondary)
 
                 Text((detail?.name ?? summary.name).tvSafe)
                     .font(.system(size: 56, weight: .bold, design: .rounded))
@@ -124,7 +124,6 @@ struct DetailsView: View {
             .frame(minHeight: 62)
         }
         .buttonStyle(.borderedProminent)
-        .tint(NuvioTheme.accent)
         .focused($focusedAction, equals: .favorite)
     }
 
@@ -150,12 +149,11 @@ struct DetailsView: View {
                             .frame(width: 330, alignment: .leading)
                             .padding(20)
                             .background(
-                                selectedVideo?.id == video.id ? NuvioTheme.accent.opacity(0.60) : NuvioTheme.panel,
+                                selectedVideo?.id == video.id ? Color.white.opacity(0.18) : NuvioTheme.panel,
                                 in: RoundedRectangle(cornerRadius: 16)
                             )
-                            .overlay(NuvioFocusBorder(focused: focusedAction == .episode(video.id)))
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.bordered)
                         .focused($focusedAction, equals: .episode(video.id))
                     }
                 }
@@ -200,15 +198,11 @@ private struct DetailsBackdrop: View {
                 .frame(width: proxy.size.width, height: min(proxy.size.height * 0.86, 820))
                 .overlay {
                     ZStack {
-                        LinearGradient(
-                            colors: [.black.opacity(0.78), .black.opacity(0.32), .black.opacity(0.70)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
+                        Color.black.opacity(0.45)
                         LinearGradient(
                             stops: [
-                                .init(color: .black.opacity(0.18), location: 0),
-                                .init(color: NuvioTheme.background.opacity(0.54), location: 0.58),
+                                .init(color: .clear, location: 0),
+                                .init(color: NuvioTheme.background.opacity(0.58), location: 0.62),
                                 .init(color: NuvioTheme.background, location: 1)
                             ],
                             startPoint: .top,

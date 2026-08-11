@@ -240,7 +240,7 @@ struct SettingsView: View {
         HStack(spacing: 18) {
             Image(systemName: symbol)
                 .font(.title2)
-                .foregroundStyle(NuvioTheme.accent)
+                .foregroundStyle(.secondary)
                 .frame(width: 42)
             VStack(alignment: .leading, spacing: 4) {
                 Text(title).font(.headline)

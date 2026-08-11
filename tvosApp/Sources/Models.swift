@@ -121,6 +121,23 @@ struct MetaSummary: Codable, Hashable, Identifiable {
         try container.encodeIfPresent(metadataBaseURL, forKey: .metadataBaseURL)
         try container.encode(genres, forKey: .genres)
     }
+    var libraryJSONObject: [String: Any] {
+        var value: [String: Any] = [
+            "content_id": id,
+            "content_type": type,
+            "name": name,
+            "poster_shape": "POSTER",
+            "genres": genres,
+            "added_at": Int64(Date().timeIntervalSince1970 * 1_000),
+        ]
+        if let poster { value["poster"] = poster }
+        if let background { value["background"] = background }
+        if let description { value["description"] = description }
+        if let releaseInfo { value["release_info"] = releaseInfo }
+        if let metadataBaseURL { value["addon_base_url"] = metadataBaseURL }
+        return value
+    }
+
     func withMetadataBaseURL(_ baseURL: String) -> MetaSummary {
         MetaSummary(
             id: id, type: type, name: name, poster: poster, background: background,

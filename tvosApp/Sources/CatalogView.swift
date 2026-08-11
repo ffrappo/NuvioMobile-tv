@@ -129,7 +129,11 @@ struct CatalogView: View {
                                 )
                             }
                         } label: {
-                            FolderCard(folder: folder, count: loadedFolders[folder.id]?.count)
+                            FolderCard(
+                                folder: folder,
+                                count: loadedFolders[folder.id]?.count,
+                                focused: focus == .folder(folder.id)
+                            )
                         }
                         .buttonStyle(NuvioBareButtonStyle())
                         .focused($focus, equals: .folder(folder.id))
