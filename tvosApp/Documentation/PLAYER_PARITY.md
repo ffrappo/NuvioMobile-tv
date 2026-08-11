@@ -8,6 +8,7 @@ The reference is the established Compose player under `composeApp/src/commonMain
 |---|---|---|
 | Play, pause, seek 10 seconds | `PlayerControls.kt` | Implemented with focused buttons and remote play/pause |
 | Timeline seeking | `PlayerControls.kt` | Implemented with explicit 10-second and 30-second focused buttons |
+| Playback lifecycle and system controls | iOS `NowPlayingController.swift` | Implemented with tvOS Now Playing metadata, toggle, skip, and position commands |
 | Loading and playback errors | `PlayerEngine.kt` | Implemented through MPV events and overlay states |
 | Playback speed | `PlayerEngine.kt`, `PlayerControls.kt` | Implemented for 0.5x through 2x |
 | Video resize | `PlayerResizeMode` | Implemented as Fit, Fill, and Original |

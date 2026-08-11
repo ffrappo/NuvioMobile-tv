@@ -47,6 +47,7 @@ struct PlayerView: View {
     @State private var selectedSourceURL: URL?
     @State private var resumePosition: Double?
     @State private var lastSavedPosition = 0.0
+    @State private var nowPlaying: TVNowPlayingController?
 
     private let progressStore = PlaybackProgressStore()
 
@@ -69,12 +70,23 @@ struct PlayerView: View {
             selectedSourceURL = route.url
             resumePosition = progressStore.progress(for: route.contentID)?.resumablePosition
             session.load(url: route.url, startPosition: resumePosition)
+            let controller = TVNowPlayingController(session: session)
+            controller.updateMetadata(title: route.title, subtitle: route.sourceName)
+            nowPlaying = controller
         }
         .onDisappear {
             saveProgress()
+            nowPlaying?.invalidate()
+            nowPlaying = nil
             session.stop()
         }
         .onChange(of: session.position) { _, position in
+            nowPlaying?.sync(
+                position: position,
+                duration: session.duration,
+                isPaused: session.isPaused,
+                speed: session.speed
+            )
             guard abs(position - lastSavedPosition) >= 10 else { return }
             saveProgress()
             lastSavedPosition = position
@@ -94,6 +106,7 @@ struct PlayerView: View {
     private func switchSource(_ source: PlayerSourceOption) {
         saveProgress()
         selectedSourceURL = source.url
+        nowPlaying?.updateMetadata(title: route.title, subtitle: source.name)
         session.load(url: source.url, startPosition: session.position)
     }
 

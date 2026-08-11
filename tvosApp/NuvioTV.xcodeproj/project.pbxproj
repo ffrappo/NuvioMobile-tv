@@ -20,6 +20,7 @@
 		A661038A523081A1FB24F3D9 /* MPVMetalLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 158C29FFFE770CF9A32C05D2 /* MPVMetalLayer.swift */; };
 		A7399FFC8DB765DFFFC36554 /* StremioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE4CBBD7A31E58DE8D2CB62F /* StremioService.swift */; };
 		A838EF00ACFDCEE61E603671 /* AuthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2BAA7F1FD89709C92D44FE /* AuthModels.swift */; };
+		ABB53549A923F9D74484E51B /* TVNowPlayingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CA8D158F406C206AD751836 /* TVNowPlayingController.swift */; };
 		AED6026EFE342B8EEA89392D /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33449435FC3BF87503CD4A8F /* SearchView.swift */; };
 		B08120C4F269B799CFC54713 /* MPVPlayerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 302544E09DAD6A87C91FB11C /* MPVPlayerController.swift */; };
 		C5B42C6571A7116E8AC62C71 /* AccountViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFEAEBBF5ED07016B5CC82C /* AccountViews.swift */; };
@@ -61,6 +62,7 @@
 		728F8B7A925C4B231A981A64 /* AppShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShellView.swift; sourceTree = "<group>"; };
 		8114FE8958B0BEE9C07AF7F6 /* NuvioTVTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NuvioTVTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BC5DAEE5C7D57F67EB0F0CB /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		8CA8D158F406C206AD751836 /* TVNowPlayingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TVNowPlayingController.swift; sourceTree = "<group>"; };
 		B2AFC2D037541A3D7A11A6E2 /* PlayerControlsOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerControlsOverlay.swift; sourceTree = "<group>"; };
 		C27E09B744C2CE890A87E44F /* PlayerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerModels.swift; sourceTree = "<group>"; };
 		C4C9739C9C26824BF9517638 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -111,6 +113,7 @@
 				44E8A9DA69945B36709DBC01 /* SettingsView.swift */,
 				0239D059AEB5C413463A3FFA /* Stores.swift */,
 				DE4CBBD7A31E58DE8D2CB62F /* StremioService.swift */,
+				8CA8D158F406C206AD751836 /* TVNowPlayingController.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -280,6 +283,7 @@
 				A0BD3A24E14F3967135F0D89 /* SettingsView.swift in Sources */,
 				F591B69D29765F08FE7AC204 /* Stores.swift in Sources */,
 				A7399FFC8DB765DFFFC36554 /* StremioService.swift in Sources */,
+				ABB53549A923F9D74484E51B /* TVNowPlayingController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
