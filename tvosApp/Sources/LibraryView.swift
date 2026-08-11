@@ -31,6 +31,7 @@ struct LibraryView: View {
                                 PosterCard(item: item, isFocused: focusedID == item.id)
                             }
                             .buttonStyle(.plain)
+                            .focusEffectDisabled()
                             .focused($focusedID, equals: item.id)
                         }
                     }

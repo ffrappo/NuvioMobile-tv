@@ -62,6 +62,7 @@ struct SearchView: View {
                                 PosterCard(item: item, isFocused: focus == .result(item.id))
                             }
                             .buttonStyle(.plain)
+                            .focusEffectDisabled()
                             .focused($focus, equals: .result(item.id))
                         }
                     }
