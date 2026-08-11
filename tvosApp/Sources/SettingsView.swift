@@ -2,8 +2,6 @@ import SwiftUI
 import UIKit
 
 struct SettingsView: View {
-    let entryFocusRequest: Int
-
     @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var addons: AddonStore
     @State private var cacheMessage: String?
@@ -27,9 +25,6 @@ struct SettingsView: View {
             .padding(48)
         }
         .defaultFocus($focus, .clearCache)
-        .onChange(of: entryFocusRequest) { _, _ in
-            focus = auth.signedInEmail == nil ? .account : .logout
-        }
         .confirmationDialog("Sign out of Nuvio?", isPresented: $showLogout, titleVisibility: .visible) {
             Button("Sign Out", role: .destructive) {
                 Task {

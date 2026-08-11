@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct SearchView: View {
-    let entryFocusRequest: Int
     let onSelect: (MetaSummary) -> Void
 
     @State private var query = ""
@@ -72,9 +71,6 @@ struct SearchView: View {
             .padding(48)
         }
         .defaultFocus($focus, .field)
-        .onChange(of: entryFocusRequest) { _, _ in
-            focus = .field
-        }
     }
 
     private var searchPrompt: some View {

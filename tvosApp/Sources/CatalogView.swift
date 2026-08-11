@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct CatalogView: View {
-    let entryFocusRequest: Int
-    let onReturnToSidebar: () -> Void
     let onSelect: (MetaSummary) -> Void
 
     @State private var movies: [MetaSummary] = []
@@ -25,20 +23,8 @@ struct CatalogView: View {
                 } else if let errorMessage {
                     ErrorPanel(message: errorMessage, retry: load)
                 } else {
-                    CatalogRail(
-                        title: "Popular Movies",
-                        items: movies,
-                        entryFocusRequest: entryFocusRequest,
-                        onReturnToSidebar: onReturnToSidebar,
-                        onSelect: onSelect
-                    )
-                    CatalogRail(
-                        title: "Popular Series",
-                        items: series,
-                        entryFocusRequest: nil,
-                        onReturnToSidebar: onReturnToSidebar,
-                        onSelect: onSelect
-                    )
+                    CatalogRail(title: "Popular Movies", items: movies, onSelect: onSelect)
+                    CatalogRail(title: "Popular Series", items: series, onSelect: onSelect)
                 }
             }
             .padding(.horizontal, 48)
@@ -100,12 +86,9 @@ struct CatalogView: View {
 struct CatalogRail: View {
     let title: String
     let items: [MetaSummary]
-    let entryFocusRequest: Int?
-    let onReturnToSidebar: () -> Void
     let onSelect: (MetaSummary) -> Void
 
     @FocusState private var focusedID: String?
-    @State private var lastHandledEntryFocusRequest = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -129,24 +112,6 @@ struct CatalogRail: View {
             }
         }
         .defaultFocus($focusedID, items.first?.id)
-        .onChange(of: entryFocusRequest) { _, _ in
-            applyEntryFocusRequest()
-        }
-        .onChange(of: items) { _, _ in
-            applyEntryFocusRequest()
-        }
-        .onMoveCommand { direction in
-            guard direction == .left, focusedID == items.first?.id else { return }
-            onReturnToSidebar()
-        }
-    }
-
-    private func applyEntryFocusRequest() {
-        guard let request = entryFocusRequest,
-              request > lastHandledEntryFocusRequest,
-              let firstID = items.first?.id else { return }
-        focusedID = firstID
-        lastHandledEntryFocusRequest = request
     }
 }
 

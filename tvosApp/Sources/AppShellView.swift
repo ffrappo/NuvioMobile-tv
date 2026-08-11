@@ -35,7 +35,6 @@ struct AppShellView: View {
     @EnvironmentObject private var addonStore: AddonStore
     @State private var selection: AppSection = .home
     @State private var path: [MetaSummary] = []
-    @State private var contentFocusRequest = 0
     @FocusState private var focusedSection: AppSection?
 
     var body: some View {
@@ -103,10 +102,6 @@ struct AppShellView: View {
         .frame(width: 310)
         .background(Color.black.opacity(0.38))
         .defaultFocus($focusedSection, .home)
-        .onMoveCommand { direction in
-            guard SidebarFocusRouter.shouldEnterContent(direction) else { return }
-            contentFocusRequest += 1
-        }
     }
 
     @ViewBuilder
@@ -114,23 +109,15 @@ struct AppShellView: View {
         Group {
             switch selection {
             case .home:
-                CatalogView(
-                    entryFocusRequest: contentFocusRequest,
-                    onReturnToSidebar: restoreSidebarFocus,
-                    onSelect: showDetails
-                )
+                CatalogView(onSelect: showDetails)
             case .search:
-                SearchView(entryFocusRequest: contentFocusRequest, onSelect: showDetails)
+                SearchView(onSelect: showDetails)
             case .library:
-                LibraryView(
-                    entryFocusRequest: contentFocusRequest,
-                    onReturnToSidebar: restoreSidebarFocus,
-                    onSelect: showDetails
-                )
+                LibraryView(onSelect: showDetails)
             case .addons:
-                AddonsView(entryFocusRequest: contentFocusRequest)
+                AddonsView()
             case .settings:
-                SettingsView(entryFocusRequest: contentFocusRequest)
+                SettingsView()
             }
         }
         .id(selection)
@@ -141,20 +128,10 @@ struct AppShellView: View {
         path.append(summary)
     }
 
-    private func restoreSidebarFocus() {
-        focusedSection = selection
-    }
-
     private func sidebarColor(for section: AppSection) -> Color {
         if focusedSection == section { return NuvioTheme.panelFocused }
         if selection == section { return NuvioTheme.accent.opacity(0.65) }
         return .clear
-    }
-}
-
-struct SidebarFocusRouter {
-    static func shouldEnterContent(_ direction: MoveCommandDirection) -> Bool {
-        direction == .right
     }
 }
 

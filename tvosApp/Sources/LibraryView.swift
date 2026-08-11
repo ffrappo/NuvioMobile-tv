@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct LibraryView: View {
-    let entryFocusRequest: Int
-    let onReturnToSidebar: () -> Void
     let onSelect: (MetaSummary) -> Void
 
     @EnvironmentObject private var library: LibraryStore
@@ -42,13 +40,6 @@ struct LibraryView: View {
             .padding(48)
         }
         .defaultFocus($focusedID, library.items.first?.id)
-        .onChange(of: entryFocusRequest) { _, _ in
-            focusedID = library.items.first?.id
-        }
-        .onMoveCommand { direction in
-            guard direction == .left, focusedID == library.items.first?.id else { return }
-            onReturnToSidebar()
-        }
     }
 }
 
