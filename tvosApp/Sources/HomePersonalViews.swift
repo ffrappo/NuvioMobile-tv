@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct ProgressRail: View {
-    let title: String
     let items: [ContinueWatchingCard]
     let onSelect: (ContinueWatchingCard) -> Void
 

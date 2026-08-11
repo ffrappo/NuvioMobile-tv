@@ -43,7 +43,6 @@ struct CatalogView: View {
                     .font(.title2.weight(.semibold))
                     .padding(.horizontal, 48)
                 ProgressRail(
-                    title: "Continue Watching",
                     items: home.snapshot.continueWatching,
                     onSelect: { item in
                         onSelect(item.summary.routedTo(
@@ -59,7 +58,6 @@ struct CatalogView: View {
                     .font(.title2.weight(.semibold))
                     .padding(.horizontal, 48)
                 ProgressRail(
-                    title: "Upcoming",
                     items: home.snapshot.upcoming,
                     onSelect: { item in
                         onSelect(item.summary.routedTo(
