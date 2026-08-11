@@ -41,6 +41,7 @@ targets:
       path: Generated/Info.plist
       properties:
         CFBundleDisplayName: Nuvio
+        CFBundleIconName: App Icon
         CFBundleShortVersionString: "1.0"
         CFBundleVersion: "1"
         LSApplicationCategoryType: public.app-category.entertainment
