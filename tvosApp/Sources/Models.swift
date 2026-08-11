@@ -35,10 +35,14 @@ struct MetaSummary: Codable, Hashable, Identifiable {
     let description: String?
     let releaseInfo: String?
     let released: String?
+    let playbackVideoID: String?
+    let playbackSeason: Int?
+    let playbackEpisode: Int?
     let genres: [String]
 
     private enum CodingKeys: String, CodingKey {
-        case id, type, name, poster, background, description, releaseInfo, released, genres, genre
+        case id, type, name, poster, background, description, releaseInfo, released
+        case playbackVideoID, playbackSeason, playbackEpisode, genres, genre
     }
 
     init(
@@ -50,6 +54,9 @@ struct MetaSummary: Codable, Hashable, Identifiable {
         description: String? = nil,
         releaseInfo: String? = nil,
         released: String? = nil,
+        playbackVideoID: String? = nil,
+        playbackSeason: Int? = nil,
+        playbackEpisode: Int? = nil,
         genres: [String] = []
     ) {
         self.id = id
@@ -60,6 +67,9 @@ struct MetaSummary: Codable, Hashable, Identifiable {
         self.description = description
         self.releaseInfo = releaseInfo
         self.released = released
+        self.playbackVideoID = playbackVideoID
+        self.playbackSeason = playbackSeason
+        self.playbackEpisode = playbackEpisode
         self.genres = genres
     }
 
@@ -73,6 +83,9 @@ struct MetaSummary: Codable, Hashable, Identifiable {
         description = container.decodeFlexibleString(forKey: .description)
         releaseInfo = container.decodeFlexibleString(forKey: .releaseInfo)
         released = container.decodeFlexibleString(forKey: .released)
+        playbackVideoID = container.decodeFlexibleString(forKey: .playbackVideoID)
+        playbackSeason = container.decodeFlexibleInt(forKey: .playbackSeason)
+        playbackEpisode = container.decodeFlexibleInt(forKey: .playbackEpisode)
         genres = container.decodeStringArray(forKeys: [.genres, .genre])
     }
 
@@ -86,7 +99,26 @@ struct MetaSummary: Codable, Hashable, Identifiable {
         try container.encodeIfPresent(description, forKey: .description)
         try container.encodeIfPresent(releaseInfo, forKey: .releaseInfo)
         try container.encodeIfPresent(released, forKey: .released)
+        try container.encodeIfPresent(playbackVideoID, forKey: .playbackVideoID)
+        try container.encodeIfPresent(playbackSeason, forKey: .playbackSeason)
+        try container.encodeIfPresent(playbackEpisode, forKey: .playbackEpisode)
         try container.encode(genres, forKey: .genres)
+    }
+    func routedTo(videoID: String, season: Int?, episode: Int?) -> MetaSummary {
+        MetaSummary(
+            id: id,
+            type: type,
+            name: name,
+            poster: poster,
+            background: background,
+            description: description,
+            releaseInfo: releaseInfo,
+            released: released,
+            playbackVideoID: videoID,
+            playbackSeason: season,
+            playbackEpisode: episode,
+            genres: genres
+        )
     }
 }
 

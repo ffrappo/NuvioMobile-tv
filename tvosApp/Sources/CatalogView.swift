@@ -55,7 +55,13 @@ struct CatalogView: View {
                     items: home.snapshot.continueWatching,
                     focus: $focus,
                     focusValue: { .progress($0.id) },
-                    onSelect: { onSelect($0.summary) }
+                    onSelect: { item in
+                        onSelect(item.summary.routedTo(
+                            videoID: item.videoID,
+                            season: item.season,
+                            episode: item.episode
+                        ))
+                    }
                 )
             }
             if !home.snapshot.upcoming.isEmpty {
@@ -64,7 +70,13 @@ struct CatalogView: View {
                     items: home.snapshot.upcoming,
                     focus: $focus,
                     focusValue: { .upcoming($0.id) },
-                    onSelect: { onSelect($0.summary) }
+                    onSelect: { item in
+                        onSelect(item.summary.routedTo(
+                            videoID: item.videoID,
+                            season: item.season,
+                            episode: item.episode
+                        ))
+                    }
                 )
             }
             ForEach(home.snapshot.collections) { collection in

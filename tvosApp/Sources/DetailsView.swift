@@ -202,7 +202,11 @@ struct DetailsView: View {
         do {
             let loaded = try await service.details(type: summary.type, id: summary.id)
             detail = loaded
-            selectedVideo = loaded.videos.first
+            selectedVideo = summary.playbackVideoID.flatMap { videoID in
+                loaded.videos.first { $0.id == videoID }
+            } ?? loaded.videos.first { video in
+                video.season == summary.playbackSeason && video.episode == summary.playbackEpisode
+            } ?? loaded.videos.first
         } catch {
             errorMessage = error.userMessage
         }
