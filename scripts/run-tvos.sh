@@ -12,7 +12,8 @@ command -v xcodegen >/dev/null 2>&1 || {
 device_name="Seminterrato"
 default_device_id="50772D4F-6E52-5646-BEF9-A68B8BF36343"
 device_id="${TVOS_DEVICE_ID:-$default_device_id}"
-derived_data="$repo_root/build/tvos-derived"
+derived_data="$repo_root/build/tvos-mpv-derived"
+package_cache="$repo_root/build/tvos-packages"
 app_path="$derived_data/Build/Products/Debug-appletvos/Nuvio.app"
 
 echo "Generating the NuvioTV Xcode project"
@@ -42,6 +43,7 @@ xcodebuild \
   -configuration Debug \
   -destination "id=$device_id" \
   -derivedDataPath "$derived_data" \
+  -clonedSourcePackagesDirPath "$package_cache" \
   -allowProvisioningUpdates \
   build
 

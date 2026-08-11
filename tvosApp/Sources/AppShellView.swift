@@ -31,6 +31,7 @@ enum AppSection: String, CaseIterable, Identifiable {
 }
 
 struct AppShellView: View {
+    @EnvironmentObject private var authStore: AuthStore
     @EnvironmentObject private var addonStore: AddonStore
     @State private var selection: AppSection = .home
     @State private var path: [MetaSummary] = []
@@ -47,8 +48,12 @@ struct AppShellView: View {
                 DetailsView(summary: summary)
             }
         }
-        .task {
-            await addonStore.refreshManifests()
+        .task(id: authStore.signedInEmail) {
+            if authStore.session != nil {
+                await addonStore.syncFromAccount(auth: authStore)
+            } else {
+                await addonStore.refreshManifests()
+            }
         }
     }
 
@@ -71,6 +76,7 @@ struct AppShellView: View {
                 } label: {
                     Label(section.title, systemImage: section.symbol)
                         .font(.headline)
+                        .foregroundStyle(.white)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 18)
                         .padding(.vertical, 14)
@@ -78,13 +84,11 @@ struct AppShellView: View {
                             RoundedRectangle(cornerRadius: 14, style: .continuous)
                                 .fill(sidebarColor(for: section))
                         )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(focusedSection == section ? Color.white : .clear, lineWidth: 3)
-                        )
+                        .overlay(NuvioFocusBorder(focused: focusedSection == section, cornerRadius: 14))
                         .scaleEffect(focusedSection == section ? 1.04 : 1)
                 }
                 .buttonStyle(.plain)
+                .focusEffectDisabled()
                 .focused($focusedSection, equals: section)
             }
 

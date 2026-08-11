@@ -95,6 +95,11 @@ struct AddonsView: View {
                     .font(.callout)
                     .foregroundStyle(statusMessage.hasPrefix("Added") ? .green : .orange)
             }
+            if let syncMessage = store.syncMessage {
+                Text(syncMessage.tvSafe)
+                    .font(.callout)
+                    .foregroundStyle(syncMessage.hasPrefix("Synced") ? .green : NuvioTheme.secondaryText)
+            }
         }
     }
 
@@ -128,8 +133,7 @@ struct AddonsView: View {
     }
 
     private func border(for target: AddonFocus) -> some View {
-        RoundedRectangle(cornerRadius: 16)
-            .stroke(focus == target ? Color.white : Color.clear, lineWidth: 4)
+        NuvioFocusBorder(focused: focus == target, cornerRadius: 16)
     }
 
     private func add() {

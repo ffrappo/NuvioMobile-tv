@@ -1,9 +1,13 @@
 name: NuvioTV
 options:
   deploymentTarget:
-    tvOS: "16.0"
+    tvOS: "17.0"
   xcodeVersion: "27.0"
   createIntermediateGroups: true
+
+packages:
+  MPVKit:
+    path: ../MPVKit
 
 settings:
   base:
@@ -15,11 +19,14 @@ targets:
   NuvioTV:
     type: application
     platform: tvOS
-    deploymentTarget: "16.0"
+    deploymentTarget: "17.0"
     sources:
       - path: Sources
       - path: Resources
         buildPhase: resources
+    dependencies:
+      - package: MPVKit
+        product: MPVKit-GPL
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.nuviace.app.tvos

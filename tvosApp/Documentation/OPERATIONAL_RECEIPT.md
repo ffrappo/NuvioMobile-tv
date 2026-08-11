@@ -9,7 +9,7 @@ Reviewed: 2026-08-11, Europe/Rome
 - AppleTVOS 27.0 SDK
 - Apple Swift 6.4 compiler, app language mode Swift 5
 - CoreDevice `devicectl` 642.4
-- Deployment target tvOS 16.0
+- Deployment target tvOS 17.0
 
 Installed help reviewed before implementation:
 
@@ -77,10 +77,15 @@ This matches the manifest, which does not declare `stream`. Cinemeta is therefor
 - `xcodegen generate --spec tvosApp/project.yml`: passed
 - Generic Apple TV device Debug build with signing disabled: passed
 - Signed Apple TV Debug build with team `2V6YSU4HFB` and profile `Nuvio tvOS Development`: passed
+- MPVKit GPL and FFmpeg tvOS device integration: passed; binary includes libmpv, VideoToolbox, MoltenVK, libplacebo, libass, and bundled codec libraries
+- Physical install and launch on Seminterrato (`AppleTV5,3`, tvOS 26.6): passed
+- Installed app process remained active and a 1920x1080 device screenshot was captured
+- QR account session start and pending poll against production `api.nuvio.tv`: passed
+- Normal email login, refresh-token persistence, logout, guest mode, and account addon pull are implemented
 - Apple Developer device registration: Seminterrato Apple TV, UDID `1898a6294f5a4b53e919fa2425a792533388465e`, enabled
 - App identifier registration: `com.nuviace.app.tvos`, universal, team `2V6YSU4HFB`
 - Generic Apple TV test build: passed
 - Runtime unit-test execution: unavailable because no tvOS simulator runtime is installed
-- Physical device deployment: pending device availability in CoreDevice; the signed app is ready at `build/tvos-derived/Build/Products/Debug-appletvos/Nuvio.app`
+- Physical device deployment: passed; the signed MPV build is at `build/tvos-mpv-derived/Build/Products/Debug-appletvos/Nuvio.app`
 
-The install script intentionally stops before installation when Seminterrato is paired but unavailable. Wake the Apple TV and reconnect USB-C, then rerun `./scripts/run-tvos.sh`.
+The install script builds with the local `MPVKit` package, installs on Seminterrato, and launches Nuvio. The Apple TV required removal of an unused large game before the first install because tvOS reported its app quota as full.

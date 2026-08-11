@@ -126,7 +126,7 @@ struct PosterCard: View {
                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(isFocused ? Color.white : Color.white.opacity(0.12), lineWidth: isFocused ? 5 : 1)
+                        .stroke(isFocused ? NuvioTheme.accent : Color.white.opacity(0.12), lineWidth: isFocused ? 5 : 1)
                 )
                 .shadow(color: isFocused ? NuvioTheme.accent.opacity(0.75) : .black.opacity(0.45), radius: isFocused ? 24 : 10)
 

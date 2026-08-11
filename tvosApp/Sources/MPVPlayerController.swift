@@ -1,0 +1,223 @@
+import AVFoundation
+import Libmpv
+import UIKit
+
+@MainActor
+final class MPVPlaybackSession: ObservableObject {
+    @Published private(set) var isPaused = false
+    @Published private(set) var isLoading = true
+    @Published private(set) var position: Double = 0
+    @Published private(set) var duration: Double = 0
+    @Published private(set) var errorMessage: String?
+
+    fileprivate weak var controller: MPVPlayerController?
+
+    func load(url: URL) { controller?.load(url: url) }
+    func toggle() { controller?.togglePlayback() }
+    func seek(by seconds: Double) { controller?.seek(by: seconds) }
+    func stop() { controller?.stop() }
+
+    fileprivate func update(paused: Bool? = nil, loading: Bool? = nil, error: String? = nil) {
+        if let paused { isPaused = paused }
+        if let loading { isLoading = loading }
+        if let error { errorMessage = error }
+    }
+
+    fileprivate func update(position: Double, duration: Double) {
+        self.position = position
+        self.duration = duration
+    }
+}
+
+final class MPVPlayerController: UIViewController {
+    private let session: MPVPlaybackSession
+    private let metalLayer = MPVMetalLayer()
+    private let eventQueue = DispatchQueue(label: "nuvio.tv.mpv.events", qos: .userInitiated)
+    private var mpv: OpaquePointer?
+    private var progressTimer: Timer?
+    private var pendingURL: URL?
+
+    init(session: MPVPlaybackSession) {
+        self.session = session
+        super.init(nibName: nil, bundle: nil)
+        session.controller = self
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError() }
+
+    override var canBecomeFirstResponder: Bool { true }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .black
+        configureLayer()
+        configureAudio()
+        setupMPV()
+        progressTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            self?.publishProgress()
+        }
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        let scale = view.window?.screen.nativeScale ?? UIScreen.main.nativeScale
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        metalLayer.frame = view.bounds
+        metalLayer.drawableSize = CGSize(width: view.bounds.width * scale, height: view.bounds.height * scale)
+        CATransaction.commit()
+        if let url = pendingURL, view.window != nil, view.bounds.width > 1 {
+            pendingURL = nil
+            command("loadfile", url.absoluteString, "replace")
+        }
+    }
+
+    override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        guard let type = presses.first?.type else { return super.pressesBegan(presses, with: event) }
+        switch type {
+        case .playPause, .select:
+            togglePlayback()
+        case .leftArrow:
+            seek(by: -10)
+        case .rightArrow:
+            seek(by: 10)
+        default:
+            super.pressesBegan(presses, with: event)
+        }
+    }
+
+    func load(url: URL) {
+        Task { @MainActor in
+            session.update(loading: true)
+        }
+        if view.window == nil || view.bounds.width <= 1 {
+            pendingURL = url
+        } else {
+            command("loadfile", url.absoluteString, "replace")
+        }
+    }
+
+    func togglePlayback() {
+        guard let mpv else { return }
+        var paused: Int32 = 0
+        mpv_get_property(mpv, "pause", MPV_FORMAT_FLAG, &paused)
+        paused = paused == 0 ? 1 : 0
+        mpv_set_property(mpv, "pause", MPV_FORMAT_FLAG, &paused)
+        Task { @MainActor in session.update(paused: paused != 0) }
+    }
+
+    func seek(by seconds: Double) {
+        command("seek", String(seconds), "relative+exact")
+    }
+
+    func stop() {
+        progressTimer?.invalidate()
+        progressTimer = nil
+        command("stop")
+    }
+
+    private func configureLayer() {
+        metalLayer.contentsGravity = .resize
+        metalLayer.framebufferOnly = true
+        metalLayer.backgroundColor = UIColor.black.cgColor
+        view.layer.addSublayer(metalLayer)
+    }
+
+    private func configureAudio() {
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
+        try? AVAudioSession.sharedInstance().setActive(true)
+    }
+
+    private func setupMPV() {
+        mpv = mpv_create()
+        guard let mpv else {
+            Task { @MainActor in session.update(loading: false, error: "Could not initialize the MPV player.") }
+            return
+        }
+        mpv_request_log_messages(mpv, "warn")
+        var layerPointer = Int64(Int(bitPattern: Unmanaged.passUnretained(metalLayer).toOpaque()))
+        setOption(mpv, "wid", format: MPV_FORMAT_INT64, value: &layerPointer)
+        setOption(mpv, "vo", "gpu-next")
+        setOption(mpv, "gpu-api", "vulkan")
+        setOption(mpv, "gpu-context", "moltenvk")
+        setOption(mpv, "hwdec", "videotoolbox")
+        setOption(mpv, "ao", "audiounit")
+        setOption(mpv, "audio-channels", "auto")
+        setOption(mpv, "audio-fallback-to-null", "yes")
+        setOption(mpv, "vulkan-swap-mode", "fifo")
+        setOption(mpv, "vulkan-queue-count", "1")
+        setOption(mpv, "vulkan-async-compute", "no")
+        setOption(mpv, "vulkan-async-transfer", "no")
+        setOption(mpv, "vulkan-disable-interop", "yes")
+        setOption(mpv, "keep-open", "yes")
+        setOption(mpv, "target-colorspace-hint", "yes")
+        setOption(mpv, "tone-mapping", "auto")
+        setOption(mpv, "hdr-compute-peak", "yes")
+        guard mpv_initialize(mpv) >= 0 else {
+            Task { @MainActor in session.update(loading: false, error: "MPV initialization failed.") }
+            return
+        }
+        mpv_set_wakeup_callback(mpv, { context in
+            guard let context else { return }
+            Unmanaged<MPVPlayerController>.fromOpaque(context).takeUnretainedValue().readEvents()
+        }, Unmanaged.passUnretained(self).toOpaque())
+    }
+
+    private func readEvents() {
+        eventQueue.async { [weak self] in
+            guard let self, let mpv = self.mpv else { return }
+            while true {
+                guard let event = mpv_wait_event(mpv, 0), event.pointee.event_id != MPV_EVENT_NONE else { return }
+                switch event.pointee.event_id {
+                case MPV_EVENT_FILE_LOADED, MPV_EVENT_PLAYBACK_RESTART:
+                    Task { @MainActor in self.session.update(paused: false, loading: false) }
+                case MPV_EVENT_END_FILE:
+                    if let data = event.pointee.data {
+                        let end = UnsafePointer<mpv_event_end_file>(OpaquePointer(data)).pointee
+                        if end.reason == MPV_END_FILE_REASON_ERROR {
+                            let text = String(cString: mpv_error_string(end.error))
+                            Task { @MainActor in self.session.update(loading: false, error: text) }
+                        }
+                    }
+                default: break
+                }
+            }
+        }
+    }
+
+    private func publishProgress() {
+        guard let mpv else { return }
+        var position = 0.0
+        var duration = 0.0
+        mpv_get_property(mpv, "time-pos", MPV_FORMAT_DOUBLE, &position)
+        mpv_get_property(mpv, "duration", MPV_FORMAT_DOUBLE, &duration)
+        Task { @MainActor in session.update(position: position, duration: duration) }
+    }
+
+    private func command(_ values: String...) {
+        guard let mpv else { return }
+        var cStrings: [UnsafePointer<CChar>?] = values.map { value in
+            guard let pointer = strdup(value) else { return nil }
+            return UnsafePointer(pointer)
+        }
+        cStrings.append(nil)
+        defer { cStrings.dropLast().forEach { pointer in
+            if let pointer { free(UnsafeMutablePointer(mutating: pointer)) }
+        } }
+        _ = mpv_command(mpv, &cStrings)
+    }
+
+    private func setOption(_ mpv: OpaquePointer, _ name: String, _ value: String) {
+        _ = mpv_set_option_string(mpv, name, value)
+    }
+
+    private func setOption<T>(_ mpv: OpaquePointer, _ name: String, format: mpv_format, value: inout T) {
+        _ = mpv_set_option(mpv, name, format, &value)
+    }
+
+    deinit {
+        progressTimer?.invalidate()
+        if let mpv { mpv_terminate_destroy(mpv) }
+    }
+}

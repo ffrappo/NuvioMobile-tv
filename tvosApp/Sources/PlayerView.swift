@@ -1,5 +1,3 @@
-import AVFoundation
-import AVKit
 import SwiftUI
 
 struct PlayerRoute: Identifiable {
@@ -9,122 +7,94 @@ struct PlayerRoute: Identifiable {
     let sourceName: String
 }
 
+struct MPVPlayerView: UIViewControllerRepresentable {
+    let session: MPVPlaybackSession
+
+    func makeUIViewController(context: Context) -> MPVPlayerController {
+        MPVPlayerController(session: session)
+    }
+
+    func updateUIViewController(_ controller: MPVPlayerController, context: Context) {}
+}
+
 struct PlayerView: View {
     let route: PlayerRoute
 
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var session = PlayerSession()
+    @StateObject private var session = MPVPlaybackSession()
+    @State private var controlsVisible = true
 
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            SystemPlayerController(player: session.player)
-                .ignoresSafeArea()
-
-            if let errorMessage = session.errorMessage {
-                VStack(spacing: 20) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 58))
-                        .foregroundStyle(.orange)
-                    Text("Playback Error")
-                        .font(.title.weight(.bold))
-                    Text(errorMessage.tvSafe)
-                        .font(.title3)
-                        .multilineTextAlignment(.center)
-                    Button("Close") { dismiss() }
-                        .buttonStyle(.borderedProminent)
-                }
-                .padding(46)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 26))
-            }
+            MPVPlayerView(session: session).ignoresSafeArea()
+            if controlsVisible { controls }
+            if let error = session.errorMessage { errorPanel(error) }
         }
-        .onAppear {
-            session.load(url: route.url)
+        .onAppear { session.load(url: route.url) }
+        .onDisappear { session.stop() }
+        .onPlayPauseCommand { session.toggle() }
+        .onMoveCommand { direction in
+            if direction == .left { session.seek(by: -10) }
+            if direction == .right { session.seek(by: 10) }
+            controlsVisible = true
         }
-        .onDisappear {
-            session.stop()
-        }
-        .onPlayPauseCommand {
-            session.togglePlayback()
-        }
+        .onTapGesture { controlsVisible.toggle() }
         .onExitCommand {
             session.stop()
             dismiss()
         }
     }
-}
 
-struct SystemPlayerController: UIViewControllerRepresentable {
-    let player: AVPlayer
-
-    func makeUIViewController(context: Context) -> AVPlayerViewController {
-        let controller = AVPlayerViewController()
-        controller.player = player
-        controller.showsPlaybackControls = true
-        return controller
-    }
-
-    func updateUIViewController(_ controller: AVPlayerViewController, context: Context) {
-        if controller.player !== player {
-            controller.player = player
-        }
-    }
-}
-
-@MainActor
-final class PlayerSession: ObservableObject {
-    let player = AVPlayer()
-    @Published private(set) var errorMessage: String?
-
-    private var statusObservation: NSKeyValueObservation?
-    private var failureObserver: NSObjectProtocol?
-
-    func load(url: URL) {
-        errorMessage = nil
-        let item = AVPlayerItem(url: url)
-        player.replaceCurrentItem(with: item)
-
-        statusObservation = item.observe(\.status, options: [.initial, .new]) { [weak self] item, _ in
-            guard item.status == .failed else { return }
-            Task { @MainActor in
-                self?.errorMessage = item.error?.localizedDescription ?? "The video could not be played."
+    private var controls: some View {
+        VStack {
+            Spacer()
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(route.title.tvSafe).font(.title2.weight(.bold))
+                        Text(route.sourceName.tvSafe).foregroundStyle(NuvioTheme.secondaryText)
+                    }
+                    Spacer()
+                    if session.isLoading { ProgressView("Loading") }
+                }
+                ProgressView(value: session.position, total: max(session.duration, 1))
+                    .tint(NuvioTheme.accent)
+                HStack {
+                    Text(time(session.position))
+                    Spacer()
+                    Image(systemName: session.isPaused ? "play.fill" : "pause.fill")
+                    Spacer()
+                    Text(time(session.duration))
+                }
+                .font(.callout.monospacedDigit())
             }
+            .padding(32)
+            .background(.black.opacity(0.78), in: RoundedRectangle(cornerRadius: 24))
+            .padding(50)
         }
-
-        failureObserver = NotificationCenter.default.addObserver(
-            forName: .AVPlayerItemFailedToPlayToEndTime,
-            object: item,
-            queue: .main
-        ) { [weak self] notification in
-            let error = notification.userInfo?[AVPlayerItemFailedToPlayToEndTimeErrorKey] as? Error
-            Task { @MainActor in
-                self?.errorMessage = error?.localizedDescription ?? "Playback stopped unexpectedly."
-            }
-        }
-        player.play()
+        .allowsHitTesting(false)
     }
 
-    func togglePlayback() {
-        if player.timeControlStatus == .playing {
-            player.pause()
-        } else {
-            player.play()
+    private func errorPanel(_ error: String) -> some View {
+        VStack(spacing: 20) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 58))
+                .foregroundStyle(.orange)
+            Text("Playback Error").font(.title.weight(.bold))
+            Text(error.tvSafe).font(.title3).multilineTextAlignment(.center)
+            Button("Close") { dismiss() }.buttonStyle(.borderedProminent)
         }
+        .padding(46)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 26))
     }
 
-    func stop() {
-        player.pause()
-        player.replaceCurrentItem(with: nil)
-        statusObservation = nil
-        if let failureObserver {
-            NotificationCenter.default.removeObserver(failureObserver)
-            self.failureObserver = nil
+    private func time(_ seconds: Double) -> String {
+        guard seconds.isFinite, seconds >= 0 else { return "00:00" }
+        let total = Int(seconds)
+        if total >= 3600 {
+            return String(format: "%d:%02d:%02d", total / 3600, (total / 60) % 60, total % 60)
         }
-    }
-
-    deinit {
-        if let failureObserver {
-            NotificationCenter.default.removeObserver(failureObserver)
-        }
+        return String(format: "%02d:%02d", total / 60, total % 60)
     }
 }

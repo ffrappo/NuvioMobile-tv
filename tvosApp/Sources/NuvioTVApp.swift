@@ -2,12 +2,14 @@ import SwiftUI
 
 @main
 struct NuvioTVApp: App {
+    @StateObject private var authStore = AuthStore()
     @StateObject private var addonStore = AddonStore()
     @StateObject private var libraryStore = LibraryStore()
 
     var body: some Scene {
         WindowGroup {
-            AppShellView()
+            AccountGateView()
+                .environmentObject(authStore)
                 .environmentObject(addonStore)
                 .environmentObject(libraryStore)
                 .preferredColorScheme(.dark)
