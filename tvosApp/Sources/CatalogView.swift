@@ -148,7 +148,7 @@ struct CatalogView: View {
             ProgressView().controlSize(.large)
             Text("Loading your Home").font(.title2.weight(.semibold))
             Text("Synchronizing catalogs, progress, and collections")
-                .foregroundStyle(NuvioTheme.secondaryText)
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, minHeight: 640)
     }
@@ -158,7 +158,7 @@ struct CatalogView: View {
             Image(systemName: "rectangle.stack.badge.plus").font(.system(size: 72))
             Text("Your Home is ready for content").font(.largeTitle.weight(.bold))
             Text("Enable an addon with catalogs, or retry when your connection returns.")
-                .font(.title3).foregroundStyle(NuvioTheme.secondaryText)
+                .font(.title3).foregroundStyle(.secondary)
             NuvioButton(title: "Retry", symbol: "arrow.clockwise") {
                 Task { await reload(force: true) }
             }

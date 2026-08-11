@@ -23,7 +23,7 @@ struct HomeHeroView: View {
                 )
                 VStack(alignment: .leading, spacing: 16) {
                     Text(item.name.tvSafe)
-                        .font(.system(size: 52, weight: .bold))
+                        .font(.largeTitle.weight(.bold))
                         .lineLimit(2)
                     if let description = item.description?.trimmedNonEmpty {
                         Text(description.tvSafe)
@@ -36,7 +36,7 @@ struct HomeHeroView: View {
                         .font(.headline.weight(.semibold))
                         .padding(.horizontal, 22)
                         .padding(.vertical, 13)
-                        .background(focused ? .white : NuvioTheme.panelFocused, in: Capsule())
+                        .background(focused ? .white : Color.white.opacity(0.2), in: Capsule())
                         .foregroundStyle(focused ? .black : .white)
                 }
                 .padding(.horizontal, 56)
@@ -63,7 +63,7 @@ struct CatalogRail: View {
                 HStack(alignment: .firstTextBaseline, spacing: 14) {
                     Text(title.tvSafe).font(.title2.weight(.semibold))
                     if let subtitle {
-                        Text(subtitle.tvSafe).font(.callout).foregroundStyle(NuvioTheme.secondaryText)
+                        Text(subtitle.tvSafe).font(.callout).foregroundStyle(.secondary)
                     }
                 }
                 .padding(.horizontal, 48)
@@ -113,7 +113,7 @@ struct PosterCard: View {
                 .frame(width: 220, alignment: .leading)
             Text(item.releaseInfo?.tvSafe ?? item.type.capitalized)
                 .font(.subheadline)
-                .foregroundStyle(NuvioTheme.secondaryText)
+                .foregroundStyle(.secondary)
         }
     }
 }

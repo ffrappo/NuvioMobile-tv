@@ -28,7 +28,7 @@ struct StreamSourcesView: View {
                 if !report.sources.isEmpty {
                     Text("\(playableSources.count) ready")
                         .font(.callout.weight(.semibold))
-                        .foregroundStyle(NuvioTheme.secondaryText)
+                        .foregroundStyle(.secondary)
                         .padding(.horizontal, 14)
                         .frame(minHeight: 36)
                         .background(NuvioTheme.panel, in: Capsule())
@@ -61,7 +61,7 @@ struct StreamSourcesView: View {
             HStack(spacing: 16) {
                 ProgressView()
                 Text("Checking enabled addons")
-                    .foregroundStyle(NuvioTheme.secondaryText)
+                    .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, minHeight: 130)
             .background(NuvioTheme.panel, in: RoundedRectangle(cornerRadius: 20))
@@ -184,7 +184,7 @@ private struct SourceEmptyState: View {
                     .font(.headline)
                 Text(message)
                     .font(.callout)
-                    .foregroundStyle(NuvioTheme.secondaryText)
+                    .foregroundStyle(.secondary)
             }
             Spacer()
         }

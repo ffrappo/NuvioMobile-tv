@@ -63,7 +63,7 @@ struct ProgressCard: View {
                 .frame(width: 370, alignment: .leading)
             Text(metadata.tvSafe)
                 .font(.subheadline)
-                .foregroundStyle(NuvioTheme.secondaryText)
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -120,7 +120,7 @@ struct FolderCard: View {
                     .frame(width: 250, alignment: .leading)
             }
             if let count {
-                Text("\(count) titles").font(.caption).foregroundStyle(NuvioTheme.secondaryText)
+                Text("\(count) titles").font(.caption).foregroundStyle(.secondary)
             }
         }
     }
@@ -139,7 +139,7 @@ struct RemoteArtwork: View {
                 NuvioTheme.panel
                 Image(systemName: systemPlaceholder)
                     .font(.system(size: 54))
-                    .foregroundStyle(NuvioTheme.secondaryText)
+                    .foregroundStyle(.secondary)
             }
             }
         }

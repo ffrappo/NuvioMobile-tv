@@ -148,7 +148,7 @@ struct DetailsView: View {
                                     .lineLimit(1)
                                 Text(video.description?.tvSafe ?? "Choose this episode")
                                     .font(.caption)
-                                    .foregroundStyle(NuvioTheme.secondaryText)
+                                    .foregroundStyle(.secondary)
                                     .lineLimit(2)
                             }
                             .frame(width: 330, alignment: .leading)
@@ -238,7 +238,7 @@ private struct DetailFacts: View {
         }
     }
 
-    private func fact(_ text: String, symbol: String, tint: Color = NuvioTheme.secondaryText) -> some View {
+    private func fact(_ text: String, symbol: String, tint: Color = .secondary) -> some View {
         Label(text, systemImage: symbol)
             .font(.callout.weight(.semibold))
             .foregroundStyle(tint)
@@ -265,7 +265,7 @@ private struct DetailTags: View {
             if let released = detail?.released {
                 Label(released.tvReleaseDate, systemImage: "calendar.badge.clock")
                     .font(.callout)
-                    .foregroundStyle(NuvioTheme.secondaryText)
+                    .foregroundStyle(.secondary)
                     .padding(.leading, 6)
             }
         }
