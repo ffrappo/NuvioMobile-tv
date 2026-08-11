@@ -40,8 +40,17 @@ struct DetailsView: View {
                         StreamSourcesView(
                             type: detail.type,
                             videoID: selectedVideo?.id ?? detail.id,
-                            title: selectedVideo?.label ?? detail.name,
+                            contentID: selectedVideo?.id ?? detail.id,
+                            title: detail.name,
+                            seasonNumber: selectedVideo?.season,
+                            episodeNumber: selectedVideo?.episode,
+                            episodeTitle: selectedVideo?.name,
+                            episodes: detail.videos.map(PlayerEpisodeOption.init),
                             addons: addonStore.addons,
+                            onSelectEpisode: { episode in
+                                playerRoute = nil
+                                selectedVideo = detail.videos.first { $0.id == episode.id }
+                            },
                             onPlay: { playerRoute = $0 }
                         )
                     }
@@ -203,8 +212,14 @@ struct DetailsView: View {
 private struct StreamSourcesView: View {
     let type: String
     let videoID: String
+    let contentID: String
     let title: String
+    let seasonNumber: Int?
+    let episodeNumber: Int?
+    let episodeTitle: String?
+    let episodes: [PlayerEpisodeOption]
     let addons: [AddonEndpoint]
+    let onSelectEpisode: (PlayerEpisodeOption) -> Void
     let onPlay: (PlayerRoute) -> Void
 
     @State private var report = StreamFetchReport(sources: [], failures: [])
@@ -234,7 +249,19 @@ private struct StreamSourcesView: View {
                     ForEach(report.sources) { source in
                         Button {
                             if let url = source.stream.directURL {
-                                onPlay(PlayerRoute(url: url, title: title, sourceName: source.stream.name))
+                                let options = report.sources.compactMap(PlayerSourceOption.init)
+                                onPlay(PlayerRoute(
+                                    url: url,
+                                    contentID: contentID,
+                                    title: title,
+                                    sourceName: source.stream.name,
+                                    seasonNumber: seasonNumber,
+                                    episodeNumber: episodeNumber,
+                                    episodeTitle: episodeTitle,
+                                    availableSources: options,
+                                    episodes: episodes,
+                                    onSelectEpisode: onSelectEpisode
+                                ))
                             }
                         } label: {
                             HStack(spacing: 18) {
@@ -286,6 +313,24 @@ private struct StreamSourcesView: View {
         isLoading = true
         report = await service.streams(type: type, id: videoID, addons: addons)
         isLoading = false
+    }
+}
+
+private extension PlayerSourceOption {
+    init?(_ source: StreamSource) {
+        guard let url = source.stream.directURL else { return nil }
+        self.init(id: source.id, url: url, name: source.stream.name, addonName: source.addonName)
+    }
+}
+
+private extension PlayerEpisodeOption {
+    init(_ video: StremioVideo) {
+        self.init(
+            id: video.id,
+            title: video.name,
+            seasonNumber: video.season,
+            episodeNumber: video.episode
+        )
     }
 }
 

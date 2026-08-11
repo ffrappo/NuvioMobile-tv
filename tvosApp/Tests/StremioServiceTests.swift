@@ -44,4 +44,30 @@ final class StremioServiceTests: XCTestCase {
             "https://v3-cinemeta.strem.io/catalog/movie/top/search=The%20Matrix%20%26%20Neo%2FTrinity.json"
         )
     }
+
+    func testSidebarAndContentAreDeclaredAsFocusSections() throws {
+        let shell = try source(named: "AppShellView.swift")
+        XCTAssertEqual(shell.components(separatedBy: ".focusSection()").count - 1, 2)
+        XCTAssertFalse(shell.contains(".onMoveCommand"))
+    }
+
+    func testPlaybackProgressResumeRules() {
+        XCTAssertNil(PlaybackProgress(position: 10, duration: 100, updatedAt: Date()).resumablePosition)
+        XCTAssertEqual(
+            PlaybackProgress(position: 25, duration: 100, updatedAt: Date()).resumablePosition,
+            25
+        )
+        XCTAssertNil(PlaybackProgress(position: 95, duration: 100, updatedAt: Date()).resumablePosition)
+    }
+
+    func testPlayerTimeFormatter() {
+        XCTAssertEqual(PlayerTimeFormatter.string(65), "01:05")
+        XCTAssertEqual(PlayerTimeFormatter.string(3_661), "1:01:01")
+    }
+
+    private func source(named name: String) throws -> String {
+        let tests = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+        let url = tests.deletingLastPathComponent().appendingPathComponent("Sources/\(name)")
+        return try String(contentsOf: url, encoding: .utf8)
+    }
 }

@@ -3,8 +3,29 @@ import SwiftUI
 struct PlayerRoute: Identifiable {
     let id = UUID()
     let url: URL
+    let contentID: String
     let title: String
     let sourceName: String
+    let seasonNumber: Int?
+    let episodeNumber: Int?
+    let episodeTitle: String?
+    let availableSources: [PlayerSourceOption]
+    let episodes: [PlayerEpisodeOption]
+    let onSelectEpisode: (PlayerEpisodeOption) -> Void
+}
+
+struct PlayerSourceOption: Identifiable, Hashable {
+    let id: UUID
+    let url: URL
+    let name: String
+    let addonName: String
+}
+
+struct PlayerEpisodeOption: Identifiable, Hashable {
+    let id: String
+    let title: String
+    let seasonNumber: Int?
+    let episodeNumber: Int?
 }
 
 struct MPVPlayerView: UIViewControllerRepresentable {
@@ -23,57 +44,72 @@ struct PlayerView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var session = MPVPlaybackSession()
     @State private var controlsVisible = true
+    @State private var selectedSourceURL: URL?
+    @State private var resumePosition: Double?
+    @State private var lastSavedPosition = 0.0
+
+    private let progressStore = PlaybackProgressStore()
 
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
             MPVPlayerView(session: session).ignoresSafeArea()
-            if controlsVisible { controls }
+            if controlsVisible {
+                PlayerControlsOverlay(
+                    route: route,
+                    session: session,
+                    selectedSourceURL: selectedSourceURL ?? route.url,
+                    onSelectSource: switchSource,
+                    onSelectEpisode: selectEpisode
+                )
+            }
             if let error = session.errorMessage { errorPanel(error) }
         }
-        .onAppear { session.load(url: route.url) }
-        .onDisappear { session.stop() }
-        .onPlayPauseCommand { session.toggle() }
-        .onMoveCommand { direction in
-            if direction == .left { session.seek(by: -10) }
-            if direction == .right { session.seek(by: 10) }
+        .onAppear {
+            selectedSourceURL = route.url
+            resumePosition = progressStore.progress(for: route.contentID)?.resumablePosition
+            session.load(url: route.url, startPosition: resumePosition)
+        }
+        .onDisappear {
+            saveProgress()
+            session.stop()
+        }
+        .onChange(of: session.position) { _, position in
+            guard abs(position - lastSavedPosition) >= 10 else { return }
+            saveProgress()
+            lastSavedPosition = position
+        }
+        .onPlayPauseCommand {
+            session.toggle()
             controlsVisible = true
         }
         .onTapGesture { controlsVisible.toggle() }
         .onExitCommand {
+            saveProgress()
             session.stop()
             dismiss()
         }
     }
 
-    private var controls: some View {
-        VStack {
-            Spacer()
-            VStack(alignment: .leading, spacing: 14) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(route.title.tvSafe).font(.title2.weight(.bold))
-                        Text(route.sourceName.tvSafe).foregroundStyle(NuvioTheme.secondaryText)
-                    }
-                    Spacer()
-                    if session.isLoading { ProgressView("Loading") }
-                }
-                ProgressView(value: session.position, total: max(session.duration, 1))
-                    .tint(NuvioTheme.accent)
-                HStack {
-                    Text(time(session.position))
-                    Spacer()
-                    Image(systemName: session.isPaused ? "play.fill" : "pause.fill")
-                    Spacer()
-                    Text(time(session.duration))
-                }
-                .font(.callout.monospacedDigit())
-            }
-            .padding(32)
-            .background(.black.opacity(0.78), in: RoundedRectangle(cornerRadius: 24))
-            .padding(50)
-        }
-        .allowsHitTesting(false)
+    private func switchSource(_ source: PlayerSourceOption) {
+        saveProgress()
+        selectedSourceURL = source.url
+        session.load(url: source.url, startPosition: session.position)
+    }
+
+    private func selectEpisode(_ episode: PlayerEpisodeOption) {
+        saveProgress()
+        session.stop()
+        dismiss()
+        route.onSelectEpisode(episode)
+    }
+
+    private func saveProgress() {
+        progressStore.save(
+            contentID: route.contentID,
+            position: session.position,
+            duration: session.duration
+        )
     }
 
     private func errorPanel(_ error: String) -> some View {
@@ -87,14 +123,5 @@ struct PlayerView: View {
         }
         .padding(46)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 26))
-    }
-
-    private func time(_ seconds: Double) -> String {
-        guard seconds.isFinite, seconds >= 0 else { return "00:00" }
-        let total = Int(seconds)
-        if total >= 3600 {
-            return String(format: "%d:%02d:%02d", total / 3600, (total / 60) % 60, total % 60)
-        }
-        return String(format: "%02d:%02d", total / 60, total % 60)
     }
 }

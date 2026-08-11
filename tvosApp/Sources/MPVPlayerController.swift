@@ -8,14 +8,33 @@ final class MPVPlaybackSession: ObservableObject {
     @Published private(set) var isLoading = true
     @Published private(set) var position: Double = 0
     @Published private(set) var duration: Double = 0
+    @Published private(set) var speed: Double = 1
+    @Published private(set) var resizeMode: PlayerResizeMode = .fit
+    @Published private(set) var audioTracks: [PlaybackTrack] = []
+    @Published private(set) var subtitleTracks: [PlaybackTrack] = []
     @Published private(set) var errorMessage: String?
 
     fileprivate weak var controller: MPVPlayerController?
 
-    func load(url: URL) { controller?.load(url: url) }
+    func load(url: URL, startPosition: Double? = nil) {
+        controller?.load(url: url, startPosition: startPosition)
+    }
     func toggle() { controller?.togglePlayback() }
     func seek(by seconds: Double) { controller?.seek(by: seconds) }
+    func seek(to seconds: Double) { controller?.seek(to: seconds) }
+    func setSpeed(_ speed: Double) { controller?.setSpeed(speed) }
+    func setResizeMode(_ mode: PlayerResizeMode) { controller?.setResizeMode(mode) }
+    func selectAudio(id: Int64) { controller?.selectAudio(id: id) }
+    func selectSubtitle(id: Int64?) { controller?.selectSubtitle(id: id) }
+    func switchSource(url: URL) { controller?.load(url: url) }
     func stop() { controller?.stop() }
+
+    fileprivate func beginLoading() {
+        isLoading = true
+        errorMessage = nil
+        audioTracks = []
+        subtitleTracks = []
+    }
 
     fileprivate func update(paused: Bool? = nil, loading: Bool? = nil, error: String? = nil) {
         if let paused { isPaused = paused }
@@ -27,6 +46,18 @@ final class MPVPlaybackSession: ObservableObject {
         self.position = position
         self.duration = duration
     }
+
+    fileprivate func update(
+        speed: Double,
+        resizeMode: PlayerResizeMode,
+        audioTracks: [PlaybackTrack],
+        subtitleTracks: [PlaybackTrack]
+    ) {
+        self.speed = speed
+        self.resizeMode = resizeMode
+        self.audioTracks = audioTracks
+        self.subtitleTracks = subtitleTracks
+    }
 }
 
 final class MPVPlayerController: UIViewController {
@@ -36,6 +67,7 @@ final class MPVPlayerController: UIViewController {
     private var mpv: OpaquePointer?
     private var progressTimer: Timer?
     private var pendingURL: URL?
+    private var pendingStartPosition: Double?
 
     init(session: MPVPlaybackSession) {
         self.session = session
@@ -70,32 +102,37 @@ final class MPVPlayerController: UIViewController {
         if let url = pendingURL, view.window != nil, view.bounds.width > 1 {
             pendingURL = nil
             command("loadfile", url.absoluteString, "replace")
+            applyPendingStartPosition()
         }
     }
 
     override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         guard let type = presses.first?.type else { return super.pressesBegan(presses, with: event) }
         switch type {
-        case .playPause, .select:
+        case .playPause:
             togglePlayback()
-        case .leftArrow:
-            seek(by: -10)
-        case .rightArrow:
-            seek(by: 10)
         default:
             super.pressesBegan(presses, with: event)
         }
     }
 
-    func load(url: URL) {
+    func load(url: URL, startPosition: Double? = nil) {
+        pendingStartPosition = startPosition
         Task { @MainActor in
-            session.update(loading: true)
+            session.beginLoading()
         }
         if view.window == nil || view.bounds.width <= 1 {
             pendingURL = url
         } else {
             command("loadfile", url.absoluteString, "replace")
+            applyPendingStartPosition()
         }
+    }
+
+    private func applyPendingStartPosition() {
+        guard let position = pendingStartPosition, position > 0 else { return }
+        pendingStartPosition = nil
+        command("seek", String(position), "absolute+exact")
     }
 
     func togglePlayback() {
@@ -109,6 +146,50 @@ final class MPVPlayerController: UIViewController {
 
     func seek(by seconds: Double) {
         command("seek", String(seconds), "relative+exact")
+    }
+
+    func seek(to seconds: Double) {
+        command("seek", String(seconds), "absolute+exact")
+    }
+
+    func setSpeed(_ speed: Double) {
+        guard let mpv else { return }
+        var value = speed
+        mpv_set_property(mpv, "speed", MPV_FORMAT_DOUBLE, &value)
+        publishPlaybackOptions()
+    }
+
+    func setResizeMode(_ mode: PlayerResizeMode) {
+        guard let mpv else { return }
+        switch mode {
+        case .fit:
+            mpv_set_property_string(mpv, "panscan", "0")
+            mpv_set_property_string(mpv, "video-unscaled", "no")
+        case .fill:
+            mpv_set_property_string(mpv, "panscan", "1")
+            mpv_set_property_string(mpv, "video-unscaled", "no")
+        case .original:
+            mpv_set_property_string(mpv, "panscan", "0")
+            mpv_set_property_string(mpv, "video-unscaled", "downscale-big")
+        }
+        publishPlaybackOptions(resizeMode: mode)
+    }
+
+    func selectAudio(id: Int64) {
+        guard let mpv else { return }
+        var value = id
+        mpv_set_property(mpv, "aid", MPV_FORMAT_INT64, &value)
+        publishPlaybackOptions()
+    }
+
+    func selectSubtitle(id: Int64?) {
+        guard let mpv else { return }
+        if var value = id {
+            mpv_set_property(mpv, "sid", MPV_FORMAT_INT64, &value)
+        } else {
+            mpv_set_property_string(mpv, "sid", "no")
+        }
+        publishPlaybackOptions()
     }
 
     func stop() {
@@ -171,7 +252,10 @@ final class MPVPlayerController: UIViewController {
                 guard let event = mpv_wait_event(mpv, 0), event.pointee.event_id != MPV_EVENT_NONE else { return }
                 switch event.pointee.event_id {
                 case MPV_EVENT_FILE_LOADED, MPV_EVENT_PLAYBACK_RESTART:
-                    Task { @MainActor in self.session.update(paused: false, loading: false) }
+                    Task { @MainActor in
+                        self.session.update(paused: false, loading: false)
+                        self.publishPlaybackOptions()
+                    }
                 case MPV_EVENT_END_FILE:
                     if let data = event.pointee.data {
                         let end = UnsafePointer<mpv_event_end_file>(OpaquePointer(data)).pointee
@@ -193,6 +277,58 @@ final class MPVPlayerController: UIViewController {
         mpv_get_property(mpv, "time-pos", MPV_FORMAT_DOUBLE, &position)
         mpv_get_property(mpv, "duration", MPV_FORMAT_DOUBLE, &duration)
         Task { @MainActor in session.update(position: position, duration: duration) }
+    }
+
+    private func publishPlaybackOptions(resizeMode: PlayerResizeMode? = nil) {
+        guard let mpv else { return }
+        var speed = 1.0
+        mpv_get_property(mpv, "speed", MPV_FORMAT_DOUBLE, &speed)
+        let audio = readTracks(kind: .audio)
+        let subtitles = readTracks(kind: .subtitle)
+        Task { @MainActor in
+            session.update(
+                speed: speed,
+                resizeMode: resizeMode ?? session.resizeMode,
+                audioTracks: audio,
+                subtitleTracks: subtitles
+            )
+        }
+    }
+
+    private func readTracks(kind: PlaybackTrack.Kind) -> [PlaybackTrack] {
+        let count = Int(propertyInt("track-list/count"))
+        return (0..<count).compactMap { index in
+            guard propertyString("track-list/\(index)/type") == kind.rawValue else { return nil }
+            let id = propertyInt("track-list/\(index)/id")
+            guard id >= 0 else { return nil }
+            return PlaybackTrack(
+                id: id,
+                kind: kind,
+                title: propertyString("track-list/\(index)/title") ?? "",
+                language: propertyString("track-list/\(index)/lang"),
+                isSelected: propertyFlag("track-list/\(index)/selected")
+            )
+        }
+    }
+
+    private func propertyInt(_ name: String) -> Int64 {
+        guard let mpv else { return -1 }
+        var value: Int64 = -1
+        mpv_get_property(mpv, name, MPV_FORMAT_INT64, &value)
+        return value
+    }
+
+    private func propertyFlag(_ name: String) -> Bool {
+        guard let mpv else { return false }
+        var value: Int32 = 0
+        mpv_get_property(mpv, name, MPV_FORMAT_FLAG, &value)
+        return value != 0
+    }
+
+    private func propertyString(_ name: String) -> String? {
+        guard let mpv, let value = mpv_get_property_string(mpv, name) else { return nil }
+        defer { mpv_free(value) }
+        return String(cString: value)
     }
 
     private func command(_ values: String...) {
