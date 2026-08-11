@@ -7,7 +7,7 @@ struct SignInView: View {
     @State private var showCredentials = false
     @FocusState private var focus: Field?
 
-    private enum Field: Hashable { case scan, email, password, signIn, refresh, guest, credentials }
+    private enum Field: Hashable { case email, password, signIn, refresh, guest, credentials }
 
     var body: some View {
         HStack(spacing: 72) {
@@ -16,7 +16,7 @@ struct SignInView: View {
         }
         .padding(70)
         .background(NuvioTheme.background.ignoresSafeArea())
-        .defaultFocus($focus, .scan)
+        .defaultFocus($focus, .refresh)
         .task { if auth.qrSession == nil { await auth.startQRLogin() } }
     }
 
@@ -96,8 +96,6 @@ struct SignInView: View {
             }
             .frame(width: 260, height: 260)
             .accessibilityLabel("Nuvio sign-in QR code")
-            .focusable()
-            .focused($focus, equals: .scan)
 
             VStack(alignment: .leading, spacing: 12) {
                 Label("Open your phone camera", systemImage: "camera")

@@ -11,7 +11,6 @@ struct DetailsView: View {
     @State private var selectedVideo: StremioVideo?
     @State private var playerRoute: PlayerRoute?
     @FocusState private var focusedAction: DetailAction?
-    @Namespace private var episodeFocusNamespace
 
     private let service = StremioService()
 
@@ -63,7 +62,6 @@ struct DetailsView: View {
         }
         .background(NuvioTheme.background)
         .task { await loadDetail() }
-        .focusScope(episodeFocusNamespace)
         .onChange(of: selectedVideo?.id) { _, id in
             guard let id else { return }
             focusedAction = .episode(id)
