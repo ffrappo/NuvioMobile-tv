@@ -43,6 +43,7 @@
 		AED6026EFE342B8EEA89392D /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33449435FC3BF87503CD4A8F /* SearchView.swift */; };
 		B08120C4F269B799CFC54713 /* MPVPlayerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 302544E09DAD6A87C91FB11C /* MPVPlayerController.swift */; };
 		B66774F38BE1693203C0E460 /* SettingsIntegrationsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D0CA3ABA039F9BF009C2AEB /* SettingsIntegrationsSection.swift */; };
+		B84723186883CFAC61BDD514 /* PlayerErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E063DF1A7166F7F4FDC0C3F /* PlayerErrorView.swift */; };
 		B8E1A89BE3C55F69E60FBB34 /* HomePreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9465F850C56F7A461E6C744 /* HomePreferencesStore.swift */; };
 		BD786E3FFBE7C65FF6FAD08C /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786FC58A58F4DEFF56C9B9BF /* AppLog.swift */; };
 		C5B42C6571A7116E8AC62C71 /* AccountViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFEAEBBF5ED07016B5CC82C /* AccountViews.swift */; };
@@ -74,6 +75,7 @@
 /* Begin PBXFileReference section */
 		0239D059AEB5C413463A3FFA /* Stores.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stores.swift; sourceTree = "<group>"; };
 		0793D8511263AD11562CA2F5 /* TVProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TVProfileStore.swift; sourceTree = "<group>"; };
+		0E063DF1A7166F7F4FDC0C3F /* PlayerErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerErrorView.swift; sourceTree = "<group>"; };
 		10F96A6131AF0A35CE5B3E10 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		158C29FFFE770CF9A32C05D2 /* MPVMetalLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPVMetalLayer.swift; sourceTree = "<group>"; };
 		17DC198665629AD3BB6EBDFC /* StremioServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StremioServiceTests.swift; sourceTree = "<group>"; };
@@ -175,6 +177,7 @@
 				DD4B08B0E68A9C97F695E1A8 /* PlaybackTimelineScrubber.swift */,
 				E723FE2419E3A281C9A1C792 /* PlayerControlMenus.swift */,
 				B2AFC2D037541A3D7A11A6E2 /* PlayerControlsOverlay.swift */,
+				0E063DF1A7166F7F4FDC0C3F /* PlayerErrorView.swift */,
 				C27E09B744C2CE890A87E44F /* PlayerModels.swift */,
 				10F96A6131AF0A35CE5B3E10 /* PlayerView.swift */,
 				33449435FC3BF87503CD4A8F /* SearchView.swift */,
@@ -371,6 +374,7 @@
 				748E9D90F76FD77C838E8898 /* PlaybackTimelineScrubber.swift in Sources */,
 				27C199D33D48FE16E1F27FBA /* PlayerControlMenus.swift in Sources */,
 				C8EF625AE98D1023FE7DE19A /* PlayerControlsOverlay.swift in Sources */,
+				B84723186883CFAC61BDD514 /* PlayerErrorView.swift in Sources */,
 				4200128317A802BB497D33A6 /* PlayerModels.swift in Sources */,
 				706E70B6FAC13B7501F295A0 /* PlayerView.swift in Sources */,
 				AED6026EFE342B8EEA89392D /* SearchView.swift in Sources */,

@@ -85,7 +85,9 @@ struct PlayerView: View {
                     onSelectEpisode: selectEpisode
                 )
             }
-            if let error = session.errorMessage { errorPanel(error) }
+            if let error = session.errorMessage {
+                PlayerErrorView(message: error) { dismiss() }
+            }
         }
         .onAppear {
             selectedSourceURL = route.url
@@ -230,18 +232,5 @@ struct PlayerView: View {
             positionSeconds: session.position,
             durationSeconds: session.duration
         )
-    }
-
-    private func errorPanel(_ error: String) -> some View {
-        VStack(spacing: 20) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 58))
-                .foregroundStyle(.orange)
-            Text("Playback Error").font(.title.weight(.bold))
-            Text(error.tvSafe).font(.title3).multilineTextAlignment(.center)
-            Button("Close") { dismiss() }.buttonStyle(.borderedProminent)
-        }
-        .padding(46)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 26))
     }
 }
