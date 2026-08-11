@@ -16,6 +16,7 @@
 		3DF7651B0D6F6D02C2D4820F /* MPVPlayerStatePublishing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5130437B6988CB319EA38E68 /* MPVPlayerStatePublishing.swift */; };
 		3E5C13C1C6F3DFDD6884062B /* MPVPlayerNetworking.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD0750902F3BA140EC65E3B /* MPVPlayerNetworking.swift */; };
 		3F4B6950113090D001FB9A73 /* IntegrationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE240C1E5873B2E908D10D36 /* IntegrationStore.swift */; };
+		41EDEC0FD1E0EA9846D553D7 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958FD18C6EA14520C046C529 /* SignInView.swift */; };
 		4200128317A802BB497D33A6 /* PlayerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C27E09B744C2CE890A87E44F /* PlayerModels.swift */; };
 		4492E0066035C1098B1BD4B4 /* AppShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728F8B7A925C4B231A981A64 /* AppShellView.swift */; };
 		46CEF7E4D525E0D17C2C81AF /* TVProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0793D8511263AD11562CA2F5 /* TVProfileStore.swift */; };
@@ -101,6 +102,7 @@
 		8BC5DAEE5C7D57F67EB0F0CB /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		8CA8D158F406C206AD751836 /* TVNowPlayingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TVNowPlayingController.swift; sourceTree = "<group>"; };
 		94F6C839C63851E17F71A673 /* SettingsHomeSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHomeSection.swift; sourceTree = "<group>"; };
+		958FD18C6EA14520C046C529 /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		AAD0750902F3BA140EC65E3B /* MPVPlayerNetworking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPVPlayerNetworking.swift; sourceTree = "<group>"; };
 		B2AFC2D037541A3D7A11A6E2 /* PlayerControlsOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerControlsOverlay.swift; sourceTree = "<group>"; };
 		B5716F31FB038AFA879C132F /* SubtitleAppearanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleAppearanceView.swift; sourceTree = "<group>"; };
@@ -180,6 +182,7 @@
 				94F6C839C63851E17F71A673 /* SettingsHomeSection.swift */,
 				2D0CA3ABA039F9BF009C2AEB /* SettingsIntegrationsSection.swift */,
 				44E8A9DA69945B36709DBC01 /* SettingsView.swift */,
+				958FD18C6EA14520C046C529 /* SignInView.swift */,
 				C4967F64D741AB65B25526B8 /* SkipSegmentsService.swift */,
 				0239D059AEB5C413463A3FFA /* Stores.swift */,
 				DB64C4919946C587C5324E0C /* StreamSourcesView.swift */,
@@ -375,6 +378,7 @@
 				FBFF9FFDBED8A7812B597F50 /* SettingsHomeSection.swift in Sources */,
 				B66774F38BE1693203C0E460 /* SettingsIntegrationsSection.swift in Sources */,
 				A0BD3A24E14F3967135F0D89 /* SettingsView.swift in Sources */,
+				41EDEC0FD1E0EA9846D553D7 /* SignInView.swift in Sources */,
 				C982CCCBA6EDFF6871AF16D0 /* SkipSegmentsService.swift in Sources */,
 				F591B69D29765F08FE7AC204 /* Stores.swift in Sources */,
 				D91C7E56946233EB62D40BD9 /* StreamSourcesView.swift in Sources */,
