@@ -11,16 +11,7 @@ struct CatalogView: View {
     @EnvironmentObject private var collections: CollectionStore
     @State private var loadedFolders: [String: [MetaSummary]] = [:]
     @State private var selectedFolderByCollection: [String: String] = [:]
-    @FocusState private var focus: HomeFocus?
-
-    private enum HomeFocus: Hashable {
-        case hero(String)
-        case progress(String)
-        case upcoming(String)
-        case folder(String)
-        case catalog(String, String)
-        case retry
-    }
+    @FocusState private var retryFocused: Bool
 
     var body: some View {
         ScrollView {
@@ -43,18 +34,14 @@ struct CatalogView: View {
             emptyState
         } else {
             if let hero = home.snapshot.heroItems.first {
-                HomeHeroView(item: hero, focused: focus == .hero(hero.id)) {
+                HomeHeroView(item: hero) {
                     onSelect(hero)
                 }
-                .focused($focus, equals: .hero(hero.id))
-                .defaultFocus($focus, .hero(hero.id))
             }
             if !home.snapshot.continueWatching.isEmpty {
                 ProgressRail(
                     title: "Continue Watching",
                     items: home.snapshot.continueWatching,
-                    focus: $focus,
-                    focusValue: { .progress($0.id) },
                     onSelect: { item in
                         onSelect(item.summary.routedTo(
                             videoID: item.videoID,
@@ -68,8 +55,6 @@ struct CatalogView: View {
                 ProgressRail(
                     title: "Upcoming",
                     items: home.snapshot.upcoming,
-                    focus: $focus,
-                    focusValue: { .upcoming($0.id) },
                     onSelect: { item in
                         onSelect(item.summary.routedTo(
                             videoID: item.videoID,
@@ -87,8 +72,6 @@ struct CatalogView: View {
                     title: sectionTitle(section),
                     subtitle: section.definition.addonName,
                     items: Array(section.items.prefix(18)),
-                    focus: $focus,
-                    focusValue: { .catalog(section.id, $0.id) },
                     onSelect: onSelect
                 )
             }
@@ -120,23 +103,12 @@ struct CatalogView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 26) {
                     ForEach(collection.folders) { folder in
-                        Button {
-                            selectedFolderByCollection[collection.id] = folder.id
-                            Task {
-                                loadedFolders[folder.id] = await collections.items(
-                                    for: folder,
-                                    addons: addons.homeAddons
-                                )
-                            }
-                        } label: {
-                            FolderCard(
-                                folder: folder,
-                                count: loadedFolders[folder.id]?.count,
-                                focused: focus == .folder(folder.id)
-                            )
+                        FolderButton(
+                            folder: folder,
+                            count: loadedFolders[folder.id]?.count
+                        ) {
+                            select(folder, in: collection)
                         }
-                        .buttonStyle(NuvioBareButtonStyle())
-                        .focused($focus, equals: .folder(folder.id))
                     }
                 }
                 .padding(.horizontal, 48)
@@ -149,11 +121,19 @@ struct CatalogView: View {
                     title: folder.title,
                     subtitle: collection.title,
                     items: items,
-                    focus: $focus,
-                    focusValue: { .catalog(folder.id, $0.id) },
                     onSelect: onSelect
                 )
             }
+        }
+    }
+
+    private func select(_ folder: TVCollectionFolder, in collection: TVCollection) {
+        selectedFolderByCollection[collection.id] = folder.id
+        Task {
+            loadedFolders[folder.id] = await collections.items(
+                for: folder,
+                addons: addons.homeAddons
+            )
         }
     }
 
@@ -173,13 +153,13 @@ struct CatalogView: View {
             Text("Your Home is ready for content").font(.largeTitle.weight(.bold))
             Text("Enable an addon with catalogs, or retry when your connection returns.")
                 .font(.title3).foregroundStyle(NuvioTheme.secondaryText)
-            NuvioButton(title: "Retry", symbol: "arrow.clockwise", focused: focus == .retry) {
+            NuvioButton(title: "Retry", symbol: "arrow.clockwise", focused: retryFocused) {
                 Task { await reload(force: true) }
             }
-            .focused($focus, equals: .retry)
+            .focused($retryFocused)
         }
         .frame(maxWidth: .infinity, minHeight: 640)
-        .defaultFocus($focus, .retry)
+        .defaultFocus($retryFocused, true)
     }
 
     private func statusBanner(_ message: String) -> some View {

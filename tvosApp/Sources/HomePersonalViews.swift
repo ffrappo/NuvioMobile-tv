@@ -1,10 +1,8 @@
 import SwiftUI
 
-struct ProgressRail<FocusValue: Hashable>: View {
+struct ProgressRail: View {
     let title: String
     let items: [ContinueWatchingCard]
-    let focus: FocusState<FocusValue?>.Binding
-    let focusValue: (ContinueWatchingCard) -> FocusValue
     let onSelect: (ContinueWatchingCard) -> Void
 
     var body: some View {
@@ -13,24 +11,37 @@ struct ProgressRail<FocusValue: Hashable>: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 26) {
                     ForEach(items) { item in
-                        let value = focusValue(item)
-                        Button { onSelect(item) } label: {
-                            ProgressCard(item: item, focused: focus.wrappedValue == value)
-                        }
-                        .buttonStyle(NuvioBareButtonStyle())
-                        .focused(focus, equals: value)
-                        .accessibilityLabel(accessibilityLabel(item))
-                        .accessibilityHint("Opens details")
+                        ProgressButton(item: item) { onSelect(item) }
                     }
                 }
-                .padding(.horizontal, 48).padding(.vertical, 22)
+                .padding(.horizontal, 48)
+                .padding(.vertical, 26)
             }
         }
     }
+}
 
-    private func accessibilityLabel(_ item: ContinueWatchingCard) -> String {
+private struct ProgressButton: View {
+    let item: ContinueWatchingCard
+    let action: () -> Void
+
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        Button(action: action) {
+            ProgressCard(item: item, focused: focused)
+        }
+        .buttonStyle(NuvioBareButtonStyle())
+        .focused($focused)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityHint("Opens details")
+    }
+
+    private var accessibilityLabel: String {
         var parts = [item.summary.name]
-        if let season = item.season, let episode = item.episode { parts.append("Season \(season), episode \(episode)") }
+        if let season = item.season, let episode = item.episode {
+            parts.append("Season \(season), episode \(episode)")
+        }
         if !item.isUpcoming { parts.append("\(Int(item.progress * 100)) percent watched") }
         return parts.joined(separator: ", ")
     }
@@ -49,30 +60,45 @@ struct ProgressCard: View {
                 )
                 .frame(width: 370, height: 208)
                 .clipShape(RoundedRectangle(cornerRadius: 18))
-                if !item.isUpcoming {
-                    GeometryReader { proxy in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(.black.opacity(0.52))
-                            Capsule().fill(Color.white.opacity(0.78)).frame(width: proxy.size.width * item.progress)
-                        }
-                    }
-                    .frame(height: 7).padding(12)
-                }
+                if !item.isUpcoming { progressBar }
             }
-            .overlay(
-                RoundedRectangle(cornerRadius: 18)
-                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
-            )
-            Text(item.summary.name.tvSafe).font(.headline).lineLimit(1).frame(width: 370, alignment: .leading)
-            Text(metadata.tvSafe).font(.subheadline).foregroundStyle(NuvioTheme.secondaryText)
+            .overlay(focusBorder(cornerRadius: 18))
+            Text(item.summary.name.tvSafe)
+                .font(.headline)
+                .lineLimit(1)
+                .frame(width: 370, alignment: .leading)
+            Text(metadata.tvSafe)
+                .font(.subheadline)
+                .foregroundStyle(NuvioTheme.secondaryText)
         }
         .scaleEffect(focused ? 1.06 : 1)
         .shadow(
-            color: .black.opacity(focused ? 0.70 : 0.40),
-            radius: focused ? 20 : 8,
+            color: focused ? .white.opacity(0.25) : .black.opacity(0.4),
+            radius: focused ? 16 : 8,
             y: focused ? 10 : 3
         )
-        .animation(.easeOut(duration: 0.16), value: focused)
+        .animation(.easeOut(duration: 0.13), value: focused)
+    }
+
+    private var progressBar: some View {
+        GeometryReader { proxy in
+            ZStack(alignment: .leading) {
+                Capsule().fill(.black.opacity(0.52))
+                Capsule()
+                    .fill(Color.white.opacity(0.90))
+                    .frame(width: proxy.size.width * item.progress)
+            }
+        }
+        .frame(height: 7)
+        .padding(12)
+    }
+
+    private func focusBorder(cornerRadius: CGFloat) -> some View {
+        RoundedRectangle(cornerRadius: cornerRadius)
+            .stroke(
+                focused ? Color.white.opacity(0.95) : Color.white.opacity(0.12),
+                lineWidth: focused ? 3 : 1
+            )
     }
 
     private var metadata: String {
@@ -81,6 +107,24 @@ struct ProgressCard: View {
             return item.episodeTitle.map { "\(code)  \($0)" } ?? code
         }
         return item.isUpcoming ? "Upcoming" : "Continue watching"
+    }
+}
+
+struct FolderButton: View {
+    let folder: TVCollectionFolder
+    let count: Int?
+    let action: () -> Void
+
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        Button(action: action) {
+            FolderCard(folder: folder, count: count, focused: focused)
+        }
+        .buttonStyle(NuvioBareButtonStyle())
+        .focused($focused)
+        .accessibilityLabel(folder.title.tvSafe)
+        .accessibilityHint("Shows this collection")
     }
 }
 
@@ -96,10 +140,16 @@ struct FolderCard: View {
                 .clipShape(RoundedRectangle(cornerRadius: 18))
                 .overlay(
                     RoundedRectangle(cornerRadius: 18)
-                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                        .stroke(
+                            focused ? Color.white.opacity(0.95) : Color.white.opacity(0.12),
+                            lineWidth: focused ? 3 : 1
+                        )
                 )
             if !folder.hideTitle {
-                Text(folder.title.tvSafe).font(.headline).lineLimit(1).frame(width: 250, alignment: .leading)
+                Text(folder.title.tvSafe)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .frame(width: 250, alignment: .leading)
             }
             if let count {
                 Text("\(count) titles").font(.caption).foregroundStyle(NuvioTheme.secondaryText)
@@ -107,11 +157,11 @@ struct FolderCard: View {
         }
         .scaleEffect(focused ? 1.06 : 1)
         .shadow(
-            color: .black.opacity(focused ? 0.70 : 0.40),
-            radius: focused ? 20 : 8,
+            color: focused ? .white.opacity(0.25) : .black.opacity(0.4),
+            radius: focused ? 16 : 8,
             y: focused ? 10 : 3
         )
-        .animation(.easeOut(duration: 0.16), value: focused)
+        .animation(.easeOut(duration: 0.13), value: focused)
     }
 }
 
@@ -126,7 +176,9 @@ struct RemoteArtwork: View {
             case .empty: ZStack { NuvioTheme.panel; ProgressView() }
             default: ZStack {
                 NuvioTheme.panel
-                Image(systemName: systemPlaceholder).font(.system(size: 54)).foregroundStyle(NuvioTheme.secondaryText)
+                Image(systemName: systemPlaceholder)
+                    .font(.system(size: 54))
+                    .foregroundStyle(NuvioTheme.secondaryText)
             }
             }
         }
@@ -142,9 +194,13 @@ struct ErrorPanel: View {
 
     var body: some View {
         VStack(spacing: 18) {
-            Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 54)).foregroundStyle(.orange)
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 54))
+                .foregroundStyle(.orange)
             Text(message.tvSafe).font(.title3).multilineTextAlignment(.center)
-            Button("Try Again", action: retry).buttonStyle(.borderedProminent).focused($retryFocused)
+            Button("Try Again", action: retry)
+                .buttonStyle(.borderedProminent)
+                .focused($retryFocused)
         }
         .frame(maxWidth: .infinity, minHeight: 320)
         .defaultFocus($retryFocused, true)
