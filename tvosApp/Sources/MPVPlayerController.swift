@@ -113,7 +113,7 @@ final class MPVPlaybackSession: ObservableObject {
 final class MPVPlayerController: UIViewController {
     let session: MPVPlaybackSession
     private let metalLayer = MPVMetalLayer()
-    private let eventQueue = DispatchQueue(label: "nuvio.tv.mpv.events", qos: .userInitiated)
+    let eventQueue = DispatchQueue(label: "nuvio.tv.mpv.events", qos: .userInitiated)
     var mpv: OpaquePointer?
     private var progressTimer: Timer?
     private var pendingURL: URL?
