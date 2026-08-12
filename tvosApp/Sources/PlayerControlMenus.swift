@@ -12,7 +12,7 @@ struct PlayerControlMenus: View {
     @FocusState private var focusedMenu: MenuControl?
 
     private enum MenuControl: Hashable {
-        case resize, speed, subtitles, audio, volume, sources, episodes
+        case resize, speed, subtitles, audio, sources, episodes
     }
 
     private let speeds = [0.5, 0.75, 1, 1.25, 1.5, 2]
@@ -23,8 +23,6 @@ struct PlayerControlMenus: View {
             speedMenu
             subtitlesMenu
             if !session.audioTracks.isEmpty { audioMenu }
-            PlayerVolumeSlider(session: session, onInteraction: onInteraction)
-                .focused($focusedMenu, equals: .volume)
             AudioRoutePicker(onInteraction: onInteraction)
                 .frame(width: 68, height: 52)
                 .accessibilityLabel("Audio Output")
@@ -226,71 +224,5 @@ struct PlayerControlMenus: View {
             return episode.title
         }
         return "S\(season) E\(number)  \(episode.title)"
-    }
-}
-
-struct PlayerVolumeSlider: View {
-    @ObservedObject var session: MPVPlaybackSession
-    let onInteraction: () -> Void
-
-    @FocusState private var isFocused: Bool
-    private let step = 5.0
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: symbol)
-                .font(.system(size: 18, weight: .semibold))
-                .frame(width: 24)
-            GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(.white.opacity(0.3)).frame(height: 7)
-                    Capsule().fill(.white).frame(width: proxy.size.width * progress, height: 7)
-                }
-                .frame(maxHeight: .infinity)
-            }
-            .frame(height: 28)
-            Text("\(Int(session.volume))%")
-                .font(.callout.monospacedDigit().weight(.semibold))
-                .frame(width: 52, alignment: .trailing)
-        }
-        .padding(.horizontal, 14)
-        .frame(minHeight: 44)
-        .background(Color.white.opacity(isFocused ? 0.34 : 0.12), in: Capsule())
-        .overlay {
-            if isFocused {
-                Capsule().strokeBorder(Color.white.opacity(0.7), lineWidth: 1.5)
-            }
-        }
-        .focusable(true)
-        .focused($isFocused)
-        .scaleEffect(isFocused ? 1.08 : 1)
-        .onMoveCommand { direction in
-            guard isFocused else { return }
-            switch direction {
-            case .left: adjust(by: -step)
-            case .right: adjust(by: step)
-            default: break
-            }
-        }
-        .animation(.easeOut(duration: 0.16), value: isFocused)
-        .frame(width: 320)
-        .accessibilityLabel("Volume")
-        .accessibilityValue("\(Int(session.volume)) percent")
-    }
-
-    private var progress: Double {
-        min(max(session.volume / 130, 0), 1)
-    }
-
-    private var symbol: String {
-        if session.volume <= 0 { return "speaker.slash.fill" }
-        if session.volume < 34 { return "speaker.wave.1.fill" }
-        if session.volume < 67 { return "speaker.wave.2.fill" }
-        return "speaker.wave.3.fill"
-    }
-
-    private func adjust(by delta: Double) {
-        session.setVolume(session.volume + delta)
-        onInteraction()
     }
 }

@@ -65,7 +65,6 @@ struct PlayerView: View {
     @State private var nowPlaying: TVNowPlayingController?
     @State private var skipIntervals: [SkipInterval] = []
     @State private var dismissedSkipIntervalIDs: Set<String> = []
-    @State private var volumeFlash: Double?
 
     private let progressStore = PlaybackProgressStore()
     private let skipService = SkipSegmentsService()
@@ -90,13 +89,6 @@ struct PlayerView: View {
             }
             if let error = session.errorMessage {
                 PlayerErrorView(message: error) { dismiss() }
-            }
-            if let volumeFlash {
-                VolumeHUD(volume: volumeFlash)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                    .padding(.top, 46)
-                    .padding(.trailing, 46)
-                    .transition(.opacity)
             }
         }
         .onAppear {
@@ -141,13 +133,6 @@ struct PlayerView: View {
                 controls.registerInteraction()
             }
             syncNowPlaying(position: session.position, force: true)
-        }
-        .onChange(of: session.volume) { _, volume in
-            volumeFlash = volume
-            Task {
-                try? await Task.sleep(for: .seconds(1.6))
-                volumeFlash = nil
-            }
         }
         .onPlayPauseCommand {
             session.toggle()
@@ -249,33 +234,5 @@ struct PlayerView: View {
             positionSeconds: session.position,
             durationSeconds: session.duration
         )
-    }
-}
-
-struct VolumeHUD: View {
-    let volume: Double
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: symbol)
-                .font(.system(size: 20, weight: .semibold))
-            Text(percentage)
-                .font(.headline.monospacedDigit())
-        }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 10)
-        .background(.ultraThinMaterial, in: Capsule())
-        .accessibilityLabel("Volume \(percentage)")
-    }
-
-    private var symbol: String {
-        if volume <= 0 { return "speaker.slash.fill" }
-        if volume < 34 { return "speaker.wave.1.fill" }
-        if volume < 67 { return "speaker.wave.2.fill" }
-        return "speaker.wave.3.fill"
-    }
-
-    private var percentage: String {
-        "\(Int(volume))%"
     }
 }
