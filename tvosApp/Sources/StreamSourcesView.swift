@@ -106,8 +106,8 @@ struct StreamSourcesView: View {
                     Text(source.stream.name.tvSafe)
                         .font(.headline)
                         .lineLimit(1)
-                    if let description = source.stream.description?.trimmedNonEmpty {
-                        Text(description.tvSafe)
+                    if let subtitle = sourceSubtitle(source.stream) {
+                        Text(subtitle.tvSafe)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .lineLimit(2)
@@ -143,8 +143,15 @@ struct StreamSourcesView: View {
         var labels = [
             info.quality, info.hdr, info.codec,
         ].compactMap { $0 } + info.audio + info.languages
+        if let size = info.size { labels.append(size) }
         if !labels.contains(source.addonName) { labels.append(source.addonName) }
         return labels
+    }
+
+    private func sourceSubtitle(_ stream: StremioStream) -> String? {
+        if let description = stream.description?.trimmedNonEmpty { return description }
+        if let title = stream.title?.trimmedNonEmpty, title != stream.name { return title }
+        return nil
     }
 
     private func play(_ source: StreamSource) {
@@ -223,8 +230,8 @@ extension PlayerSourceOption {
             id: source.id,
             url: url,
             name: source.stream.name,
-            detail: source.stream.description,
             addonName: source.addonName,
+            displaySummary: source.stream.displayInfo.summary,
             requestHeaders: source.stream.requestHeaders,
             responseHeaders: source.stream.responseHeaders
         )

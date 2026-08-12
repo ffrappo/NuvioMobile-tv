@@ -63,24 +63,23 @@ struct PlayerControlsOverlay: View {
     }
 
     private var bottomControls: some View {
-        VStack(spacing: 22) {
+        VStack(spacing: 24) {
             timeline
-            HStack(alignment: .center, spacing: 28) {
-                transportButtons
-                PlayerControlMenus(
-                    route: route,
-                    session: session,
-                    selectedSourceURL: selectedSourceURL,
-                    onInteraction: onInteraction,
-                    onSelectSource: onSelectSource,
-                    onSelectEpisode: onSelectEpisode
-                )
-            }
+            transportButtons
+            MenuDivider()
+            PlayerControlMenus(
+                route: route,
+                session: session,
+                selectedSourceURL: selectedSourceURL,
+                onInteraction: onInteraction,
+                onSelectSource: onSelectSource,
+                onSelectEpisode: onSelectEpisode
+            )
         }
     }
 
     private var transportButtons: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 20) {
             transportButton("gobackward.10", label: "Back 10 Seconds") {
                 seek(by: -10)
             }
@@ -89,8 +88,8 @@ struct PlayerControlsOverlay: View {
                 onInteraction()
             } label: {
                 Image(systemName: session.isPaused ? "play.fill" : "pause.fill")
-                    .font(.system(size: 32, weight: .semibold))
-                    .frame(width: 72, height: 72)
+                    .font(.system(size: 34, weight: .semibold))
+                    .frame(width: 76, height: 76)
             }
             .buttonStyle(.borderedProminent)
             .buttonBorderShape(.circle)
@@ -152,10 +151,12 @@ struct PlayerControlsOverlay: View {
     ) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 28, weight: .semibold))
-                .frame(width: 64, height: 64)
+                .font(.system(size: 24, weight: .semibold))
+                .frame(width: 52, height: 52)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.circle)
+        .foregroundStyle(.white)
         .accessibilityLabel(label)
     }
 
@@ -172,8 +173,9 @@ struct PlayerControlsOverlay: View {
             return source
         }
         var label = source
-        let info = StreamInfo.displayInfo(name: option.name, description: option.detail)
-        if info.hasContent { label += "  \u{00B7}  \(info.summary)" }
+        if let summary = option.displaySummary?.trimmedNonEmpty {
+            label += "  \u{00B7}  \(summary)"
+        }
         label += "  \u{00B7}  \(option.addonName)"
         return label
     }
@@ -197,6 +199,15 @@ struct PlayerControlsOverlay: View {
         }
         let code = "S\(season) E\(episode)"
         return route.episodeTitle.map { "\(code)  \($0)" } ?? code
+    }
+}
+
+struct MenuDivider: View {
+    var body: some View {
+        Capsule()
+            .fill(.white.opacity(0.22))
+            .frame(width: 1, height: 40)
+            .accessibilityHidden(true)
     }
 }
 

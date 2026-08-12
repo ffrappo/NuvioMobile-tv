@@ -20,6 +20,18 @@ final class MPVPlaybackSession: ObservableObject {
     var onPress: ((UIPress.PressType) -> Void)?
 
     fileprivate weak var controller: MPVPlayerController?
+    private var lastToggleAt = Date.distantPast
+
+    /// The Siri Remote button, SwiftUI's play-pause command, and the remote
+    /// command center can all deliver the same physical press, and tvOS may
+    /// forward a single press through more than one path. Ignore toggles that
+    /// arrive within a short window so one press always means one toggle.
+    func toggle() {
+        let now = Date()
+        guard now.timeIntervalSince(lastToggleAt) > 0.25 else { return }
+        lastToggleAt = now
+        controller?.togglePlayback()
+    }
 
     func load(
         url: URL,
@@ -34,11 +46,9 @@ final class MPVPlaybackSession: ObservableObject {
             responseHeaders: responseHeaders
         )
     }
-    func toggle() { controller?.togglePlayback() }
     func seek(by seconds: Double) { controller?.seek(by: seconds) }
     func seek(to seconds: Double) { controller?.seek(to: seconds) }
     func setSpeed(_ speed: Double) { controller?.setSpeed(speed) }
-    func adjustVolume(by delta: Double) { controller?.adjustVolume(by: delta) }
     func setVolume(_ value: Double) { controller?.setVolume(value) }
     func setResizeMode(_ mode: PlayerResizeMode) { controller?.setResizeMode(mode) }
     func selectAudio(id: Int64) { controller?.selectAudio(id: id) }
@@ -58,24 +68,33 @@ final class MPVPlaybackSession: ObservableObject {
         subtitleTracks = []
     }
 
+    /// Equality-guarded writes so a 0.5 s polling tick only invalidates the
+    /// session when something actually changed. `@Published` has no built-in
+    /// equality check, so unconditional assignments would re-render every
+    /// observing view (overlay, menus, volume slider, now-playing mirror) on
+    /// every tick even when the values are identical.
     func update(paused: Bool? = nil, loading: Bool? = nil, error: String? = nil) {
-        if let paused { isPaused = paused }
-        if let loading { isLoading = loading }
-        if let error { errorMessage = error }
+        if let paused, paused != isPaused { isPaused = paused }
+        if let loading, loading != isLoading { isLoading = loading }
+        if let error, error != errorMessage { errorMessage = error }
     }
 
     func update(position: Double, duration: Double) {
-        self.position = position
-        self.duration = duration
+        if position != self.position { self.position = position }
+        if duration != self.duration { self.duration = duration }
     }
 
     func updateSubtitle(delayMilliseconds: Int? = nil, fontSize: Int? = nil) {
-        if let delayMilliseconds { subtitleDelayMilliseconds = delayMilliseconds }
-        if let fontSize { subtitleFontSize = fontSize }
+        if let delayMilliseconds, delayMilliseconds != subtitleDelayMilliseconds {
+            subtitleDelayMilliseconds = delayMilliseconds
+        }
+        if let fontSize, fontSize != subtitleFontSize {
+            subtitleFontSize = fontSize
+        }
     }
 
     func update(volume: Double) {
-        self.volume = volume
+        if volume != self.volume { self.volume = volume }
     }
 
     func update(
@@ -84,10 +103,10 @@ final class MPVPlaybackSession: ObservableObject {
         audioTracks: [PlaybackTrack],
         subtitleTracks: [PlaybackTrack]
     ) {
-        self.speed = speed
-        self.resizeMode = resizeMode
-        self.audioTracks = audioTracks
-        self.subtitleTracks = subtitleTracks
+        if speed != self.speed { self.speed = speed }
+        if resizeMode != self.resizeMode { self.resizeMode = resizeMode }
+        if audioTracks != self.audioTracks { self.audioTracks = audioTracks }
+        if subtitleTracks != self.subtitleTracks { self.subtitleTracks = subtitleTracks }
     }
 }
 
@@ -118,7 +137,7 @@ final class MPVPlayerController: UIViewController {
         configureAudio()
         setupMPV()
         progressTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
-            self?.publishProgress()
+            self?.scheduleProgressPoll()
         }
     }
 
@@ -140,10 +159,6 @@ final class MPVPlayerController: UIViewController {
         guard let type = presses.first?.type else { return super.pressesBegan(presses, with: event) }
         session.onPress?(type)
         super.pressesBegan(presses, with: event)
-    }
-
-    func adjustVolume(by delta: Double) {
-        setVolume(session.volume + delta)
     }
 
     func setVolume(_ value: Double) {

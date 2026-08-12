@@ -4,6 +4,7 @@ struct StreamDisplayInfo: Equatable {
     var quality: String?
     var hdr: String?
     var codec: String?
+    var size: String?
     var audio: [String] = []
     var languages: [String] = []
 
@@ -14,15 +15,25 @@ struct StreamDisplayInfo: Equatable {
         if let codec { parts.append(codec) }
         parts.append(contentsOf: audio)
         parts.append(contentsOf: languages)
+        if let size { parts.append(size) }
         return parts.joined(separator: " \u{00B7} ")
     }
+}
 
-    var hasContent: Bool { !summary.isEmpty }
+enum FileSizeFormatter {
+    static func string(_ bytes: Int64) -> String? {
+        guard bytes > 0 else { return nil }
+        let gb = Double(bytes) / 1_073_741_824
+        if gb >= 1 { return String(format: "%.1f GB", gb) }
+        let mb = Double(bytes) / 1_048_576
+        if mb >= 1 { return String(format: "%.0f MB", mb) }
+        return nil
+    }
 }
 
 enum StreamInfo {
-    static func displayInfo(name: String?, description: String?) -> StreamDisplayInfo {
-        let text = "\(name ?? "") \(description ?? "")"
+    static func displayInfo(name: String?, title: String? = nil, description: String? = nil, filename: String? = nil) -> StreamDisplayInfo {
+        let text = [name, title, description, filename].compactMap { $0 }.joined(separator: " ")
         var info = StreamDisplayInfo()
 
         info.quality = firstMatch(text, patterns: [
@@ -64,13 +75,6 @@ enum StreamInfo {
         info.languages = matchedLanguages(text)
 
         return info
-    }
-
-    static func labels(name: String?, description: String?) -> [String] {
-        let info = displayInfo(name: name, description: description)
-        return [
-            info.quality, info.hdr, info.codec,
-        ].compactMap { $0 } + info.audio + info.languages
     }
 
     private static func contains(_ text: String, _ pattern: String) -> Bool {
@@ -126,6 +130,8 @@ enum StreamInfo {
 
 extension StremioStream {
     var displayInfo: StreamDisplayInfo {
-        StreamInfo.displayInfo(name: name, description: description)
+        var info = StreamInfo.displayInfo(name: name, title: title, description: description, filename: filename)
+        if let videoSize { info.size = FileSizeFormatter.string(videoSize) }
+        return info
     }
 }

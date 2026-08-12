@@ -26,8 +26,8 @@ struct PlayerSourceOption: Identifiable, Hashable {
     let id: UUID
     let url: URL
     let name: String
-    let detail: String?
     let addonName: String
+    let displaySummary: String?
     let requestHeaders: [String: String]
     let responseHeaders: [String: String]
 }
@@ -57,10 +57,11 @@ struct PlayerView: View {
     @EnvironmentObject private var syncedProgress: WatchProgressStore
     @StateObject private var session = MPVPlaybackSession()
     @StateObject private var controls = PlayerControlsVisibility()
-    @State private var playbackStartedAt = Date()
     @State private var selectedSourceURL: URL?
     @State private var resumePosition: Double?
     @State private var lastSavedPosition = 0.0
+    @State private var lastNowPlayingPosition: Double?
+    @State private var lastNowPlayingPaused: Bool?
     @State private var nowPlaying: TVNowPlayingController?
     @State private var skipIntervals: [SkipInterval] = []
     @State private var dismissedSkipIntervalIDs: Set<String> = []
@@ -80,11 +81,12 @@ struct PlayerView: View {
                     session: session,
                     selectedSourceURL: selectedSourceURL ?? route.url,
                     activeSkipInterval: activeSkipInterval,
-                    onInteraction: controls.registerInteraction,
+                    onInteraction: { controls.registerInteraction() },
                     onSkip: skip,
                     onSelectSource: switchSource,
                     onSelectEpisode: selectEpisode
                 )
+                .transition(.opacity)
             }
             if let error = session.errorMessage {
                 PlayerErrorView(message: error) { dismiss() }
@@ -127,15 +129,18 @@ struct PlayerView: View {
             session.stop()
         }
         .onChange(of: session.position) { _, position in
-            nowPlaying?.sync(
-                position: position,
-                duration: session.duration,
-                isPaused: session.isPaused,
-                speed: session.speed
-            )
+            syncNowPlaying(position: position)
             guard abs(position - lastSavedPosition) >= 10 else { return }
             saveProgress()
             lastSavedPosition = position
+        }
+        .onChange(of: session.isPaused) { _, paused in
+            if paused {
+                controls.registerInteraction(keepVisible: true)
+            } else {
+                controls.registerInteraction()
+            }
+            syncNowPlaying(position: session.position, force: true)
         }
         .onChange(of: session.volume) { _, volume in
             volumeFlash = volume
@@ -150,7 +155,6 @@ struct PlayerView: View {
         }
         .onTapGesture {
             controls.registerInteraction()
-            pauseIfPlaybackJustStarted()
         }
         .onExitCommand {
             if controls.isVisible {
@@ -161,6 +165,7 @@ struct PlayerView: View {
                 dismiss()
             }
         }
+        .animation(.easeOut(duration: 0.22), value: controls.isVisible)
     }
 
     private var activeSkipInterval: SkipInterval? {
@@ -191,13 +196,6 @@ struct PlayerView: View {
 
     private func handleRemotePress(_ type: UIPress.PressType) {
         controls.registerInteraction()
-        if type == .select { pauseIfPlaybackJustStarted() }
-    }
-
-    private func pauseIfPlaybackJustStarted() {
-        guard Date().timeIntervalSince(playbackStartedAt) < 2,
-              !session.isPaused else { return }
-        session.toggle()
     }
 
     private func switchSource(_ source: PlayerSourceOption) {
@@ -218,6 +216,21 @@ struct PlayerView: View {
         session.stop()
         dismiss()
         route.onSelectEpisode(episode)
+    }
+
+    private func syncNowPlaying(position: Double, force: Bool = false) {
+        let paused = session.isPaused
+        let elapsedDelta = lastNowPlayingPosition.map { abs(position - $0) } ?? .infinity
+        let stateChanged = lastNowPlayingPaused != paused
+        guard force || elapsedDelta >= 1.0 || stateChanged else { return }
+        lastNowPlayingPosition = position
+        lastNowPlayingPaused = paused
+        nowPlaying?.sync(
+            position: position,
+            duration: session.duration,
+            isPaused: paused,
+            speed: session.speed
+        )
     }
 
     private func saveProgress() {

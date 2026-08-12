@@ -259,9 +259,11 @@ struct StremioStream: Decodable, Hashable, Identifiable {
     let url: String?
     let requestHeaders: [String: String]
     let responseHeaders: [String: String]
+    let videoSize: Int64?
+    let filename: String?
 
     private enum CodingKeys: String, CodingKey { case name, title, description, url, behaviorHints }
-    private enum BehaviorHintKeys: String, CodingKey { case proxyHeaders }
+    private enum BehaviorHintKeys: String, CodingKey { case proxyHeaders, videoSize, filename }
     private enum ProxyHeaderKeys: String, CodingKey { case request, response }
 
     init(from decoder: Decoder) throws {
@@ -277,6 +279,8 @@ struct StremioStream: Decodable, Hashable, Identifiable {
         let proxy = try? hints?.nestedContainer(keyedBy: ProxyHeaderKeys.self, forKey: .proxyHeaders)
         requestHeaders = (try? proxy?.decode([String: String].self, forKey: .request)) ?? [:]
         responseHeaders = (try? proxy?.decode([String: String].self, forKey: .response)) ?? [:]
+        videoSize = hints?.decodeFlexibleInt64(forKey: .videoSize)
+        filename = hints?.decodeFlexibleString(forKey: .filename)
     }
 
     var directURL: URL? {
@@ -347,6 +351,12 @@ extension KeyedDecodingContainer {
     func decodeFlexibleInt(forKey key: Key) -> Int? {
         if let value = try? decode(Int.self, forKey: key) { return value }
         if let value = try? decode(String.self, forKey: key) { return Int(value) }
+        return nil
+    }
+
+    func decodeFlexibleInt64(forKey key: Key) -> Int64? {
+        if let value = try? decode(Int64.self, forKey: key) { return value }
+        if let value = try? decode(String.self, forKey: key) { return Int64(value) }
         return nil
     }
 

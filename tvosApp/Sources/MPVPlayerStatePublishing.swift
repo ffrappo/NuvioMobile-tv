@@ -2,22 +2,35 @@ import Foundation
 import Libmpv
 
 extension MPVPlayerController {
-    func publishProgress() {
-        guard let mpv else { return }
-        var position = 0.0
-        var duration = 0.0
-        var paused: Int32 = 0
-        var cachePaused: Int32 = 0
-        var seeking: Int32 = 0
-        mpv_get_property(mpv, "time-pos", MPV_FORMAT_DOUBLE, &position)
-        mpv_get_property(mpv, "duration", MPV_FORMAT_DOUBLE, &duration)
-        mpv_get_property(mpv, "pause", MPV_FORMAT_FLAG, &paused)
-        mpv_get_property(mpv, "paused-for-cache", MPV_FORMAT_FLAG, &cachePaused)
-        mpv_get_property(mpv, "seeking", MPV_FORMAT_FLAG, &seeking)
-        Task { @MainActor in
-            session.update(position: position, duration: duration)
-            session.update(paused: paused != 0, loading: cachePaused != 0 || seeking != 0)
+    /// Schedules a progress poll on the mpv event queue instead of the main
+    /// run loop. `mpv_get_property` is thread-safe, but it can briefly contend
+    /// on the mpv core lock during seeks and buffering; running it on the main
+    /// thread stalls SwiftUI input and the Siri Remote. The snapshot is then
+    /// published back to the MainActor-isolated session.
+    func scheduleProgressPoll() {
+        eventQueue.async { [weak self] in
+            guard let self, let mpv = self.mpv else { return }
+            var position = 0.0
+            var duration = 0.0
+            var paused: Int32 = 0
+            var cachePaused: Int32 = 0
+            var seeking: Int32 = 0
+            mpv_get_property(mpv, "time-pos", MPV_FORMAT_DOUBLE, &position)
+            mpv_get_property(mpv, "duration", MPV_FORMAT_DOUBLE, &duration)
+            mpv_get_property(mpv, "pause", MPV_FORMAT_FLAG, &paused)
+            mpv_get_property(mpv, "paused-for-cache", MPV_FORMAT_FLAG, &cachePaused)
+            mpv_get_property(mpv, "seeking", MPV_FORMAT_FLAG, &seeking)
+            let isPaused = paused != 0
+            let isLoading = cachePaused != 0 || seeking != 0
+            Task { @MainActor [weak self] in
+                self?.session.update(position: position, duration: duration)
+                self?.session.update(paused: isPaused, loading: isLoading)
+            }
         }
+    }
+
+    func publishProgress() {
+        scheduleProgressPoll()
     }
 
     func publishPlaybackOptions(resizeMode: PlayerResizeMode? = nil) {

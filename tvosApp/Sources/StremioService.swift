@@ -22,7 +22,6 @@ enum StremioServiceError: LocalizedError {
 
 struct StremioService {
     static let cinemetaBaseURL = URL(string: "https://v3-cinemeta.strem.io")!
-    static let cinemetaManifestURL = URL(string: "https://v3-cinemeta.strem.io/manifest.json")!
 
     private let session: URLSession
     private let decoder: JSONDecoder
@@ -39,10 +38,6 @@ struct StremioService {
             self.session = URLSession(configuration: configuration)
         }
         decoder = JSONDecoder()
-    }
-
-    func cinemetaManifest() async throws -> AddonManifest {
-        try await request(Self.cinemetaManifestURL)
     }
 
     func manifest(at input: String) async throws -> (base: URL, manifest: AddonManifest) {
@@ -194,10 +189,6 @@ struct StremioService {
 
 
     static func manifestProvidesMeta(_ manifest: AddonManifest, type: String, id: String) -> Bool {
-        manifestSupportsResource(manifest, name: "meta", type: type, id: id)
-    }
-
-    static func manifestSupportsID(_ manifest: AddonManifest, type: String, id: String) -> Bool {
         manifestSupportsResource(manifest, name: "meta", type: type, id: id)
     }
 

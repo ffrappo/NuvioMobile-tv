@@ -129,7 +129,13 @@ struct FolderCard: View {
 struct RemoteArtwork: View {
     let urlString: String?
     let systemPlaceholder: String
-    @State private var image: UIImage?
+    @State private var loaded: UIImage?
+
+    private var image: UIImage? {
+        if let loaded { return loaded }
+        guard let urlString, let url = URL(string: urlString) else { return nil }
+        return ArtworkStore.shared.cachedImage(for: url)
+    }
 
     var body: some View {
         ZStack {
@@ -148,20 +154,15 @@ struct RemoteArtwork: View {
         }
         .clipped()
         .accessibilityHidden(true)
-        .task(id: urlString) { await load() }
+        .task(id: urlString) { await loadIfNeeded() }
     }
 
     @MainActor
-    private func load() async {
-        guard let urlString, let url = URL(string: urlString) else {
-            image = nil
-            return
-        }
-        if let cached = ArtworkStore.shared.cachedImage(for: url) {
-            image = cached
-            return
-        }
-        image = await ArtworkStore.shared.image(for: url)
+    private func loadIfNeeded() async {
+        guard loaded == nil,
+              let urlString, let url = URL(string: urlString),
+              ArtworkStore.shared.cachedImage(for: url) == nil else { return }
+        loaded = await ArtworkStore.shared.image(for: url)
     }
 }
 
