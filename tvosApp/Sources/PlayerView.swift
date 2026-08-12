@@ -55,6 +55,7 @@ struct PlayerView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var integrations: IntegrationStore
     @EnvironmentObject private var syncedProgress: WatchProgressStore
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var session = MPVPlaybackSession()
     @StateObject private var controls = PlayerControlsVisibility()
     @State private var selectedSourceURL: URL?
@@ -149,6 +150,12 @@ struct PlayerView: View {
                 saveProgress()
                 session.stop()
                 dismiss()
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active, !session.isPaused {
+                session.toggle()
+                saveProgress()
             }
         }
         .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: controls.isVisible)
