@@ -65,6 +65,7 @@ struct PlayerView: View {
     @State private var nowPlaying: TVNowPlayingController?
     @State private var skipIntervals: [SkipInterval] = []
     @State private var dismissedSkipIntervalIDs: Set<String> = []
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let progressStore = PlaybackProgressStore()
     private let skipService = SkipSegmentsService()
@@ -150,7 +151,7 @@ struct PlayerView: View {
                 dismiss()
             }
         }
-        .animation(.easeOut(duration: 0.22), value: controls.isVisible)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: controls.isVisible)
     }
 
     private var activeSkipInterval: SkipInterval? {

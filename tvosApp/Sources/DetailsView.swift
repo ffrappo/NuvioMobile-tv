@@ -90,7 +90,7 @@ struct DetailsView: View {
                     .foregroundStyle(.secondary)
 
                 Text((detail?.name ?? summary.name).tvSafe)
-                    .font(.system(size: 56, weight: .bold, design: .rounded))
+                    .font(.largeTitle.weight(.bold))
                     .lineLimit(2)
                     .minimumScaleFactor(0.82)
 
@@ -152,12 +152,13 @@ struct DetailsView: View {
                             }
                             .frame(width: 330, alignment: .leading)
                             .padding(20)
-                            .background(
-                                selectedVideo?.id == video.id ? Color.white.opacity(0.18) : NuvioTheme.panel,
-                                in: RoundedRectangle(cornerRadius: 16)
+                            .nuvioSurfaceFocus(
+                                focusedAction == .episode(video.id),
+                                selected: selectedVideo?.id == video.id,
+                                cornerRadius: 16
                             )
                         }
-                        .buttonStyle(.card)
+                        .buttonStyle(.plain)
                         .focused($focusedAction, equals: .episode(video.id))
                     }
                 }

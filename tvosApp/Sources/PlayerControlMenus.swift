@@ -10,6 +10,7 @@ struct PlayerControlMenus: View {
 
     @State private var showSubtitleAppearance = false
     @FocusState private var focusedMenu: MenuControl?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private enum MenuControl: Hashable {
         case resize, speed, subtitles, audio, sources, episodes
@@ -194,7 +195,7 @@ struct PlayerControlMenus: View {
                 }
             }
             .scaleEffect(focused ? 1.08 : 1)
-            .animation(.easeOut(duration: 0.16), value: focused)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: focused)
             .contentShape(Capsule())
     }
 

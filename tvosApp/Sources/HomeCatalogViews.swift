@@ -43,7 +43,7 @@ struct HomeHeroView: View {
                 .padding(.bottom, 48)
             }
         }
-        .buttonStyle(.card)
+        .buttonStyle(.plain)
         .focused($focused)
         .defaultFocus($focused, true)
         .accessibilityLabel("\(item.name), featured")
@@ -85,11 +85,15 @@ private struct PosterButton: View {
     let item: MetaSummary
     let action: () -> Void
 
+    @FocusState private var isFocused: Bool
+
     var body: some View {
         Button(action: action) {
             PosterCard(item: item)
+                .nuvioTileFocus(isFocused)
         }
-        .buttonStyle(.card)
+        .buttonStyle(.plain)
+        .focused($isFocused)
         .accessibilityLabel(
             [item.name, item.releaseInfo, item.type.capitalized]
                 .compactMap { $0 }
@@ -106,7 +110,7 @@ struct PosterCard: View {
         VStack(alignment: .leading, spacing: 10) {
             RemoteArtwork(urlString: item.poster, systemPlaceholder: "film")
                 .frame(width: 220, height: 320)
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             Text(item.name.tvSafe)
                 .font(.headline)
                 .lineLimit(1)

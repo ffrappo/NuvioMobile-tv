@@ -24,11 +24,15 @@ private struct ProgressButton: View {
     let item: ContinueWatchingCard
     let action: () -> Void
 
+    @FocusState private var isFocused: Bool
+
     var body: some View {
         Button(action: action) {
             ProgressCard(item: item)
+                .nuvioTileFocus(isFocused)
         }
-        .buttonStyle(.card)
+        .buttonStyle(.plain)
+        .focused($isFocused)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityHint("Opens details")
     }
@@ -54,7 +58,7 @@ struct ProgressCard: View {
                     systemPlaceholder: "play.rectangle.fill"
                 )
                 .frame(width: 370, height: 208)
-                .clipShape(RoundedRectangle(cornerRadius: 18))
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 if !item.isUpcoming { progressBar }
             }
             Text(item.summary.name.tvSafe)
@@ -94,11 +98,15 @@ struct FolderButton: View {
     let count: Int?
     let action: () -> Void
 
+    @FocusState private var isFocused: Bool
+
     var body: some View {
         Button(action: action) {
             FolderCard(folder: folder, count: count)
+                .nuvioTileFocus(isFocused)
         }
-        .buttonStyle(.card)
+        .buttonStyle(.plain)
+        .focused($isFocused)
         .accessibilityLabel(folder.title.tvSafe)
         .accessibilityHint("Shows this collection")
     }
@@ -112,7 +120,7 @@ struct FolderCard: View {
         VStack(alignment: .leading, spacing: 10) {
             RemoteArtwork(urlString: folder.coverImageUrl, systemPlaceholder: "folder.fill")
                 .frame(width: 250, height: folder.tileShape.lowercased() == "landscape" ? 150 : 250)
-                .clipShape(RoundedRectangle(cornerRadius: 18))
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             if !folder.hideTitle {
                 Text(folder.title.tvSafe)
                     .font(.headline)

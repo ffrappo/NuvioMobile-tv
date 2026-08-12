@@ -133,10 +133,16 @@ struct StreamSourcesView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
             .frame(maxWidth: .infinity)
+            .nuvioSurfaceFocus(focusedSource == source.id, cornerRadius: 18)
+            .opacity(isPlayable ? 1 : 0.5)
         }
-        .buttonStyle(.card)
+        .buttonStyle(.plain)
         .disabled(!isPlayable)
         .focused($focusedSource, equals: source.id)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(source.stream.name.tvSafe)
+        .accessibilityValue(isPlayable ? "Play" : "Unavailable")
+        .accessibilityHint("Stream this source")
     }
 
     private func infoLabels(_ source: StreamSource, info: StreamDisplayInfo) -> [String] {

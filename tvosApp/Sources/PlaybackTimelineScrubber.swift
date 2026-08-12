@@ -11,6 +11,7 @@ struct PlaybackTimelineScrubber: View {
     @State private var trackExternalUpdates = false
     @State private var lastExternalPosition = 0.0
     @State private var shouldGlide = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let stepSeconds = 10.0
     private let pollInterval: Double = 0.5
@@ -43,7 +44,7 @@ struct PlaybackTimelineScrubber: View {
             // discontinuous jumps snap instantly so manual input and skip
             // actions track immediately.
             .animation(
-                isScrubbing || !shouldGlide ? nil : .linear(duration: pollInterval),
+                isScrubbing || !shouldGlide || reduceMotion ? nil : .linear(duration: pollInterval),
                 value: scrubPosition
             )
         }
@@ -68,7 +69,7 @@ struct PlaybackTimelineScrubber: View {
             default: break
             }
         }
-        .animation(.easeOut(duration: 0.18), value: isFocused)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: isFocused)
     }
 
     private var trackHeight: Double { isFocused ? 10 : 7 }

@@ -27,8 +27,9 @@ struct LibraryView: View {
                                 onSelect(item)
                             } label: {
                                 PosterCard(item: item)
+                                    .nuvioTileFocus(focusedID == item.id)
                             }
-                            .buttonStyle(.card)
+                            .buttonStyle(.plain)
                             .focused($focusedID, equals: item.id)
                         }
                     }

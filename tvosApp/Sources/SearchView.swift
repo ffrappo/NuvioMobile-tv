@@ -109,8 +109,9 @@ struct SearchView: View {
                     onSelect(item)
                 } label: {
                     PosterCard(item: item)
+                        .nuvioTileFocus(focusedResult == item.id)
                 }
-                .buttonStyle(.card)
+                .buttonStyle(.plain)
                 .focused($focusedResult, equals: item.id)
             }
         }
