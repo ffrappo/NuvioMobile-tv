@@ -18,6 +18,7 @@ struct PlayerControlMenus: View {
             speedMenu
             subtitlesMenu
             if !session.audioTracks.isEmpty { audioMenu }
+            volumeMenu
             AudioRoutePicker(onInteraction: onInteraction)
                 .frame(width: 68, height: 52)
                 .accessibilityLabel("Audio Output")
@@ -42,6 +43,7 @@ struct PlayerControlMenus: View {
         } label: {
             controlLabel(session.resizeMode.title, symbol: session.resizeMode.symbol)
         }
+        .buttonStyle(.plain)
         .accessibilityLabel("Video Size")
     }
 
@@ -58,6 +60,7 @@ struct PlayerControlMenus: View {
         } label: {
             controlLabel(speedTitle(session.speed), symbol: "speedometer")
         }
+        .buttonStyle(.plain)
         .accessibilityLabel("Playback Speed")
     }
 
@@ -88,6 +91,7 @@ struct PlayerControlMenus: View {
         } label: {
             controlLabel("Subtitles", symbol: "captions.bubble")
         }
+        .buttonStyle(.plain)
     }
 
     private var audioMenu: some View {
@@ -103,6 +107,7 @@ struct PlayerControlMenus: View {
         } label: {
             controlLabel("Audio", symbol: "waveform")
         }
+        .buttonStyle(.plain)
     }
 
     private var sourcesMenu: some View {
@@ -113,7 +118,7 @@ struct PlayerControlMenus: View {
                     onSelectSource(source)
                 } label: {
                     selectedLabel(
-                        "\(source.name)  |  \(source.addonName)",
+                        sourceMenuTitle(source),
                         selected: source.url == selectedSourceURL
                     )
                 }
@@ -121,6 +126,7 @@ struct PlayerControlMenus: View {
         } label: {
             controlLabel("Sources", symbol: "arrow.left.arrow.right")
         }
+        .buttonStyle(.plain)
     }
 
     private var episodesMenu: some View {
@@ -136,14 +142,51 @@ struct PlayerControlMenus: View {
         } label: {
             controlLabel("Episodes", symbol: "rectangle.stack")
         }
+        .buttonStyle(.plain)
+    }
+
+    private var volumeMenu: some View {
+        Menu {
+            ForEach([0, 25, 50, 75, 100, 125, 130], id: \.self) { level in
+                Button {
+                    onInteraction()
+                    session.setVolume(Double(level))
+                } label: {
+                    selectedLabel("\(level)%", selected: Int(session.volume) == level)
+                }
+            }
+        } label: {
+            controlLabel(volumeTitle, symbol: volumeSymbol)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Volume")
+    }
+
+    private var volumeTitle: String {
+        "\(Int(session.volume))%"
+    }
+
+    private var volumeSymbol: String {
+        if session.volume <= 0 { return "speaker.slash.fill" }
+        if session.volume < 34 { return "speaker.wave.1.fill" }
+        if session.volume < 67 { return "speaker.wave.2.fill" }
+        return "speaker.wave.3.fill"
+    }
+
+    private func sourceMenuTitle(_ source: PlayerSourceOption) -> String {
+        var title = source.name
+        let info = StreamInfo.displayInfo(name: source.name, description: source.detail)
+        if info.hasContent { title += " \(info.summary)" }
+        return title
     }
 
     private func controlLabel(_ title: String, symbol: String) -> some View {
         Label(title.tvSafe, systemImage: symbol)
             .font(.callout.weight(.semibold))
             .lineLimit(1)
-            .padding(.horizontal, 7)
-            .frame(minHeight: 48)
+            .padding(.horizontal, 12)
+            .frame(minHeight: 44)
+            .background(Color.white.opacity(0.12), in: Capsule())
     }
 
     private func selectedLabel(_ title: String, selected: Bool) -> some View {

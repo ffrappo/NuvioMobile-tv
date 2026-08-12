@@ -90,6 +90,7 @@ struct StreamSourcesView: View {
 
     private func sourceButton(_ source: StreamSource) -> some View {
         let isPlayable = source.stream.directURL != nil
+        let info = source.stream.displayInfo
 
         return Button {
             play(source)
@@ -105,10 +106,22 @@ struct StreamSourcesView: View {
                     Text(source.stream.name.tvSafe)
                         .font(.headline)
                         .lineLimit(1)
-                    Text(source.addonName.tvSafe)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                    if let description = source.stream.description?.trimmedNonEmpty {
+                        Text(description.tvSafe)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                    }
+                    HStack(spacing: 7) {
+                        ForEach(infoLabels(source, info: info), id: \.self) { label in
+                            Text(label.tvSafe)
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.white.opacity(0.92))
+                                .padding(.horizontal, 9)
+                                .padding(.vertical, 3)
+                                .background(Color.white.opacity(0.14), in: Capsule())
+                        }
+                    }
                 }
 
                 Spacer(minLength: 8)
@@ -118,11 +131,20 @@ struct StreamSourcesView: View {
                     .foregroundStyle(.secondary)
             }
             .padding(.horizontal, 20)
-            .frame(maxWidth: .infinity, minHeight: 88)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity)
         }
         .buttonStyle(.card)
         .disabled(!isPlayable)
         .focused($focusedSource, equals: source.id)
+    }
+
+    private func infoLabels(_ source: StreamSource, info: StreamDisplayInfo) -> [String] {
+        var labels = [
+            info.quality, info.hdr, info.codec,
+        ].compactMap { $0 } + info.audio + info.languages
+        if !labels.contains(source.addonName) { labels.append(source.addonName) }
+        return labels
     }
 
     private func play(_ source: StreamSource) {
@@ -201,6 +223,7 @@ extension PlayerSourceOption {
             id: source.id,
             url: url,
             name: source.stream.name,
+            detail: source.stream.description,
             addonName: source.addonName,
             requestHeaders: source.stream.requestHeaders,
             responseHeaders: source.stream.responseHeaders

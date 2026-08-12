@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ProgressRail: View {
     let items: [ContinueWatchingCard]
@@ -128,22 +129,39 @@ struct FolderCard: View {
 struct RemoteArtwork: View {
     let urlString: String?
     let systemPlaceholder: String
+    @State private var image: UIImage?
 
     var body: some View {
-        AsyncImage(url: urlString.flatMap(URL.init(string:))) { phase in
-            switch phase {
-            case .success(let image): image.resizable().scaledToFill()
-            case .empty: ZStack { NuvioTheme.panel; ProgressView() }
-            default: ZStack {
-                NuvioTheme.panel
-                Image(systemName: systemPlaceholder)
-                    .font(.system(size: 54))
-                    .foregroundStyle(.secondary)
-            }
+        ZStack {
+            if let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                ZStack {
+                    NuvioTheme.panel
+                    Image(systemName: systemPlaceholder)
+                        .font(.system(size: 54))
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         .clipped()
         .accessibilityHidden(true)
+        .task(id: urlString) { await load() }
+    }
+
+    @MainActor
+    private func load() async {
+        guard let urlString, let url = URL(string: urlString) else {
+            image = nil
+            return
+        }
+        if let cached = ArtworkStore.shared.cachedImage(for: url) {
+            image = cached
+            return
+        }
+        image = await ArtworkStore.shared.image(for: url)
     }
 }
 

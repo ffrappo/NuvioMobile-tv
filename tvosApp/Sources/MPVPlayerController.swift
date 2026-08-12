@@ -9,6 +9,7 @@ final class MPVPlaybackSession: ObservableObject {
     @Published private(set) var position: Double = 0
     @Published private(set) var duration: Double = 0
     @Published private(set) var speed: Double = 1
+    @Published private(set) var volume: Double = 100
     @Published private(set) var resizeMode: PlayerResizeMode = .fit
     @Published private(set) var audioTracks: [PlaybackTrack] = []
     @Published private(set) var subtitleTracks: [PlaybackTrack] = []
@@ -37,6 +38,8 @@ final class MPVPlaybackSession: ObservableObject {
     func seek(by seconds: Double) { controller?.seek(by: seconds) }
     func seek(to seconds: Double) { controller?.seek(to: seconds) }
     func setSpeed(_ speed: Double) { controller?.setSpeed(speed) }
+    func adjustVolume(by delta: Double) { controller?.adjustVolume(by: delta) }
+    func setVolume(_ value: Double) { controller?.setVolume(value) }
     func setResizeMode(_ mode: PlayerResizeMode) { controller?.setResizeMode(mode) }
     func selectAudio(id: Int64) { controller?.selectAudio(id: id) }
     func selectSubtitle(id: Int64?) { controller?.selectSubtitle(id: id) }
@@ -69,6 +72,10 @@ final class MPVPlaybackSession: ObservableObject {
     func updateSubtitle(delayMilliseconds: Int? = nil, fontSize: Int? = nil) {
         if let delayMilliseconds { subtitleDelayMilliseconds = delayMilliseconds }
         if let fontSize { subtitleFontSize = fontSize }
+    }
+
+    func update(volume: Double) {
+        self.volume = volume
     }
 
     func update(
@@ -133,6 +140,18 @@ final class MPVPlayerController: UIViewController {
         guard let type = presses.first?.type else { return super.pressesBegan(presses, with: event) }
         session.onPress?(type)
         super.pressesBegan(presses, with: event)
+    }
+
+    func adjustVolume(by delta: Double) {
+        setVolume(session.volume + delta)
+    }
+
+    func setVolume(_ value: Double) {
+        guard let mpv else { return }
+        let clamped = min(max(value, 0), 130)
+        var encoded = clamped
+        mpv_set_property(mpv, "volume", MPV_FORMAT_DOUBLE, &encoded)
+        Task { @MainActor in self.session.update(volume: clamped) }
     }
 
     func load(

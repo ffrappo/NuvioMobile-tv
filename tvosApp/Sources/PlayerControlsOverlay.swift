@@ -168,10 +168,14 @@ struct PlayerControlsOverlay: View {
 
     private var sourceLabel: String {
         let source = session.activeSourceName.isEmpty ? route.sourceName : session.activeSourceName
-        if let option = route.availableSources.first(where: { $0.url == selectedSourceURL }) {
-            return "\(source)  |  \(option.addonName)"
+        guard let option = route.availableSources.first(where: { $0.url == selectedSourceURL }) else {
+            return source
         }
-        return source
+        var label = source
+        let info = StreamInfo.displayInfo(name: option.name, description: option.detail)
+        if info.hasContent { label += "  \u{00B7}  \(info.summary)" }
+        label += "  \u{00B7}  \(option.addonName)"
+        return label
     }
 
     private var overlayGradient: LinearGradient {

@@ -13,6 +13,7 @@
 		23E6766D484C5DEAE9779FFB /* TVSyncClientIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FFC449C8B388C4AA1C7C9DE /* TVSyncClientIdentity.swift */; };
 		27C199D33D48FE16E1F27FBA /* PlayerControlMenus.swift in Sources */ = {isa = PBXBuildFile; fileRef = E723FE2419E3A281C9A1C792 /* PlayerControlMenus.swift */; };
 		27D61384067C9BD73191E897 /* AuthStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F7D7B62F6F49435D9DF63AE /* AuthStore.swift */; };
+		2D8E979895B9334AD80139AF /* StreamInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452B791F55EE4C48627A3A4E /* StreamInfo.swift */; };
 		3DF7651B0D6F6D02C2D4820F /* MPVPlayerStatePublishing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5130437B6988CB319EA38E68 /* MPVPlayerStatePublishing.swift */; };
 		3E0DA39CFE3089B4C3D39234 /* AudioRoutePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 660DC53C71DE152831CC0C12 /* AudioRoutePicker.swift */; };
 		3E5C13C1C6F3DFDD6884062B /* MPVPlayerNetworking.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD0750902F3BA140EC65E3B /* MPVPlayerNetworking.swift */; };
@@ -34,6 +35,7 @@
 		7ADAACAEBC1B13EDAA1A6B7B /* SubtitleAppearanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5716F31FB038AFA879C132F /* SubtitleAppearanceView.swift */; };
 		80063B14EF2A7DF38A8EE737 /* NuvioTVApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB33DAAC2888C4E929BE8E32 /* NuvioTVApp.swift */; };
 		915A02A9FC8D5A1D422EA261 /* CollectionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F624ED2E01AFD6E2561BA84 /* CollectionStore.swift */; };
+		9C571A78C579E9FF2F66ABE0 /* ArtworkCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCD191E61EBE513E96B6E2A9 /* ArtworkCache.swift */; };
 		A0BD3A24E14F3967135F0D89 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44E8A9DA69945B36709DBC01 /* SettingsView.swift */; };
 		A661038A523081A1FB24F3D9 /* MPVMetalLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 158C29FFFE770CF9A32C05D2 /* MPVMetalLayer.swift */; };
 		A7399FFC8DB765DFFFC36554 /* StremioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE4CBBD7A31E58DE8D2CB62F /* StremioService.swift */; };
@@ -91,6 +93,7 @@
 		40377AAD4E194D473EC8DFFC /* AddonTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddonTransport.swift; sourceTree = "<group>"; };
 		41328A9E47B9DC5A7AB3F11A /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
 		44E8A9DA69945B36709DBC01 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		452B791F55EE4C48627A3A4E /* StreamInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamInfo.swift; sourceTree = "<group>"; };
 		488DB3FFFEB6F50217317990 /* AuthSessionStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthSessionStorage.swift; sourceTree = "<group>"; };
 		4CC9181A82F45440F38E447B /* HomeCatalogViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeCatalogViews.swift; sourceTree = "<group>"; };
 		4F7D7B62F6F49435D9DF63AE /* AuthStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthStore.swift; sourceTree = "<group>"; };
@@ -134,6 +137,7 @@
 		E723FE2419E3A281C9A1C792 /* PlayerControlMenus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerControlMenus.swift; sourceTree = "<group>"; };
 		EDB1B3656C3DA6EDA345CED4 /* NuvioAccountService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NuvioAccountService.swift; sourceTree = "<group>"; };
 		F1C38F74A5B5620AADFE4362 /* HomePersonalViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePersonalViews.swift; sourceTree = "<group>"; };
+		FCD191E61EBE513E96B6E2A9 /* ArtworkCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkCache.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -157,6 +161,7 @@
 				40377AAD4E194D473EC8DFFC /* AddonTransport.swift */,
 				786FC58A58F4DEFF56C9B9BF /* AppLog.swift */,
 				728F8B7A925C4B231A981A64 /* AppShellView.swift */,
+				FCD191E61EBE513E96B6E2A9 /* ArtworkCache.swift */,
 				660DC53C71DE152831CC0C12 /* AudioRoutePicker.swift */,
 				CC2BAA7F1FD89709C92D44FE /* AuthModels.swift */,
 				488DB3FFFEB6F50217317990 /* AuthSessionStorage.swift */,
@@ -197,6 +202,7 @@
 				958FD18C6EA14520C046C529 /* SignInView.swift */,
 				C4967F64D741AB65B25526B8 /* SkipSegmentsService.swift */,
 				0239D059AEB5C413463A3FFA /* Stores.swift */,
+				452B791F55EE4C48627A3A4E /* StreamInfo.swift */,
 				DB64C4919946C587C5324E0C /* StreamSourcesView.swift */,
 				DE4CBBD7A31E58DE8D2CB62F /* StremioService.swift */,
 				B5716F31FB038AFA879C132F /* SubtitleAppearanceView.swift */,
@@ -349,6 +355,7 @@
 				D7A204DDB089392F63AC4A21 /* AddonsView.swift in Sources */,
 				BD786E3FFBE7C65FF6FAD08C /* AppLog.swift in Sources */,
 				4492E0066035C1098B1BD4B4 /* AppShellView.swift in Sources */,
+				9C571A78C579E9FF2F66ABE0 /* ArtworkCache.swift in Sources */,
 				3E0DA39CFE3089B4C3D39234 /* AudioRoutePicker.swift in Sources */,
 				A838EF00ACFDCEE61E603671 /* AuthModels.swift in Sources */,
 				E876CF7B534A3C53332B06CC /* AuthSessionStorage.swift in Sources */,
@@ -389,6 +396,7 @@
 				41EDEC0FD1E0EA9846D553D7 /* SignInView.swift in Sources */,
 				C982CCCBA6EDFF6871AF16D0 /* SkipSegmentsService.swift in Sources */,
 				F591B69D29765F08FE7AC204 /* Stores.swift in Sources */,
+				2D8E979895B9334AD80139AF /* StreamInfo.swift in Sources */,
 				D91C7E56946233EB62D40BD9 /* StreamSourcesView.swift in Sources */,
 				A7399FFC8DB765DFFFC36554 /* StremioService.swift in Sources */,
 				7ADAACAEBC1B13EDAA1A6B7B /* SubtitleAppearanceView.swift in Sources */,
