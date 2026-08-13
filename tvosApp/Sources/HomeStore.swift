@@ -111,7 +111,15 @@ final class HomeStore: ObservableObject {
             ? "Some Home sections could not be refreshed. Check the connection and retry."
             : collections.message
         snapshot.isOffline = failures > 0
-        if !loading { Task { snapshot.upcoming = await buildUpcoming(from: progress.records) } }
+        if !loading {
+            let generation = generation
+            Task { [weak self] in
+                guard let self else { return }
+                let upcoming = await self.buildUpcoming(from: self.progress.records)
+                guard !Task.isCancelled, generation == self.generation else { return }
+                self.snapshot.upcoming = upcoming
+            }
+        }
     }
 
     private func syncPreferences(auth: AuthStore, profileID: Int) async {
@@ -153,28 +161,38 @@ final class HomeStore: ObservableObject {
     }
 
     private func buildUpcoming(from records: [WatchProgressRecord]) async -> [ContinueWatchingCard] {
-        var upcoming: [ContinueWatchingCard] = []
-        for record in records.filter({ $0.contentType.lowercased() == "series" && $0.isCompleted }).prefix(12) {
-            guard let summary = record.summary else { continue }
+        let candidates = Array(
+            records.filter { $0.contentType.lowercased() == "series" && $0.isCompleted }.prefix(12)
+        )
+        let batches = AsyncBatcher.batches(candidates, limit: 3) { [service] record -> ContinueWatchingCard? in
+            guard let summary = record.summary else { return nil }
             do {
                 let detail = try await service.details(
                     type: record.contentType,
                     id: record.contentID,
                     baseURL: summary.metadataBaseURL ?? StremioService.cinemetaBaseURL.absoluteString
                 )
-                guard let next = HomeUpcomingResolver.nextEpisode(after: record, videos: detail.videos) else { continue }
-                upcoming.append(ContinueWatchingCard(
+                guard let next = HomeUpcomingResolver.nextEpisode(after: record, videos: detail.videos) else {
+                    return nil
+                }
+                return ContinueWatchingCard(
                     id: "upcoming:\(record.contentID):\(next.id)", summary: summary,
                     videoID: next.id, season: next.season, episode: next.episode,
                     episodeTitle: next.name, episodeThumbnail: next.thumbnail,
                     released: next.released, positionMilliseconds: 0, durationMilliseconds: 0,
                     lastWatchedMilliseconds: record.lastWatched, isUpcoming: true
-                ))
+                )
             } catch {
                 AppLog.home.error(
                     "Upcoming enrichment failed content=\(record.contentID, privacy: .private(mask: .hash)) detail=\(AppLog.safeDescription(error), privacy: .public)"
                 )
+                return nil
             }
+        }
+        var upcoming: [ContinueWatchingCard] = []
+        for await batch in batches {
+            guard !Task.isCancelled else { return [] }
+            upcoming.append(contentsOf: batch.compactMap(\.value))
         }
         return upcoming.sorted { ($0.released ?? "") < ($1.released ?? "") }
     }
