@@ -28,6 +28,9 @@ final class DiscoveryStore: ObservableObject {
         return descriptors.filter { $0.type == selectedType }
     }
 
+    var availableGenres: [String] { selectedDescriptor?.genres ?? [] }
+    var selectedGenre: String? { selectedDescriptor?.genre }
+
     var selectedDescriptor: CatalogDescriptor? {
         availableCatalogs.first { $0.id == selectedCatalogID } ?? availableCatalogs.first
     }
@@ -55,6 +58,27 @@ final class DiscoveryStore: ObservableObject {
     func selectCatalog(_ id: String) async {
         guard id != selectedCatalogID else { return }
         selectedCatalogID = id
+        await reload()
+    }
+
+    func selectGenre(_ genre: String?) async {
+        guard let descriptor = selectedDescriptor, descriptor.genre != genre else { return }
+        let updated = CatalogDescriptor(
+            baseURL: descriptor.baseURL,
+            addonID: descriptor.addonID,
+            addonName: descriptor.addonName,
+            type: descriptor.type,
+            catalogID: descriptor.catalogID,
+            catalogName: descriptor.catalogName,
+            genre: genre,
+            genres: descriptor.genres,
+            supportsPagination: descriptor.supportsPagination
+        )
+        guard let index = descriptors.firstIndex(where: { candidate in
+            candidate.baseURL == descriptor.baseURL && candidate.type == descriptor.type &&
+                candidate.catalogID == descriptor.catalogID
+        }) else { return }
+        descriptors[index] = updated
         await reload()
     }
 

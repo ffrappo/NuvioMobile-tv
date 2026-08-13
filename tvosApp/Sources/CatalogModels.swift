@@ -8,6 +8,7 @@ struct CatalogDescriptor: Hashable, Identifiable, Sendable {
     let catalogID: String
     let catalogName: String
     let genre: String?
+    let genres: [String]
     let supportsPagination: Bool
 
     var id: String {
@@ -46,6 +47,7 @@ struct CatalogListing: Equatable, Hashable, Identifiable, Sendable {
                 catalogID: section.definition.catalogID,
                 catalogName: section.title,
                 genre: nil,
+                genres: [],
                 supportsPagination: section.definition.supportsPagination
             ),
             items: section.items,
@@ -73,6 +75,7 @@ enum CatalogDescriptors {
                     addon: addon,
                     catalog: catalog,
                     genre: genreExtra?.options.first,
+                    genres: catalog.extra.first { $0.name == "genre" }?.options ?? [],
                     supportsPagination: names.contains("skip")
                 )
             }
@@ -92,6 +95,7 @@ enum CatalogDescriptors {
                     addon: addon,
                     catalog: catalog,
                     genre: nil,
+                    genres: [],
                     supportsPagination: false
                 )
             }
@@ -103,6 +107,7 @@ enum CatalogDescriptors {
         addon: HomeAddon,
         catalog: AddonCatalog,
         genre: String?,
+        genres: [String],
         supportsPagination: Bool
     ) -> CatalogDescriptor {
         CatalogDescriptor(
@@ -113,6 +118,7 @@ enum CatalogDescriptors {
             catalogID: catalog.id,
             catalogName: catalog.name,
             genre: genre,
+            genres: genres,
             supportsPagination: supportsPagination
         )
     }
@@ -127,6 +133,7 @@ enum CatalogDescriptors {
                 catalogID: "top",
                 catalogName: type == "movie" ? "Movies" : "Series",
                 genre: nil,
+                genres: [],
                 supportsPagination: paginates
             )
         }

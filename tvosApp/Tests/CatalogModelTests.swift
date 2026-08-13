@@ -82,7 +82,7 @@ final class CatalogModelTests: XCTestCase {
         let descriptor = CatalogDescriptor(
             baseURL: "https://example.com/addon", addonID: "addon", addonName: "Example",
             type: "movie", catalogID: "popular", catalogName: "Popular", genre: nil,
-            supportsPagination: true
+            genres: [], supportsPagination: true
         )
         let listing = CatalogListing(
             descriptor: descriptor,

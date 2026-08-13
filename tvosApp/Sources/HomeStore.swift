@@ -186,7 +186,7 @@ private extension CatalogDescriptor {
             baseURL: definition.addonBaseURL, addonID: definition.addonID,
             addonName: definition.addonName, type: definition.type,
             catalogID: definition.catalogID, catalogName: definition.catalogName,
-            genre: nil, supportsPagination: definition.supportsPagination
+            genre: nil, genres: [], supportsPagination: definition.supportsPagination
         )
     }
 }

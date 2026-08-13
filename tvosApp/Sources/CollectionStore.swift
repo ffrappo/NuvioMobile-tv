@@ -101,6 +101,7 @@ final class CollectionStore: ObservableObject {
             catalogID: catalogID,
             catalogName: source.title?.trimmedNonEmpty ?? catalog?.name ?? catalogID,
             genre: source.genre,
+            genres: catalog?.extra.first { $0.name == "genre" }?.options ?? [],
             supportsPagination: catalog?.extra.contains { $0.name == "skip" } ?? true
         )
     }

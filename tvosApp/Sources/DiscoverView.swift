@@ -42,9 +42,22 @@ struct DiscoverView: View {
                     filterButton(
                         descriptor.displayTitle,
                         subtitle: descriptor.addonName,
-                        selected: descriptor.id == store.selectedDescriptor?.id
+                        selected: descriptor.catalogID == store.selectedDescriptor?.catalogID &&
+                            descriptor.baseURL == store.selectedDescriptor?.baseURL
                     ) {
                         await store.selectCatalog(descriptor.id)
+                    }
+                }
+            }
+            if !store.availableGenres.isEmpty {
+                filterSection("Genre") {
+                    filterButton("All", selected: store.selectedGenre == nil) {
+                        await store.selectGenre(nil)
+                    }
+                    ForEach(store.availableGenres, id: \.self) { genre in
+                        filterButton(genre, selected: genre == store.selectedGenre) {
+                            await store.selectGenre(genre)
+                        }
                     }
                 }
             }

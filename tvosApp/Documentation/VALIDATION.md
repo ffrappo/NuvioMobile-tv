@@ -67,7 +67,7 @@ Verified behaviors included:
 
 The Android TV app at commit `88517217f9100b50036579cc343aa05009864685` was the primary organization reference. The shared Compose app was the secondary parity reference. The native redesign was validated against the current checkout through these receipts:
 
-- Catalog browsing moved from blank Search into the dedicated Discover root.
+- Catalog browsing moved from blank Search into the dedicated Discover root, with type, catalog, and provider-supplied genre filters.
 - Home, Discover, Search, collections, and source loading use bounded concurrency of three and publish completed batches without waiting for every addon.
 - Catalog requests share a provider-aware repository with request coalescing, ten-minute caching, actual-page-size pagination, cancellation, duplicate filtering, and a repeated-page stop guard.
 - Stream sources publish in addon order through a coalescing repository and remove stale partial results when a new title request starts.
