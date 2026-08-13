@@ -64,6 +64,13 @@ final class CollectionStore: ObservableObject {
         return loaded.filter { seen.insert("\($0.type):\($0.id)").inserted }
     }
 
+    func descriptors(
+        for folder: TVCollectionFolder,
+        addons: [HomeAddon]
+    ) -> [CatalogDescriptor] {
+        folder.sources.compactMap { descriptor(for: $0, addons: addons) }
+    }
+
     func listing(
         for source: TVCollectionSource,
         addons: [HomeAddon],
