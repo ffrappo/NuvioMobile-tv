@@ -20,6 +20,7 @@ struct StreamSourcesView: View {
     @Environment(\.nuvioTheme) private var theme
 
     private let service = StremioService()
+    private let playbackCapabilities = TVPlaybackCapabilities.current
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -27,7 +28,7 @@ struct StreamSourcesView: View {
                 DetailSectionHeader(title: "Sources", symbol: "antenna.radiowaves.left.and.right")
                 Spacer()
                 if !report.sources.isEmpty {
-                    Text("\(playableSources.count) ready")
+                    Text(sourceCountLabel)
                         .font(.callout.weight(.semibold))
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 14)
@@ -71,7 +72,7 @@ struct StreamSourcesView: View {
             )
         } else {
             LazyVGrid(columns: columns, spacing: 16) {
-                ForEach(report.sources) { source in sourceButton(source) }
+                ForEach(orderedSources) { source in sourceButton(source) }
             }
         }
     }
@@ -81,11 +82,22 @@ struct StreamSourcesView: View {
     }
 
     private var playableSources: [StreamSource] {
-        report.sources.filter { $0.stream.directURL != nil }
+        orderedSources.filter { $0.stream.directURL != nil && compatibility($0).issue == nil }
+    }
+
+    private var orderedSources: [StreamSource] {
+        playbackCapabilities.ordered(report.sources)
+    }
+
+    private var sourceCountLabel: String {
+        let limited = orderedSources.filter { compatibility($0).issue != nil }.count
+        return limited == 0 ? "\(playableSources.count) ready" : "\(playableSources.count) ready · \(limited) limited"
     }
 
     private func sourceButton(_ source: StreamSource) -> some View {
-        let isPlayable = source.stream.directURL != nil
+        let isDirect = source.stream.directURL != nil
+        let compatibility = compatibility(source)
+        let isPlayable = isDirect && compatibility.issue == nil
         let info = source.stream.displayInfo
         let labels = infoLabels(info)
 
@@ -96,7 +108,11 @@ struct StreamSourcesView: View {
                         Text(source.stream.name.tvSafe)
                             .font(.headline.weight(.bold))
                             .lineLimit(1)
-                        if !isPlayable {
+                        if let issue = compatibility.issue {
+                            Text(issue)
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.orange)
+                        } else if !isDirect {
                             Text("Unavailable")
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(.secondary)
@@ -140,8 +156,12 @@ struct StreamSourcesView: View {
         .focused($focusedSource, equals: source.id)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(source.stream.name.tvSafe)
-        .accessibilityValue(accessibilityValue(source, labels: labels, isPlayable: isPlayable))
-        .accessibilityHint("Stream this source")
+        .accessibilityValue(accessibilityValue(
+            source,
+            labels: labels,
+            status: compatibility.issue ?? (isDirect ? "Ready" : "Unavailable")
+        ))
+        .accessibilityHint(isPlayable ? "Stream this source" : "Choose a source marked ready")
     }
 
     private func sourceBadge(_ label: String) -> some View {
@@ -194,9 +214,13 @@ struct StreamSourcesView: View {
     private func accessibilityValue(
         _ source: StreamSource,
         labels: [String],
-        isPlayable: Bool
+        status: String
     ) -> String {
-        ([isPlayable ? "Ready" : "Unavailable", source.addonName] + labels).joined(separator: ", ")
+        ([status, source.addonName] + labels).joined(separator: ", ")
+    }
+
+    private func compatibility(_ source: StreamSource) -> StreamPlaybackCompatibility {
+        playbackCapabilities.compatibility(for: source.stream.displayInfo)
     }
 
     private func play(_ source: StreamSource) {
@@ -212,7 +236,7 @@ struct StreamSourcesView: View {
             seasonNumber: seasonNumber,
             episodeNumber: episodeNumber,
             episodeTitle: episodeTitle,
-            availableSources: report.sources.compactMap(PlayerSourceOption.init),
+            availableSources: orderedSources.compactMap(PlayerSourceOption.init),
             episodes: episodes,
             onSelectEpisode: onSelectEpisode
         ))
@@ -274,6 +298,9 @@ extension PlayerSourceOption {
             name: source.stream.name,
             addonName: source.addonName,
             displaySummary: source.stream.displayInfo.summary,
+            compatibilityIssue: TVPlaybackCapabilities.current.compatibility(
+                for: source.stream.displayInfo
+            ).issue,
             requestHeaders: source.stream.requestHeaders,
             responseHeaders: source.stream.responseHeaders
         )

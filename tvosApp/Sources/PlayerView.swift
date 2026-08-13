@@ -28,6 +28,7 @@ struct PlayerSourceOption: Identifiable, Hashable {
     let name: String
     let addonName: String
     let displaySummary: String?
+    let compatibilityIssue: String?
     let requestHeaders: [String: String]
     let responseHeaders: [String: String]
 }

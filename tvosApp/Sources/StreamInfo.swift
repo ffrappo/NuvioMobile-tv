@@ -10,6 +10,7 @@ struct StremioStream: Decodable, Hashable, Identifiable {
     let responseHeaders: [String: String]
     let videoSize: Int64?
     let filename: String?
+    let displayInfo: StreamDisplayInfo
 
     private enum CodingKeys: String, CodingKey { case name, title, description, url, behaviorHints }
     private enum BehaviorHintKeys: String, CodingKey { case proxyHeaders, videoSize, filename }
@@ -30,6 +31,14 @@ struct StremioStream: Decodable, Hashable, Identifiable {
         responseHeaders = (try? proxy?.decode([String: String].self, forKey: .response)) ?? [:]
         videoSize = hints?.decodeFlexibleInt64(forKey: .videoSize)
         filename = hints?.decodeFlexibleString(forKey: .filename)
+        var parsed = StreamInfo.displayInfo(
+            name: name,
+            title: title,
+            description: description,
+            filename: filename
+        )
+        if let videoSize { parsed.size = FileSizeFormatter.string(videoSize) }
+        displayInfo = parsed
     }
 
     var directURL: URL? {
@@ -52,7 +61,7 @@ struct StreamFetchReport {
     let failures: [String]
 }
 
-struct StreamDisplayInfo: Equatable {
+struct StreamDisplayInfo: Equatable, Hashable {
     var quality: String?
     var hdr: String?
     var codec: String?
@@ -178,12 +187,4 @@ enum StreamInfo {
         ("(?i)\\b(ind|indonesian)\\b", "Indonesian"),
         ("(?i)\\b(mal|malay)\\b", "Malay"),
     ]
-}
-
-extension StremioStream {
-    var displayInfo: StreamDisplayInfo {
-        var info = StreamInfo.displayInfo(name: name, title: title, description: description, filename: filename)
-        if let videoSize { info.size = FileSizeFormatter.string(videoSize) }
-        return info
-    }
 }

@@ -99,7 +99,11 @@ struct PlayerControlMenus: View {
             }
         case .sources:
             ForEach(route.availableSources) { source in
-                selectionRow(sourceMenuTitle(source), selected: source.url == selectedSourceURL) {
+                selectionRow(
+                    sourceMenuTitle(source),
+                    selected: source.url == selectedSourceURL,
+                    enabled: source.compatibilityIssue == nil
+                ) {
                     onSelectSource(source)
                 }
             }
@@ -115,6 +119,7 @@ struct PlayerControlMenus: View {
     private func selectionRow(
         _ title: String,
         selected: Bool,
+        enabled: Bool = true,
         action: @escaping () -> Void
     ) -> some View {
         Button {
@@ -129,15 +134,20 @@ struct PlayerControlMenus: View {
                 if selected {
                     Image(systemName: "checkmark")
                         .font(.body.weight(.bold))
+                } else if !enabled {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
                 }
             }
         }
+        .disabled(!enabled)
     }
 
     private func sourceMenuTitle(_ source: PlayerSourceOption) -> String {
         var title = source.name
         if let summary = source.displaySummary?.trimmedNonEmpty { title += "  ·  \(summary)" }
         title += "  ·  \(source.addonName)"
+        if let issue = source.compatibilityIssue { title += "  ·  \(issue)" }
         return title
     }
 
