@@ -8,6 +8,7 @@ struct SeriesEpisodesView: View {
     let onSelect: (StremioVideo) -> Void
 
     @State private var selectedSeason: Int?
+    @State private var focusedEpisodeBySeason: [Int: String] = [:]
     @FocusState private var focusedEpisodeID: String?
     @Environment(\.nuvioTheme) private var theme
 
@@ -65,8 +66,10 @@ struct SeriesEpisodesView: View {
                 LazyHStack(spacing: 16) {
                     ForEach(seasons, id: \.self) { season in
                         Button {
+                            rememberFocusedEpisode()
                             selectedSeason = season
-                            focusedEpisodeID = grouped[season]?.first?.id
+                            focusedEpisodeID = focusedEpisodeBySeason[season]
+                                ?? grouped[season]?.first?.id
                         } label: {
                             VStack(spacing: 8) {
                                 RemoteArtwork(
@@ -151,6 +154,9 @@ struct SeriesEpisodesView: View {
         .buttonStyle(.card)
         .disabled(!video.isAvailable)
         .focused($focusedEpisodeID, equals: video.id)
+        .onChange(of: focusedEpisodeID) { _, id in
+            if let id { focusedEpisodeBySeason[currentSeason] = id }
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(episodeCode(video)), \(video.name.tvSafe)")
     }
@@ -167,6 +173,12 @@ struct SeriesEpisodesView: View {
             }
             .font(.caption2.weight(.semibold))
             .foregroundStyle(Color.white.opacity(0.76))
+        }
+    }
+
+    private func rememberFocusedEpisode() {
+        if let focusedEpisodeID {
+            focusedEpisodeBySeason[currentSeason] = focusedEpisodeID
         }
     }
 
