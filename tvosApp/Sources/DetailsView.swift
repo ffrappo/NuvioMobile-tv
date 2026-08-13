@@ -59,6 +59,7 @@ struct DetailsView: View {
                             },
                             onPlay: { playerRoute = $0 }
                         )
+                        DetailCreditsView(detail: detail)
                     }
                 }
                 .padding(.horizontal, 72)

@@ -293,6 +293,21 @@ final class StremioServiceTests: XCTestCase {
         XCTAssertNil(stream.requestHeaders["Content-Type"])
     }
 
+    func testDetailFixtureDecodesProductionCredits() throws {
+        let fixture = #"""
+        {"meta":{"id":"tt1","type":"movie","name":"Film",
+          "director":["Director One"],"writer":"Writer One",
+          "cast":["Actor One","Actor Two"],"country":"Italy","language":"Italian"
+        }}
+        """#.data(using: .utf8)!
+        let detail = try JSONDecoder().decode(MetaResponse.self, from: fixture).meta
+        XCTAssertEqual(detail.director, ["Director One"])
+        XCTAssertEqual(detail.writer, ["Writer One"])
+        XCTAssertEqual(detail.cast, ["Actor One", "Actor Two"])
+        XCTAssertEqual(detail.country, "Italy")
+        XCTAssertEqual(detail.language, "Italian")
+    }
+
     func testManifestMetaEligibilityRespectsTypesAndIDPrefixes() throws {
         let fixture = #"""
         {"id":"addon.test","name":"Test","resources":[

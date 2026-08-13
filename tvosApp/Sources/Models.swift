@@ -178,11 +178,17 @@ struct MetaDetail: Decodable, Identifiable, Sendable, Equatable {
     let runtime: String?
     let imdbRating: String?
     let genres: [String]
+    let director: [String]
+    let writer: [String]
+    let cast: [String]
+    let country: String?
+    let language: String?
     let videos: [StremioVideo]
 
     private enum CodingKeys: String, CodingKey {
         case id, type, name, poster, background, description, releaseInfo
         case released, runtime, imdbRating, genres, genre, videos
+        case director, writer, cast, country, language
     }
 
     init(from decoder: Decoder) throws {
@@ -198,6 +204,11 @@ struct MetaDetail: Decodable, Identifiable, Sendable, Equatable {
         runtime = container.decodeFlexibleString(forKey: .runtime)
         imdbRating = container.decodeFlexibleString(forKey: .imdbRating)
         genres = container.decodeStringArray(forKeys: [.genres, .genre])
+        director = container.decodeStringArray(forKeys: [.director])
+        writer = container.decodeStringArray(forKeys: [.writer])
+        cast = container.decodeStringArray(forKeys: [.cast])
+        country = container.decodeFlexibleString(forKey: .country)
+        language = container.decodeFlexibleString(forKey: .language)
         videos = container.decodeLossyArray(StremioVideo.self, forKey: .videos)
     }
 
