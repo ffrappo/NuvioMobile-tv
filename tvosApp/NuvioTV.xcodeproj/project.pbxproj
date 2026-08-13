@@ -78,6 +78,7 @@
 		E67EFD118537FF0B04A36A1F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C4C9739C9C26824BF9517638 /* Assets.xcassets */; };
 		E6B49DD6F0ED706328C50151 /* CatalogModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70D0C6976504C288AC74B65 /* CatalogModels.swift */; };
 		E876CF7B534A3C53332B06CC /* AuthSessionStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 488DB3FFFEB6F50217317990 /* AuthSessionStorage.swift */; };
+		F528FFC3C00965B4B0D5FB96 /* StreamRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58E0E9A7BAF0F570B47EDEF5 /* StreamRepository.swift */; };
 		F591B69D29765F08FE7AC204 /* Stores.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0239D059AEB5C413463A3FFA /* Stores.swift */; };
 		F5CFE7520A928880A3D4DAC2 /* AsyncBatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 415EB3F996D3645590FF09D9 /* AsyncBatcher.swift */; };
 		F869D817DBC83F02DC5362C6 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41328A9E47B9DC5A7AB3F11A /* LibraryView.swift */; };
@@ -148,6 +149,7 @@
 		527675F9B092745D8B31BFD9 /* TopShelfCatalogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopShelfCatalogService.swift; sourceTree = "<group>"; };
 		543DA650106C90A093A2E954 /* HomeSyncModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeSyncModels.swift; sourceTree = "<group>"; };
 		570D4AE11EF03EE695E15707 /* SettingsAccountSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAccountSection.swift; sourceTree = "<group>"; };
+		58E0E9A7BAF0F570B47EDEF5 /* StreamRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamRepository.swift; sourceTree = "<group>"; };
 		60FD5664E979436B49C41ADA /* HomeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeModels.swift; sourceTree = "<group>"; };
 		660DC53C71DE152831CC0C12 /* AudioRoutePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRoutePicker.swift; sourceTree = "<group>"; };
 		6D6169A51B12FA3CED04AC6E /* DetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsView.swift; sourceTree = "<group>"; };
@@ -270,6 +272,7 @@
 				C4967F64D741AB65B25526B8 /* SkipSegmentsService.swift */,
 				0239D059AEB5C413463A3FFA /* Stores.swift */,
 				452B791F55EE4C48627A3A4E /* StreamInfo.swift */,
+				58E0E9A7BAF0F570B47EDEF5 /* StreamRepository.swift */,
 				DB64C4919946C587C5324E0C /* StreamSourcesView.swift */,
 				DE4CBBD7A31E58DE8D2CB62F /* StremioService.swift */,
 				B5716F31FB038AFA879C132F /* SubtitleAppearanceView.swift */,
@@ -510,6 +513,7 @@
 				C982CCCBA6EDFF6871AF16D0 /* SkipSegmentsService.swift in Sources */,
 				F591B69D29765F08FE7AC204 /* Stores.swift in Sources */,
 				2D8E979895B9334AD80139AF /* StreamInfo.swift in Sources */,
+				F528FFC3C00965B4B0D5FB96 /* StreamRepository.swift in Sources */,
 				D91C7E56946233EB62D40BD9 /* StreamSourcesView.swift in Sources */,
 				A7399FFC8DB765DFFFC36554 /* StremioService.swift in Sources */,
 				7ADAACAEBC1B13EDAA1A6B7B /* SubtitleAppearanceView.swift in Sources */,

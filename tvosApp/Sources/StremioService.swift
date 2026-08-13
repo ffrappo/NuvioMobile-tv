@@ -75,48 +75,6 @@ struct StremioService {
         return response.meta
     }
 
-    func streams(type: String, id: String, addons: [AddonEndpoint]) async -> StreamFetchReport {
-        await withTaskGroup(of: (Int, String, [StreamSource]?, String?).self) { group in
-            for (index, addon) in addons.enumerated() where addon.providesStreams {
-                group.addTask {
-                    do {
-                        let url = try AddonTransport.resourceURL(
-                            baseURL: addon.baseURL,
-                            resource: "stream",
-                            type: type,
-                            id: id
-                        )
-                        let response: StreamResponse = try await request(url)
-                        return (
-                            index,
-                            addon.name,
-                            response.streams.map {
-                                StreamSource(
-                                    addonName: addon.name,
-                                    addonLogoURL: addon.manifest?.logoURL,
-                                    stream: $0
-                                )
-                            },
-                            nil
-                        )
-                    } catch {
-                        return (index, addon.name, nil, error.userMessage)
-                    }
-                }
-            }
-
-            var results: [(Int, String, [StreamSource]?, String?)] = []
-            for await result in group { results.append(result) }
-            results.sort { $0.0 < $1.0 }
-            return StreamFetchReport(
-                sources: results.flatMap { $0.2 ?? [] },
-                failures: results.compactMap { result in
-                    result.3.map { "\(result.1): \($0)" }
-                }
-            )
-        }
-    }
-
     func request<T: Decodable & Sendable>(_ url: URL) async throws -> T {
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Accept")

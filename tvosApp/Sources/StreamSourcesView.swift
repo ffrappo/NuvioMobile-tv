@@ -16,6 +16,7 @@ struct StreamSourcesView: View {
 
     @State private var report = StreamFetchReport(sources: [], failures: [])
     @State private var isLoading = false
+    @State private var selectedAddon: String?
     @FocusState private var focusedSource: UUID?
     @Environment(\.nuvioTheme) private var theme
 
@@ -36,6 +37,7 @@ struct StreamSourcesView: View {
                         .background(theme.panel, in: Capsule())
                 }
             }
+            sourceFilters
             sourceContent
             ForEach(report.failures, id: \.self) { failure in
                 NuvioStatusMessage(
@@ -57,7 +59,7 @@ struct StreamSourcesView: View {
                 title: "No stream addons enabled",
                 message: "Add a stream addon from Addons to find playable sources."
             )
-        } else if isLoading {
+        } else if isLoading && report.sources.isEmpty {
             HStack(spacing: 16) {
                 ProgressView()
                 Text("Checking enabled addons").foregroundStyle(.secondary)
@@ -72,7 +74,7 @@ struct StreamSourcesView: View {
             )
         } else {
             LazyVGrid(columns: columns, spacing: 16) {
-                ForEach(orderedSources) { source in sourceButton(source) }
+                ForEach(visibleSources) { source in sourceButton(source) }
             }
         }
     }
@@ -87,6 +89,41 @@ struct StreamSourcesView: View {
 
     private var orderedSources: [StreamSource] {
         playbackCapabilities.ordered(report.sources)
+    }
+
+    private var visibleSources: [StreamSource] {
+        guard let selectedAddon else { return orderedSources }
+        return orderedSources.filter { $0.addonName == selectedAddon }
+    }
+
+    private var addonNames: [String] {
+        var seen = Set<String>()
+        return orderedSources.map(\.addonName).filter { seen.insert($0).inserted }
+    }
+
+    @ViewBuilder
+    private var sourceFilters: some View {
+        if addonNames.count > 1 {
+            ScrollView(.horizontal) {
+                HStack(spacing: 12) {
+                    sourceFilterButton("All", value: nil)
+                    ForEach(addonNames, id: \.self) { sourceFilterButton($0, value: $0) }
+                }
+                .padding(.vertical, 8)
+            }
+            .scrollIndicators(.hidden)
+            .focusSection()
+        }
+    }
+
+    private func sourceFilterButton(_ title: String, value: String?) -> some View {
+        Group {
+            if selectedAddon == value {
+                Button(title.tvSafe) { selectedAddon = value }.buttonStyle(.borderedProminent)
+            } else {
+                Button(title.tvSafe) { selectedAddon = value }.buttonStyle(.bordered)
+            }
+        }
     }
 
     private var sourceCountLabel: String {
@@ -259,7 +296,19 @@ struct StreamSourcesView: View {
             return
         }
         isLoading = true
-        report = await service.streams(type: type, id: videoID, addons: addons)
+        report = StreamFetchReport(sources: [], failures: [])
+        var byIndex: [Int: StreamAddonResult] = [:]
+        for await result in service.streamResults(type: type, id: videoID, addons: addons) {
+            guard !Task.isCancelled else { return }
+            byIndex[result.index] = result
+            let ordered = byIndex.values.sorted { $0.index < $1.index }
+            report = StreamFetchReport(
+                sources: ordered.flatMap(\.sources),
+                failures: ordered.compactMap { value in
+                    value.failure.map { "\(value.addonName): \($0)" }
+                }
+            )
+        }
         isLoading = false
     }
 }
