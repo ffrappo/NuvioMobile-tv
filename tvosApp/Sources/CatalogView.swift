@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CatalogView: View {
     let onSelect: (MetaSummary) -> Void
+    var onOpenCatalog: (CatalogListing) -> Void = { _ in }
 
     @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var addons: AddonStore
@@ -77,7 +78,8 @@ struct CatalogView: View {
                     title: sectionTitle(section),
                     subtitle: section.definition.addonName,
                     items: Array(section.items.prefix(18)),
-                    onSelect: onSelect
+                    onSelect: onSelect,
+                    onOpenCatalog: { onOpenCatalog(.from(section)) }
                 )
             }
         }
@@ -135,10 +137,13 @@ struct CatalogView: View {
     private func select(_ folder: TVCollectionFolder, in collection: TVCollection) {
         selectedFolderByCollection[collection.id] = folder.id
         Task {
-            loadedFolders[folder.id] = await collections.items(
-                for: folder,
-                addons: addons.homeAddons
-            )
+            let items = await collections.items(for: folder, addons: addons.homeAddons)
+            loadedFolders[folder.id] = items
+            if folder.sources.count == 1,
+               let source = folder.sources.first,
+               let listing = collections.listing(for: source, addons: addons.homeAddons, items: items) {
+                onOpenCatalog(listing)
+            }
         }
     }
 

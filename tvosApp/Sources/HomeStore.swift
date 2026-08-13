@@ -5,21 +5,24 @@ final class HomeStore: ObservableObject {
     @Published private(set) var snapshot = HomeSnapshot()
 
     private let service: StremioService
+    private let repository: CatalogRepository
     private let accountService: NuvioAccountService
     private let preferences: HomePreferencesStore
     private let progress: WatchProgressStore
     private let collections: CollectionStore
     private var cachedSections: [String: HomeCatalogSection] = [:]
-    private var generation = 0
+    private var generation = UUID()
 
     init(
         service: StremioService = StremioService(),
         accountService: NuvioAccountService = NuvioAccountService(),
         preferences: HomePreferencesStore,
         progress: WatchProgressStore,
-        collections: CollectionStore
+        collections: CollectionStore,
+        repository: CatalogRepository? = nil
     ) {
         self.service = service
+        self.repository = repository ?? CatalogRepository(service: service)
         self.accountService = accountService
         self.preferences = preferences
         self.progress = progress
@@ -32,7 +35,7 @@ final class HomeStore: ObservableObject {
         profileID: Int,
         force: Bool = false
     ) async {
-        generation += 1
+        generation = UUID()
         let requestGeneration = generation
         snapshot.isLoading = true
         snapshot.message = nil
@@ -43,96 +46,101 @@ final class HomeStore: ObservableObject {
             async let settingsSync: Void = syncPreferences(auth: auth, profileID: profileID)
             _ = await (progressSync, collectionSync, settingsSync)
         }
-        guard requestGeneration == generation else { return }
+        guard !Task.isCancelled, requestGeneration == generation else { return }
 
         let definitions = buildDefinitions(addons: addons)
         preferences.reconcile(definitions: definitions, collections: collections.collections)
-        let active = definitions
-            .filter { preferences.value.preference(for: $0.id)?.enabled != false }
-            .sorted { first, second in
-                let left = preferences.value.preference(for: first.id)?.order ?? Int.max
-                let right = preferences.value.preference(for: second.id)?.order ?? Int.max
-                return left < right
-            }
-
-        let hideUnreleasedContent = preferences.value.hideUnreleasedContent
-        var sections = force ? [:] : cachedSections.filter { key, _ in active.contains { $0.id == key } }
+        let active = orderedDefinitions(definitions)
+        let hideUnreleased = preferences.value.hideUnreleasedContent
+        var sections = force ? [:] : cachedSections.filter { key, _ in
+            active.contains { $0.id == key }
+        }
+        let missing = active.filter { force || sections[$0.id] == nil }
         var failures = 0
-        await withTaskGroup(of: (String, HomeCatalogSection?).self) { group in
-            for definition in active where force || sections[definition.id] == nil {
-                group.addTask { [service] in
-                    do {
-                        let result = try await service.catalog(
-                            baseURL: definition.addonBaseURL,
-                            type: definition.type,
-                            id: definition.catalogID
-                        ).map { $0.withMetadataBaseURL(definition.addonBaseURL) }
-                        let items = HomeReleaseFilter.releasedItems(result, enabled: hideUnreleasedContent)
-                        return (definition.id, HomeCatalogSection(definition: definition, items: items))
-                    } catch {
-                        let detail = AppLog.safeDescription(error)
-                        AppLog.home.error("Catalog refresh failed key=\(definition.id, privacy: .private(mask: .hash)) detail=\(detail, privacy: .public)")
-                        return (definition.id, nil)
-                    }
+
+        let batches = AsyncBatcher.batches(missing, limit: 3) { [repository] definition -> HomeCatalogSection? in
+            do {
+                let page = try await repository.firstPage(
+                    of: CatalogDescriptor(definition),
+                    ignoringCache: force
+                )
+                let items = HomeReleaseFilter.releasedItems(page.items, enabled: hideUnreleased)
+                return HomeCatalogSection(definition: definition, items: items)
+            } catch {
+                return nil
+            }
+        }
+        for await batch in batches {
+            guard !Task.isCancelled, requestGeneration == generation else { return }
+            for result in batch {
+                if let section = result.value, !section.items.isEmpty {
+                    sections[section.id] = section
+                } else {
+                    failures += 1
                 }
             }
-            for await (key, section) in group {
-                if let section, !section.items.isEmpty { sections[key] = section } else { failures += 1 }
-            }
+            publish(sections: sections, active: active, failures: failures, loading: true)
         }
         guard requestGeneration == generation else { return }
-
-        let orderedSections = active.compactMap { sections[$0.id] }
         cachedSections = sections
-        let collectionRows = collections.collections.filter { collection in
-            preferences.value.preference(for: "collection_\(collection.id)")?.enabled != false
-        }
-        snapshot = HomeSnapshot(
-            heroItems: makeHero(sections: orderedSections),
-            sections: orderedSections,
-            continueWatching: progress.continueWatching,
-            upcoming: await buildUpcoming(from: progress.records),
-            collections: collectionRows,
-            isLoading: false,
-            message: failures > 0 ? "Some Home sections could not be refreshed. Check the connection and retry." : collections.message,
-            isOffline: failures > 0
-        )
+        publish(sections: sections, active: active, failures: failures, loading: false)
     }
 
     func clearForLogout() {
-        generation += 1
+        generation = UUID()
         cachedSections = [:]
         snapshot = HomeSnapshot()
+    }
+
+    private func publish(
+        sections: [String: HomeCatalogSection],
+        active: [HomeCatalogDefinition],
+        failures: Int,
+        loading: Bool
+    ) {
+        let orderedSections = active.compactMap { sections[$0.id] }
+        let collectionRows = collections.collections.filter {
+            preferences.value.preference(for: "collection_\($0.id)")?.enabled != false
+        }
+        snapshot.heroItems = makeHero(sections: orderedSections)
+        snapshot.sections = orderedSections
+        snapshot.continueWatching = progress.continueWatching
+        snapshot.collections = collectionRows
+        snapshot.isLoading = loading
+        snapshot.message = failures > 0
+            ? "Some Home sections could not be refreshed. Check the connection and retry."
+            : collections.message
+        snapshot.isOffline = failures > 0
+        if !loading { Task { snapshot.upcoming = await buildUpcoming(from: progress.records) } }
     }
 
     private func syncPreferences(auth: AuthStore, profileID: Int) async {
         do {
             let token = try await auth.validAccessToken()
-            if let remote = try await accountService.homePreferences(accessToken: token, profileID: profileID),
-               !remote.items.isEmpty {
+            if let remote = try await accountService.homePreferences(
+                accessToken: token,
+                profileID: profileID
+            ), !remote.items.isEmpty {
                 preferences.applyRemote(remote)
             }
         } catch {
-            let detail = AppLog.safeDescription(error)
-            AppLog.sync.error("Home preferences sync failed profile=\(profileID) detail=\(detail, privacy: .public)")
+            AppLog.sync.error(
+                "Home preferences sync failed profile=\(profileID) detail=\(AppLog.safeDescription(error), privacy: .public)"
+            )
         }
     }
 
     private func buildDefinitions(addons: [HomeAddon]) -> [HomeCatalogDefinition] {
-        addons.flatMap { addon in
-            addon.manifest.catalogs
-                .filter { catalog in !catalog.extra.contains(where: { $0.isRequired }) }
-                .map { catalog in
-                    HomeCatalogDefinition(
-                        addonBaseURL: addon.baseURL,
-                        addonID: addon.manifest.id,
-                        addonName: addon.name,
-                        type: catalog.type,
-                        catalogID: catalog.id,
-                        catalogName: catalog.name,
-                        supportsPagination: catalog.extra.contains { $0.name.lowercased() == "skip" }
-                    )
-                }
+        CatalogDescriptors.browse(from: addons).map(HomeCatalogDefinition.init)
+    }
+
+    private func orderedDefinitions(_ definitions: [HomeCatalogDefinition]) -> [HomeCatalogDefinition] {
+        definitions.filter {
+            preferences.value.preference(for: $0.id)?.enabled != false
+        }.sorted {
+            let left = preferences.value.preference(for: $0.id)?.order ?? Int.max
+            let right = preferences.value.preference(for: $1.id)?.order ?? Int.max
+            return left == right ? $0.id < $1.id : left < right
         }
     }
 
@@ -141,38 +149,55 @@ final class HomeStore: ObservableObject {
         var seen = Set<String>()
         return sections.flatMap(\.items)
             .filter { seen.insert("\($0.type):\($0.id)").inserted }
-            .prefix(8)
-            .map { $0 }
+            .prefix(8).map { $0 }
     }
 
     private func buildUpcoming(from records: [WatchProgressRecord]) async -> [ContinueWatchingCard] {
         var upcoming: [ContinueWatchingCard] = []
         for record in records.filter({ $0.contentType.lowercased() == "series" && $0.isCompleted }).prefix(12) {
             guard let summary = record.summary else { continue }
-            let detail: MetaDetail
             do {
-                detail = try await service.details(type: record.contentType, id: record.contentID)
+                let detail = try await service.details(
+                    type: record.contentType,
+                    id: record.contentID,
+                    baseURL: summary.metadataBaseURL ?? StremioService.cinemetaBaseURL.absoluteString
+                )
+                guard let next = HomeUpcomingResolver.nextEpisode(after: record, videos: detail.videos) else { continue }
+                upcoming.append(ContinueWatchingCard(
+                    id: "upcoming:\(record.contentID):\(next.id)", summary: summary,
+                    videoID: next.id, season: next.season, episode: next.episode,
+                    episodeTitle: next.name, episodeThumbnail: next.thumbnail,
+                    released: next.released, positionMilliseconds: 0, durationMilliseconds: 0,
+                    lastWatchedMilliseconds: record.lastWatched, isUpcoming: true
+                ))
             } catch {
-                let errorDetail = AppLog.safeDescription(error)
-                AppLog.home.error("Upcoming enrichment failed content=\(record.contentID, privacy: .private(mask: .hash)) detail=\(errorDetail, privacy: .public)")
-                continue
+                AppLog.home.error(
+                    "Upcoming enrichment failed content=\(record.contentID, privacy: .private(mask: .hash)) detail=\(AppLog.safeDescription(error), privacy: .public)"
+                )
             }
-            guard let next = HomeUpcomingResolver.nextEpisode(after: record, videos: detail.videos) else { continue }
-            upcoming.append(ContinueWatchingCard(
-                id: "upcoming:\(record.contentID):\(next.id)",
-                summary: summary,
-                videoID: next.id,
-                season: next.season,
-                episode: next.episode,
-                episodeTitle: next.name,
-                episodeThumbnail: next.thumbnail,
-                released: next.released,
-                positionMilliseconds: 0,
-                durationMilliseconds: 0,
-                lastWatchedMilliseconds: record.lastWatched,
-                isUpcoming: true
-            ))
         }
         return upcoming.sorted { ($0.released ?? "") < ($1.released ?? "") }
+    }
+}
+
+private extension CatalogDescriptor {
+    init(_ definition: HomeCatalogDefinition) {
+        self.init(
+            baseURL: definition.addonBaseURL, addonID: definition.addonID,
+            addonName: definition.addonName, type: definition.type,
+            catalogID: definition.catalogID, catalogName: definition.catalogName,
+            genre: nil, supportsPagination: definition.supportsPagination
+        )
+    }
+}
+
+private extension HomeCatalogDefinition {
+    init(_ descriptor: CatalogDescriptor) {
+        self.init(
+            addonBaseURL: descriptor.baseURL, addonID: descriptor.addonID,
+            addonName: descriptor.addonName, type: descriptor.type,
+            catalogID: descriptor.catalogID, catalogName: descriptor.catalogName,
+            supportsPagination: descriptor.supportsPagination
+        )
     }
 }

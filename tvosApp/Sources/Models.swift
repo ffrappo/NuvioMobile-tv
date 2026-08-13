@@ -1,6 +1,6 @@
 import Foundation
 
-struct CatalogResponse: Decodable {
+struct CatalogResponse: Decodable, Sendable {
     let metas: [MetaSummary]
 
     private enum CodingKeys: String, CodingKey { case metas }
@@ -17,11 +17,11 @@ struct CatalogResponse: Decodable {
     }
 }
 
-struct MetaResponse: Decodable {
+struct MetaResponse: Decodable, Sendable {
     let meta: MetaDetail
 }
 
-struct StreamResponse: Decodable {
+struct StreamResponse: Decodable, Sendable {
     let streams: [StremioStream]
 
     private enum CodingKeys: String, CodingKey { case streams }
@@ -38,7 +38,7 @@ struct StreamResponse: Decodable {
     }
 }
 
-struct MetaSummary: Codable, Hashable, Identifiable {
+struct MetaSummary: Codable, Hashable, Identifiable, Sendable {
     let id: String
     let type: String
     let name: String
@@ -166,7 +166,7 @@ struct MetaSummary: Codable, Hashable, Identifiable {
     }
 }
 
-struct MetaDetail: Decodable, Identifiable {
+struct MetaDetail: Decodable, Identifiable, Sendable {
     let id: String
     let type: String
     let name: String
@@ -216,7 +216,7 @@ struct MetaDetail: Decodable, Identifiable {
     }
 }
 
-struct StremioVideo: Decodable, Hashable, Identifiable {
+struct StremioVideo: Decodable, Hashable, Identifiable, Sendable {
     let id: String
     let name: String
     let season: Int?
@@ -259,13 +259,13 @@ struct StremioVideo: Decodable, Hashable, Identifiable {
     }
 }
 
-struct HomeAddon {
+struct HomeAddon: Sendable {
     let baseURL: String
     let name: String
     let manifest: AddonManifest
 }
 
-struct AddonEndpoint: Codable, Hashable, Identifiable {
+struct AddonEndpoint: Codable, Hashable, Identifiable, Sendable {
     let baseURL: String
     let name: String
     let detail: String?

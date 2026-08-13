@@ -9,13 +9,16 @@ struct AppShellView: View {
     @EnvironmentObject private var deepLinkStore: NuvioDeepLinkStore
     @Environment(\.nuvioTheme) private var theme
     @State private var selection: AppSection = .home
-    @State private var path: [MetaSummary] = []
+    @State private var path: [AppRoute] = []
 
     var body: some View {
         NavigationStack(path: $path) {
             TabView(selection: $selection) {
                 Tab("Home", systemImage: "house", value: .home) {
-                    CatalogView(onSelect: showDetails)
+                    CatalogView(onSelect: showDetails, onOpenCatalog: showCatalog)
+                }
+                Tab("Discover", systemImage: "safari", value: .discover) {
+                    DiscoverView(onSelect: showDetails)
                 }
                 Tab("Search", systemImage: "magnifyingglass", value: .search, role: .search) {
                     SearchView(onSelect: showDetails)
@@ -32,8 +35,13 @@ struct AppShellView: View {
             }
             .tabViewStyle(.sidebarAdaptable)
             .background(theme.background.ignoresSafeArea())
-            .navigationDestination(for: MetaSummary.self) { summary in
-                DetailsView(summary: summary)
+            .navigationDestination(for: AppRoute.self) { route in
+                switch route {
+                case .details(let summary):
+                    DetailsView(summary: summary)
+                case .catalog(let listing):
+                    CatalogGridScreen(listing: listing, onSelect: showDetails)
+                }
             }
         }
         .task(id: authStore.signedInEmail) { await synchronizeAccount() }
@@ -51,7 +59,7 @@ struct AppShellView: View {
             do {
                 let detail = try await StremioService().details(type: type, id: id)
                 selection = .home
-                path = [detail.summary]
+                path = [.details(detail.summary)]
             } catch {
                 AppLog.provider.error(
                     "Deep link metadata failed type=\(type, privacy: .public) id=\(id, privacy: .public) detail=\(AppLog.safeDescription(error), privacy: .public)"
@@ -61,7 +69,11 @@ struct AppShellView: View {
     }
 
     private func showDetails(_ summary: MetaSummary) {
-        path.append(summary)
+        path.append(.details(summary))
+    }
+
+    private func showCatalog(_ listing: CatalogListing) {
+        path.append(.catalog(listing))
     }
 
     private func synchronizeAccount() async {
@@ -79,6 +91,11 @@ struct AppShellView: View {
     }
 }
 
+enum AppRoute: Hashable {
+    case details(MetaSummary)
+    case catalog(CatalogListing)
+}
+
 enum AppSection: String, Hashable {
-    case home, search, library, addons, settings
+    case home, discover, search, library, addons, settings
 }

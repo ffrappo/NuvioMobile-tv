@@ -68,7 +68,8 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
                 NuvioButton(title: "Clear Network Cache", symbol: "trash") {
                     URLCache.shared.removeAllCachedResponses()
-                    cacheMessage = "Network cache cleared."
+                    Task { await ArtworkLoader.shared.clear() }
+                    cacheMessage = "Network and artwork caches cleared."
                 }
                 .frame(width: 310)
                 .focused($focus, equals: .clearCache)

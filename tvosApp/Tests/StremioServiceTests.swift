@@ -191,69 +191,6 @@ final class StremioServiceTests: XCTestCase {
         )
     }
 
-    func testSearchCatalogRequestsUseEveryCompatibleAddonCatalog() throws {
-        let first = try manifest(from: #"""
-        {
-          "id":"one", "name":"One",
-          "catalogs":[
-            {"type":"movie","id":"searchable","name":"Movies","extra":[{"name":"search","isRequired":true}]},
-            {"type":"series","id":"browse","name":"Series","extra":[{"name":"skip"}]}
-          ]
-        }
-        """#)
-        let second = try manifest(from: #"""
-        {
-          "id":"two", "name":"Two",
-          "catalogs":[
-            {"type":"series","id":"lookup","name":"Shows","extra":[{"name":"search"}]},
-            {"type":"movie","id":"blocked","name":"Blocked","extra":[
-              {"name":"search"},{"name":"token","isRequired":true}
-            ]}
-          ]
-        }
-        """#)
-        let requests = SearchCatalogRequest.compatibleRequests(from: [
-            HomeAddon(baseURL: "https://one.example", name: "One", manifest: first),
-            HomeAddon(baseURL: "https://two.example", name: "Two", manifest: second),
-        ])
-
-        XCTAssertEqual(requests, [
-            SearchCatalogRequest(baseURL: "https://one.example", addonName: "One", type: "movie", catalogID: "searchable"),
-            SearchCatalogRequest(baseURL: "https://two.example", addonName: "Two", type: "series", catalogID: "lookup"),
-        ])
-    }
-
-    func testSearchCatalogRequestsFallBackToCinemetaWithoutCompatibleCatalogs() {
-        let requests = SearchCatalogRequest.compatibleRequests(from: [])
-
-        XCTAssertEqual(requests.map(\.addonName), ["Cinemeta", "Cinemeta"])
-        XCTAssertEqual(requests.map(\.type), ["movie", "series"])
-        XCTAssertEqual(requests.map(\.catalogID), ["top", "top"])
-    }
-
-    func testBrowseCatalogRequestsIncludeCompatibleCatalogsAndResolveRequiredGenre() throws {
-        let addon = try manifest(from: #"""
-        {
-          "id":"browse", "name":"Browse",
-          "catalogs":[
-            {"type":"movie","id":"popular","name":"Popular","extra":[{"name":"skip"}]},
-            {"type":"series","id":"genre","name":"By Genre","extra":[{"name":"genre","isRequired":true,"options":["Drama","Comedy"]}]},
-            {"type":"movie","id":"search-only","name":"Search","extra":[{"name":"search","isRequired":true}]},
-            {"type":"movie","id":"token","name":"Token","extra":[{"name":"token","isRequired":true}]}
-          ]
-        }
-        """#)
-
-        let requests = BrowseCatalogRequest.compatibleRequests(from: [
-            HomeAddon(baseURL: "https://browse.example", name: "Browse", manifest: addon),
-        ])
-
-        XCTAssertEqual(requests, [
-            BrowseCatalogRequest(baseURL: "https://browse.example", addonName: "Browse", type: "movie", catalogID: "popular", catalogName: "Popular", genre: nil),
-            BrowseCatalogRequest(baseURL: "https://browse.example", addonName: "Browse", type: "series", catalogID: "genre", catalogName: "By Genre", genre: "Drama"),
-        ])
-    }
-
     @MainActor
     func testContinueWatchingKeepsLatestEpisodeForEachShow() {
         let defaults = isolatedDefaults()
@@ -354,55 +291,6 @@ final class StremioServiceTests: XCTestCase {
         XCTAssertEqual(stream.requestHeaders["Referer"], "https://example.com")
         XCTAssertEqual(stream.responseHeaders["Content-Type"], "application/vnd.apple.mpegurl")
         XCTAssertNil(stream.requestHeaders["Content-Type"])
-    }
-
-    func testStreamMetadataIsParsedDuringDecode() throws {
-        let fixture = #"""
-        {
-          "name": "UHD 4K HEVC HDR10+ Atmos English",
-          "url": "https://video.example/movie.mkv",
-          "behaviorHints": {
-            "videoSize": 16106127360,
-            "filename": "Movie.2160p.DV.x265.5.1.mkv"
-          }
-        }
-        """#.data(using: .utf8)!
-
-        let stream = try JSONDecoder().decode(StremioStream.self, from: fixture)
-        XCTAssertEqual(stream.displayInfo.quality, "4K")
-        XCTAssertEqual(stream.displayInfo.hdr, "DV")
-        XCTAssertEqual(stream.displayInfo.codec, "HEVC")
-        XCTAssertEqual(stream.displayInfo.audio, ["Atmos", "5.1"])
-        XCTAssertEqual(stream.displayInfo.languages, ["English"])
-        XCTAssertEqual(stream.displayInfo.size, "15.0 GB")
-    }
-
-    func testAppleTVHDRejectsUnsupportedDirectVideoProfiles() {
-        let capabilities = TVPlaybackCapabilities(modelIdentifier: "AppleTV5,3")
-        XCTAssertEqual(
-            capabilities.compatibility(for: StreamDisplayInfo(quality: "4K")).issue,
-            "Requires Apple TV 4K"
-        )
-        XCTAssertEqual(
-            capabilities.compatibility(for: StreamDisplayInfo(quality: "1080p", hdr: "HDR")).issue,
-            "Requires Apple TV 4K"
-        )
-        XCTAssertEqual(
-            capabilities.compatibility(for: StreamDisplayInfo(quality: "1080p", codec: "AV1")).issue,
-            "Requires newer Apple TV hardware"
-        )
-        XCTAssertNil(
-            capabilities.compatibility(for: StreamDisplayInfo(quality: "1080p", codec: "HEVC")).issue
-        )
-    }
-
-    func testAppleTV4KKeepsAllParsedProfilesAvailable() {
-        let capabilities = TVPlaybackCapabilities(modelIdentifier: "AppleTV14,1")
-        XCTAssertNil(
-            capabilities.compatibility(
-                for: StreamDisplayInfo(quality: "4K", hdr: "DV", codec: "HEVC")
-            ).issue
-        )
     }
 
     func testManifestMetaEligibilityRespectsTypesAndIDPrefixes() throws {

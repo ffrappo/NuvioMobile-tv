@@ -1,6 +1,6 @@
 import Foundation
 
-struct AddonManifest: Codable, Hashable {
+struct AddonManifest: Codable, Hashable, Sendable {
     let id: String
     let name: String
     let description: String?
@@ -34,7 +34,7 @@ struct AddonManifest: Codable, Hashable {
     }
 }
 
-struct ManifestResource: Codable, Hashable {
+struct ManifestResource: Codable, Hashable, Sendable {
     let name: String
     let types: [String]
     let idPrefixes: [String]
@@ -55,7 +55,7 @@ struct ManifestResource: Codable, Hashable {
     }
 }
 
-struct AddonCatalog: Codable, Hashable {
+struct AddonCatalog: Codable, Hashable, Sendable {
     let type: String
     let id: String
     let name: String
@@ -72,7 +72,7 @@ struct AddonCatalog: Codable, Hashable {
     }
 }
 
-struct AddonExtra: Codable, Hashable {
+struct AddonExtra: Codable, Hashable, Sendable {
     let name: String
     let isRequired: Bool
     let options: [String]

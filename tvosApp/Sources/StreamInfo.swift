@@ -1,6 +1,6 @@
 import Foundation
 
-struct StremioStream: Decodable, Hashable, Identifiable {
+struct StremioStream: Decodable, Hashable, Identifiable, Sendable {
     let id: UUID
     let name: String
     let title: String?
@@ -48,7 +48,7 @@ struct StremioStream: Decodable, Hashable, Identifiable {
     }
 }
 
-struct StreamSource: Identifiable, Hashable {
+struct StreamSource: Identifiable, Hashable, Sendable {
     let addonName: String
     let addonLogoURL: String?
     let stream: StremioStream
@@ -56,12 +56,12 @@ struct StreamSource: Identifiable, Hashable {
     var id: UUID { stream.id }
 }
 
-struct StreamFetchReport {
+struct StreamFetchReport: Sendable {
     let sources: [StreamSource]
     let failures: [String]
 }
 
-struct StreamDisplayInfo: Equatable, Hashable {
+struct StreamDisplayInfo: Equatable, Hashable, Sendable {
     var quality: String?
     var hdr: String?
     var codec: String?

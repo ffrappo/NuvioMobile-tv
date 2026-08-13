@@ -24,7 +24,6 @@ struct StremioService {
     static let cinemetaBaseURL = URL(string: "https://v3-cinemeta.strem.io")!
 
     private let session: URLSession
-    private let decoder: JSONDecoder
 
     init(session: URLSession? = nil) {
         if let session {
@@ -37,7 +36,6 @@ struct StremioService {
             configuration.urlCache = .shared
             self.session = URLSession(configuration: configuration)
         }
-        decoder = JSONDecoder()
     }
 
     func manifest(at input: String) async throws -> (base: URL, manifest: AddonManifest) {
@@ -119,7 +117,7 @@ struct StremioService {
         }
     }
 
-    func request<T: Decodable>(_ url: URL) async throws -> T {
+    func request<T: Decodable & Sendable>(_ url: URL) async throws -> T {
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("NuvioTV/1.0", forHTTPHeaderField: "User-Agent")
@@ -133,7 +131,7 @@ struct StremioService {
                 throw StremioServiceError.serverStatus(http.statusCode)
             }
             do {
-                return try decoder.decode(T.self, from: data)
+                return try await Self.decode(T.self, from: data)
             } catch {
                 let detail = Self.decodeFailureDetail(error)
                 AppLog.provider.error("Provider decode failed host=\(url.host ?? "unknown", privacy: .public) path=\(url.path, privacy: .public) type=\(String(describing: T.self), privacy: .public) detail=\(detail, privacy: .public) bytes=\(data.count)")
@@ -148,6 +146,15 @@ struct StremioService {
                 userInfo: [NSLocalizedDescriptionKey: "Network request failed: \(error.localizedDescription)"]
             )
         }
+    }
+
+    private static func decode<T: Decodable & Sendable>(
+        _ type: T.Type,
+        from data: Data
+    ) async throws -> T {
+        try await Task.detached(priority: .userInitiated) {
+            try JSONDecoder().decode(type, from: data)
+        }.value
     }
 
     private static func decodeFailureDetail(_ error: Error) -> String {

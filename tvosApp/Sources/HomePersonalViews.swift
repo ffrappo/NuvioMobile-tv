@@ -133,16 +133,10 @@ struct RemoteArtwork: View {
     @State private var loaded: UIImage?
     @Environment(\.nuvioTheme) private var theme
 
-    private var image: UIImage? {
-        if let loaded { return loaded }
-        guard let urlString, let url = URL(string: urlString) else { return nil }
-        return ArtworkStore.shared.cachedImage(for: url)
-    }
-
     var body: some View {
         ZStack {
-            if let image {
-                Image(uiImage: image)
+            if let loaded {
+                Image(uiImage: loaded)
                     .resizable()
                     .scaledToFill()
             } else {
@@ -162,9 +156,8 @@ struct RemoteArtwork: View {
     @MainActor
     private func loadIfNeeded() async {
         guard loaded == nil,
-              let urlString, let url = URL(string: urlString),
-              ArtworkStore.shared.cachedImage(for: url) == nil else { return }
-        loaded = await ArtworkStore.shared.image(for: url)
+              let urlString, let url = URL(string: urlString) else { return }
+        loaded = await ArtworkLoader.shared.image(for: url)
     }
 }
 

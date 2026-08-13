@@ -6,9 +6,14 @@ final class CollectionStore: ObservableObject {
     @Published private(set) var message: String?
 
     private let accountService: NuvioAccountService
+    private let repository: CatalogRepository
 
-    init(accountService: NuvioAccountService = NuvioAccountService()) {
+    init(
+        accountService: NuvioAccountService = NuvioAccountService(),
+        repository: CatalogRepository = .shared
+    ) {
         self.accountService = accountService
+        self.repository = repository
     }
 
     func sync(auth: AuthStore, profileID: Int) async {
@@ -16,25 +21,21 @@ final class CollectionStore: ObservableObject {
             collections = []
             return
         }
-        let startMessage = "collections.start profile=\(profileID)"
-        AppLog.sync.notice("\(startMessage, privacy: .public)")
-        AppLog.console(startMessage)
+        AppLog.sync.notice("collections.start profile=\(profileID)")
         do {
             let token = try await auth.validAccessToken()
-            collections = try await accountService.collections(accessToken: token, profileID: profileID)
-                .sorted { first, second in
-                    if first.pinToTop != second.pinToTop { return first.pinToTop }
-                    return first.title.localizedCaseInsensitiveCompare(second.title) == .orderedAscending
-                }
+            collections = try await accountService.collections(
+                accessToken: token,
+                profileID: profileID
+            ).sorted { first, second in
+                if first.pinToTop != second.pinToTop { return first.pinToTop }
+                return first.title.localizedCaseInsensitiveCompare(second.title) == .orderedAscending
+            }
             message = nil
-            let successMessage = "collections.complete profile=\(profileID) count=\(self.collections.count)"
-            AppLog.sync.notice("\(successMessage, privacy: .public)")
-            AppLog.console(successMessage)
+            AppLog.sync.notice("collections.complete profile=\(profileID) count=\(self.collections.count)")
         } catch {
             let detail = AppLog.safeDescription(error)
-            let failureMessage = "collections.fail profile=\(profileID) detail=\(detail)"
-            AppLog.sync.error("\(failureMessage, privacy: .public)")
-            AppLog.console(failureMessage)
+            AppLog.sync.error("collections.fail profile=\(profileID) detail=\(detail, privacy: .public)")
             message = "Collections could not be synchronized. \(detail)"
         }
     }
@@ -44,33 +45,63 @@ final class CollectionStore: ObservableObject {
         message = nil
     }
 
-    func items(
-        for folder: TVCollectionFolder,
-        addons: [HomeAddon],
-        service: StremioService = StremioService()
-    ) async -> [MetaSummary] {
-        var loaded: [MetaSummary] = []
-        for source in folder.sources where source.provider.lowercased() == "addon" {
-            guard let addonID = source.addonId,
-                  let addon = addons.first(where: { $0.manifest.id == addonID }),
-                  let type = source.type,
-                  let catalogID = source.catalogId else { continue }
-            let items: [MetaSummary]
+    func items(for folder: TVCollectionFolder, addons: [HomeAddon]) async -> [MetaSummary] {
+        let descriptors = folder.sources.compactMap { descriptor(for: $0, addons: addons) }
+        let batches = AsyncBatcher.batches(descriptors, limit: 3) { [repository] descriptor in
             do {
-                items = try await service.catalog(
-                    baseURL: addon.baseURL,
-                    type: type,
-                    id: catalogID,
-                    genre: source.genre
-                ).map { $0.withMetadataBaseURL(addon.baseURL) }
+                return try await repository.firstPage(of: descriptor).items
             } catch {
-                let detail = AppLog.safeDescription(error)
-                AppLog.provider.error("Collection catalog failed folder=\(folder.id, privacy: .public) addon=\(addon.manifest.id, privacy: .public) type=\(type, privacy: .public) catalog=\(catalogID, privacy: .public) detail=\(detail, privacy: .public)")
-                continue
+                return []
             }
-            loaded.append(contentsOf: items)
+        }
+        var loaded: [MetaSummary] = []
+        for await batch in batches {
+            try? Task.checkCancellation()
+            if Task.isCancelled { return [] }
+            loaded.append(contentsOf: batch.flatMap(\.value))
         }
         var seen = Set<String>()
         return loaded.filter { seen.insert("\($0.type):\($0.id)").inserted }
+    }
+
+    func listing(
+        for source: TVCollectionSource,
+        addons: [HomeAddon],
+        items: [MetaSummary] = []
+    ) -> CatalogListing? {
+        guard let descriptor = descriptor(for: source, addons: addons) else { return nil }
+        return CatalogListing(
+            descriptor: descriptor,
+            items: items,
+            nextSkip: CatalogRepository.nextSkip(
+                currentSkip: 0,
+                supportsPagination: descriptor.supportsPagination,
+                receivedCount: items.count
+            )
+        )
+    }
+
+    private func descriptor(
+        for source: TVCollectionSource,
+        addons: [HomeAddon]
+    ) -> CatalogDescriptor? {
+        guard source.provider.lowercased() == "addon",
+              let addonID = source.addonId,
+              let addon = addons.first(where: { $0.manifest.id == addonID }),
+              let type = source.type,
+              let catalogID = source.catalogId else { return nil }
+        let catalog = addon.manifest.catalogs.first {
+            $0.id == catalogID && $0.type == type
+        }
+        return CatalogDescriptor(
+            baseURL: addon.baseURL,
+            addonID: addonID,
+            addonName: addon.name,
+            type: type,
+            catalogID: catalogID,
+            catalogName: source.title?.trimmedNonEmpty ?? catalog?.name ?? catalogID,
+            genre: source.genre,
+            supportsPagination: catalog?.extra.contains { $0.name == "skip" } ?? true
+        )
     }
 }
