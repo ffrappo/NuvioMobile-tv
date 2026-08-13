@@ -137,6 +137,12 @@ final class MPVPlayerController: UIViewController {
     private var progressTimer: Timer?
     private var pendingURL: URL?
     private var pendingStartPosition: Double?
+    private var didConfigureAudioSession = false
+    private lazy var audioSession = TVAudioSessionCoordinator(
+        isPlaying: { [weak self] in !(self?.session.isPaused ?? true) },
+        pause: { [weak self] in self?.setPaused(true) },
+        resume: { [weak self] in self?.setPaused(false) }
+    )
 
     init(session: MPVPlaybackSession) {
         self.session = session
@@ -211,12 +217,14 @@ final class MPVPlayerController: UIViewController {
     }
 
     func togglePlayback() {
+        setPaused(!session.isPaused)
+    }
+
+    private func setPaused(_ paused: Bool) {
         guard let mpv else { return }
-        var paused: Int32 = 0
-        mpv_get_property(mpv, "pause", MPV_FORMAT_FLAG, &paused)
-        paused = paused == 0 ? 1 : 0
-        mpv_set_property(mpv, "pause", MPV_FORMAT_FLAG, &paused)
-        Task { @MainActor in session.update(paused: paused != 0) }
+        var value: Int32 = paused ? 1 : 0
+        mpv_set_property(mpv, "pause", MPV_FORMAT_FLAG, &value)
+        Task { @MainActor in session.update(paused: paused) }
     }
 
     func seek(by seconds: Double) {
@@ -281,7 +289,7 @@ final class MPVPlayerController: UIViewController {
         progressTimer?.invalidate()
         progressTimer = nil
         command("stop")
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        if didConfigureAudioSession { audioSession.stop() }
     }
 
     private func configureLayer() {
@@ -289,16 +297,6 @@ final class MPVPlayerController: UIViewController {
         metalLayer.framebufferOnly = true
         metalLayer.backgroundColor = UIColor.black.cgColor
         view.layer.addSublayer(metalLayer)
-    }
-
-    private func configureAudio() {
-        do {
-            let audioSession = AVAudioSession.sharedInstance()
-            try audioSession.setCategory(.playback, mode: .moviePlayback)
-            try audioSession.setActive(true)
-        } catch {
-            AppLog.playback.error("Audio session activation failed detail=\(AppLog.safeDescription(error), privacy: .public)")
-        }
     }
 
     private func setupMPV() {
@@ -335,7 +333,8 @@ final class MPVPlayerController: UIViewController {
             Task { @MainActor in session.update(loading: false, error: "MPV initialization failed.") }
             return
         }
-        configureAudio()
+        didConfigureAudioSession = true
+        audioSession.activate()
         mpv_set_wakeup_callback(mpv, { context in
             guard let context else { return }
             Unmanaged<MPVPlayerController>.fromOpaque(context).takeUnretainedValue().readEvents()
@@ -385,7 +384,7 @@ final class MPVPlayerController: UIViewController {
         _ = mpv_set_option_string(mpv, name, value)
     }
 
-    private func setOption<T>(_ mpv: OpaquePointer, _ name: String, format: mpv_format, value: inout T) {
+    private func setOption(_ mpv: OpaquePointer, _ name: String, format: mpv_format, value: inout Int64) {
         _ = mpv_set_option(mpv, name, format, &value)
     }
 

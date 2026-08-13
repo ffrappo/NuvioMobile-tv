@@ -4,8 +4,11 @@ Reviewed: 2026-08-13
 
 ## Toolchain
 
-- Xcode 27.0, build `27A5228h`
-- Apple tvOS SDK 27.0
+- Xcode 27.0, build `27A5228h`, and AppleTVOS 27.0 SDK interfaces reviewed to verify availability and the next-SDK interruption replacement
+- Apple tvOS 26.6 release notes state that the tvOS 26.6 SDK ships with Xcode 26.6
+- current Apple Support article 102337, published May 15, 2026, reviewed for Siri Remote transport and volume behavior
+- current Apple TV User Guide volume-control article reviewed under its `/26/tvos/26` content route
+- current Apple DocC JSON reviewed for `outputVolume`, `.playback`, `setActive`, interruption notifications, `AVRoutePickerView`, and `MPRemoteCommandCenter`
 - Deployment target: tvOS 18.0
 - XcodeGen 2.45.4
 
@@ -22,10 +25,20 @@ Reviewed: 2026-08-13
 - [TVTopShelfItem](https://developer.apple.com/documentation/tvservices/tvtopshelfitem)
 - [TVTopShelfAction](https://developer.apple.com/documentation/tvservices/tvtopshelfaction)
 - [CardButtonStyle](https://developer.apple.com/documentation/swiftui/cardbuttonstyle)
+- [tvOS 26.6 release notes](https://developer.apple.com/documentation/tvos-release-notes/tvos-26_6-release-notes)
+- [Apple TV 4K volume control](https://support.apple.com/guide/tv/apple-tv-4k-remote-control-receiver-atvbbe2477c9/tvos)
+- [AVAudioSession outputVolume](https://developer.apple.com/documentation/avfaudio/avaudiosession/outputvolume)
+- [AVAudioSession playback category](https://developer.apple.com/documentation/avfaudio/avaudiosession/category-swift.struct/playback)
+- [AVAudioSession setActive](https://developer.apple.com/documentation/avfaudio/avaudiosession/setactive(_:options:))
+- [Handling audio interruptions](https://developer.apple.com/documentation/avfaudio/handling-audio-interruptions)
+- [AVRoutePickerView](https://developer.apple.com/documentation/avkit/avroutepickerview)
+- [MPRemoteCommandCenter](https://developer.apple.com/documentation/mediaplayer/mpremotecommandcenter)
 
 Installed SDK headers were also reviewed in:
 
-`$(xcrun --sdk appletvos --show-sdk-path)/System/Library/Frameworks/TVServices.framework/Headers`
+- `$(xcrun --sdk appletvos --show-sdk-path)/System/Library/Frameworks/TVServices.framework/Headers`
+- `$(xcrun --sdk appletvos --show-sdk-path)/System/Library/Frameworks/AVFAudio.framework/Headers`
+- `$(xcrun --sdk appletvos --show-sdk-path)/System/Library/Frameworks/UIKit.framework/Headers/UIPress.h`
 
 ## Decisions
 
@@ -36,6 +49,11 @@ Installed SDK headers were also reviewed in:
 - Return `nil` when dynamic Top Shelf loading fails so tvOS presents the branded static fallback image.
 - Resolve Increase Contrast and Reduce Transparency in one root environment palette. Material surfaces become opaque under either accessibility preference.
 - Generate layered icon and Top Shelf fallback assets from the repository's original `NuvioLogo` file. No logo is recreated from memory.
+- Treat tvOS 26.6 system output volume as user-owned. Apple documents `AVAudioSession.outputVolume` as the systemwide volume set by the user, and Apple TV routes Siri Remote volume through its Remotes and Devices configuration using Auto, HDMI-CEC, receiver IR, TV IR, or a learned device. Nuvio exposes no local volume control and pins MPV to unity gain.
+- Keep `.playback` with `.moviePlayback` and activate the session after MPV initializes. This declares nonmixable movie playback and does not set output volume. Deactivate on teardown with `.notifyOthersOnDeactivation`.
+- Pause MPV when the system interrupts the audio session. Resume only when playback was active before the interruption and the system recommends resumption. Use `AVAudioSession.interruptionNotification` on tvOS 26.6 and the replacement deactivation and resumption notifications on tvOS 27.
+- Keep `AVRoutePickerView` as system route-selection UI. Apple documents it as a receiver picker, and route selection is separate from app-owned gain.
+- Register custom MPV transport through `MPRemoteCommandCenter`. The current `UIPress.PressType` surface has no volume-up or volume-down case, so the app cannot consume Siri Remote volume events.
 
 ## Provider receipts
 
@@ -68,6 +86,7 @@ A complete Debug generic-tvOS build must prove:
 Completed on 2026-08-13:
 
 - generic tvOS Debug build succeeded with signing disabled
+- the current tvOS 27 simulator suite passed 32 tests with zero failures after the playback-volume and interruption corrections
 - scheme-level `build-for-testing` succeeded
 - asset compilation, extension embedding, and `ValidateEmbeddedBinary` succeeded
 - live Cinemeta movie and series catalog decoding succeeded
