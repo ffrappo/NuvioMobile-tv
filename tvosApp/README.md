@@ -21,7 +21,7 @@ Implemented:
 
 Planned follow-up work is listed in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-See [Documentation/TVOS27_PLATFORM_AUDIT.md](Documentation/TVOS27_PLATFORM_AUDIT.md) for the current Apple API review, implementation decisions, provider receipts, and validation contract.
+See [Documentation/TVOS27_PLATFORM_AUDIT.md](Documentation/TVOS27_PLATFORM_AUDIT.md) for the current Apple API review, implementation decisions, provider receipts, and validation contract. User-visible changes are recorded in [CHANGELOG.md](CHANGELOG.md).
 
 ## Requirements
 

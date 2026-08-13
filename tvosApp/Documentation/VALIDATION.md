@@ -90,6 +90,26 @@ Executed evidence:
 - All 10,234 Swift source and test lines remain in files at or below 400 lines. The largest is `MPVPlayerController.swift` at 400 lines.
 - `git diff --check` passed, and `graphify update` rebuilt a 14,315-node graph with 33,402 edges.
 
+## Player follow-up, 2026-08-14
+
+The player follow-up adds the requested persistent subtitle behavior, icon-only controls, and one-step Back/Menu routing:
+
+- Playback action pills render SF Symbol icons without visible text labels. Every icon keeps a descriptive accessibility label.
+- Embedded subtitle selection persists by parent title and active profile. Restoration runs after MPV publishes tracks and resolves exact track ID first, then normalized language, then case-insensitive display name. Explicit Off is persisted.
+- Subtitle font size persists by profile. Subtitle delay persists by video so release-specific synchronization does not affect other episodes.
+- Source changes reset restoration readiness so the stored selection is applied to the replacement stream when its tracks arrive.
+- Sign out clears subtitle preferences for the profile being signed out before resetting profile state.
+- Back/Menu closes a presented player panel through UIKit, otherwise hides visible controls, then returns from hidden controls to title details. Handled Menu presses are filtered through the full press lifecycle so they cannot fall through to the Apple TV Home screen.
+
+Executed evidence:
+
+- XcodeGen project generation succeeded after rebasing onto the continuous timeline scrubber and root-tab cleanup.
+- The tvOS 27 simulator suite passed 61 unit tests and 3 XCUI navigation tests with zero failures after rebasing onto the continuous timeline scrubber and root-tab cleanup. Focused tests cover subtitle matching, profile isolation, appearance persistence, per-video delay, explicit Off, Menu action order, and the Menu-only press route.
+- A generic tvOS Debug build succeeded.
+- All Swift source and test files remain at or below 400 lines.
+- The signed build was installed and launched on Apple TV HD as canonical bundle `com.nuvio.app.tvos.dev`; one Nuvio process was observed after launch.
+- Physical confirmation remains pending for icon-only presentation, subtitle persistence, and the final Back/Menu sequence.
+
 The installed SDK is tvOS 27.0. tvOS 26.6-specific availability was reviewed through Apple documentation, while compilation and simulator evidence in this pass comes from SDK 27.0 with a tvOS 18.0 deployment target. The player was installed on an Apple TV HD (`AppleTV5,3`) running tvOS 26.6 as bundle `com.nuvio.app.tvos.dev`, and a 1920 by 1080 screenshot was recorded at `/tmp/nuvio-audio-route-deployed.png`. The at-television tester confirmed directional and Select input reveal controls, subtitle and audio controls are reachable, Play/Pause responds to one physical press, and physical Volume Up and Volume Down control the selected tvOS audio route during playback. That receipt predates the catalog redesign. Directional focus across redesigned catalog routes, Back/Menu, VoiceOver, Larger Text, Reduce Motion, Reduce Transparency, cancellation under live navigation, and source switching still require a final television acceptance pass for this redesign.
 
 ## Security hardening
