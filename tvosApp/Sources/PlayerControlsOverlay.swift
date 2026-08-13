@@ -113,6 +113,7 @@ struct PlayerControlsOverlay: View {
                 position: scrubPosition,
                 duration: max(session.duration, 0),
                 isFocused: focus == .timeline,
+                onPreview: { scrubPosition = $0 },
                 onSeek: { position in
                     scrubPosition = position
                     session.seek(to: position)

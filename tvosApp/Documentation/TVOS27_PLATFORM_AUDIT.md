@@ -64,6 +64,7 @@ Installed SDK headers were also reviewed in:
 - Reserve a 360-point leading exclusion zone for every root tab while the sidebar is expanded. A 1920 by 1080 simulator receipt confirmed that the hero title, description, CTA, and catalog rail remain outside the system sidebar.
 - Keep regular seasons in ascending order and place Specials last. Restore the last focused episode independently for each season.
 - Show compatible and incompatible stream sources together. Disable unsupported playback while retaining a concise reason instead of hiding the source.
+- On tvOS 26.6, map horizontal Siri Remote touch-surface travel proportionally across the title duration and commit one exact seek when touch ends. Keep duration-aware accelerated left and right repeats for click-only remotes, and retain 10-second VoiceOver adjustments.
 
 ## Catalog and performance receipt
 

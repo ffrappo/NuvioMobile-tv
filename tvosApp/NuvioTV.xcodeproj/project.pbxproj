@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		053182041D217A9A82814869 /* HomeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60FD5664E979436B49C41ADA /* HomeModels.swift */; };
+		05843A78EA60177DEB9FD27D /* TimelineScrubModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8E8F663B260630B74942734 /* TimelineScrubModel.swift */; };
 		0658CCD2A5EC7CE1A925C745 /* CollectionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E497C02C2696E9B4EFE34B02 /* CollectionDetailView.swift */; };
 		0DE3CA12024E2A2AE334744C /* DiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E882E3D905C9BC3A6F7BD6E6 /* DiscoverView.swift */; };
 		0E98EA26B2C6F282CCFCF3AE /* StremioServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DC198665629AD3BB6EBDFC /* StremioServiceTests.swift */; };
@@ -51,6 +52,7 @@
 		80063B14EF2A7DF38A8EE737 /* NuvioTVApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB33DAAC2888C4E929BE8E32 /* NuvioTVApp.swift */; };
 		824E002FC5327DD5BD5167F7 /* TVAudioSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2FC4480363CC0C65536C9A8 /* TVAudioSessionCoordinator.swift */; };
 		874897F84646EFFA1B8F32FF /* PlayerSelectionPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112EB72F7608816A19421933 /* PlayerSelectionPanel.swift */; };
+		8E0CCDEA1BAF757F380DA096 /* SiriRemoteScrubCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986228C57369102FB7294425 /* SiriRemoteScrubCoordinator.swift */; };
 		8FA2E75DF748C5B380FE0664 /* TVPlaybackCapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 794DC63C098524D2EFC80493 /* TVPlaybackCapabilities.swift */; };
 		915A02A9FC8D5A1D422EA261 /* CollectionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F624ED2E01AFD6E2561BA84 /* CollectionStore.swift */; };
 		925E9F56616FDCCEB472EFFB /* DetailsLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ADDE41620605558D20294CB /* DetailsLoadingView.swift */; };
@@ -195,6 +197,7 @@
 		96364B5F83B84BD864FA030D /* CollectionDetailStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionDetailStore.swift; sourceTree = "<group>"; };
 		96D5B2597935756E1FBADFBE /* PlayerControlsVisibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerControlsVisibility.swift; sourceTree = "<group>"; };
 		9743E52A15DDE3E903942F2C /* NuvioTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NuvioTheme.swift; sourceTree = "<group>"; };
+		986228C57369102FB7294425 /* SiriRemoteScrubCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiriRemoteScrubCoordinator.swift; sourceTree = "<group>"; };
 		991FB2DA8387C6A116A42C82 /* DetailsBackdrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsBackdrop.swift; sourceTree = "<group>"; };
 		9ADDE41620605558D20294CB /* DetailsLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsLoadingView.swift; sourceTree = "<group>"; };
 		AAD0750902F3BA140EC65E3B /* MPVPlayerNetworking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPVPlayerNetworking.swift; sourceTree = "<group>"; };
@@ -208,6 +211,7 @@
 		C4C9739C9C26824BF9517638 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C521C392446F2B3EEF14933E /* HomeRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeRules.swift; sourceTree = "<group>"; };
 		C5FABF0ECD7D8DE6D1685AC2 /* NuvioTVNavigationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NuvioTVNavigationUITests.swift; sourceTree = "<group>"; };
+		C8E8F663B260630B74942734 /* TimelineScrubModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineScrubModel.swift; sourceTree = "<group>"; };
 		C9465F850C56F7A461E6C744 /* HomePreferencesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePreferencesStore.swift; sourceTree = "<group>"; };
 		CC2BAA7F1FD89709C92D44FE /* AuthModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthModels.swift; sourceTree = "<group>"; };
 		CDAB2BB8B6536D57835C2990 /* HomeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeStore.swift; sourceTree = "<group>"; };
@@ -317,6 +321,7 @@
 				44E8A9DA69945B36709DBC01 /* SettingsView.swift */,
 				CDB2C0F0CE1640779232015E /* SidebarContentInsets.swift */,
 				958FD18C6EA14520C046C529 /* SignInView.swift */,
+				986228C57369102FB7294425 /* SiriRemoteScrubCoordinator.swift */,
 				C4967F64D741AB65B25526B8 /* SkipSegmentsService.swift */,
 				0239D059AEB5C413463A3FFA /* Stores.swift */,
 				452B791F55EE4C48627A3A4E /* StreamInfo.swift */,
@@ -324,6 +329,7 @@
 				DB64C4919946C587C5324E0C /* StreamSourcesView.swift */,
 				DE4CBBD7A31E58DE8D2CB62F /* StremioService.swift */,
 				B5716F31FB038AFA879C132F /* SubtitleAppearanceView.swift */,
+				C8E8F663B260630B74942734 /* TimelineScrubModel.swift */,
 				C2FC4480363CC0C65536C9A8 /* TVAudioSessionCoordinator.swift */,
 				8CA8D158F406C206AD751836 /* TVNowPlayingController.swift */,
 				794DC63C098524D2EFC80493 /* TVPlaybackCapabilities.swift */,
@@ -612,6 +618,7 @@
 				A0BD3A24E14F3967135F0D89 /* SettingsView.swift in Sources */,
 				CAF83376A664B50DD220421F /* SidebarContentInsets.swift in Sources */,
 				41EDEC0FD1E0EA9846D553D7 /* SignInView.swift in Sources */,
+				8E0CCDEA1BAF757F380DA096 /* SiriRemoteScrubCoordinator.swift in Sources */,
 				C982CCCBA6EDFF6871AF16D0 /* SkipSegmentsService.swift in Sources */,
 				F591B69D29765F08FE7AC204 /* Stores.swift in Sources */,
 				2D8E979895B9334AD80139AF /* StreamInfo.swift in Sources */,
@@ -624,6 +631,7 @@
 				8FA2E75DF748C5B380FE0664 /* TVPlaybackCapabilities.swift in Sources */,
 				46CEF7E4D525E0D17C2C81AF /* TVProfileStore.swift in Sources */,
 				23E6766D484C5DEAE9779FFB /* TVSyncClientIdentity.swift in Sources */,
+				05843A78EA60177DEB9FD27D /* TimelineScrubModel.swift in Sources */,
 				4AAD039883596C3DFDAE1223 /* WatchProgressStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -16,6 +16,42 @@ final class PlayerFeatureTests: XCTestCase {
         XCTAssertEqual(PlayerTimeFormatter.string(3_661), "1:01:01")
     }
 
+    func testTimelineScrubbingScalesWithLongContent() {
+        XCTAssertEqual(
+            TimelineScrubModel.destination(
+                current: 0, duration: 7_200, direction: 1, heldFor: 0
+            ),
+            60
+        )
+        XCTAssertEqual(
+            TimelineScrubModel.destination(
+                current: 60, duration: 7_200, direction: 1, heldFor: 1.5
+            ),
+            360
+        )
+        XCTAssertEqual(
+            TimelineScrubModel.destination(
+                current: 360, duration: 7_200, direction: 1, heldFor: 3
+            ),
+            960
+        )
+    }
+
+    func testTimelineSwipeMapsToDurationAndClamps() {
+        XCTAssertEqual(
+            TimelineScrubModel.position(start: 3_600, duration: 7_200, normalizedTranslation: 0.5),
+            7_200
+        )
+        XCTAssertEqual(
+            TimelineScrubModel.position(start: 300, duration: 7_200, normalizedTranslation: -0.5),
+            0
+        )
+        XCTAssertEqual(
+            TimelineScrubModel.position(start: 900, duration: 7_200, normalizedTranslation: 0.25),
+            2_700
+        )
+    }
+
     func testEpisodeFixtureDecodesAndroidParityFields() throws {
         let fixture = #"""
         {"meta":{"id":"tt1","type":"series","name":"Show","videos":[{

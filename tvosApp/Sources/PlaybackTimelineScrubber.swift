@@ -4,16 +4,20 @@ struct PlaybackTimelineScrubber: View {
     let position: Double
     let duration: Double
     let isFocused: Bool
+    let onPreview: (Double) -> Void
     let onSeek: (Double) -> Void
     let onInteraction: () -> Void
 
     @State private var scrubPosition = 0.0
+    @State private var scrubStart = 0.0
     @State private var isScrubbing = false
     @State private var lastExternalPosition = 0.0
     @State private var shouldGlide = false
+    @State private var repeatStartedAt: Date?
+    @State private var repeatDirection = 0.0
+    @State private var remote = SiriRemoteScrubCoordinator()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private let stepSeconds = 10.0
     private let pollInterval = 0.5
     private let glideMaxDelta = 2.0
 
@@ -48,6 +52,13 @@ struct PlaybackTimelineScrubber: View {
         .onAppear {
             scrubPosition = position
             lastExternalPosition = position
+            configureRemote()
+        }
+        .onDisappear { remote.setEnabled(false) }
+        .onChange(of: isFocused) { _, focused in
+            repeatStartedAt = nil
+            repeatDirection = 0
+            remote.setEnabled(focused)
         }
         .onChange(of: position) { _, position in
             let delta = position - lastExternalPosition
@@ -55,21 +66,11 @@ struct PlaybackTimelineScrubber: View {
             lastExternalPosition = position
             if !isScrubbing { scrubPosition = position }
         }
-        .onMoveCommand { direction in
-            guard isFocused else { return }
-            switch direction {
-            case .left:
-                scrub(by: -stepSeconds)
-            case .right:
-                scrub(by: stepSeconds)
-            default:
-                return
-            }
-        }
+        .onMoveCommand(perform: handleMove)
         .accessibilityAdjustableAction { direction in
             switch direction {
-            case .increment: scrub(by: stepSeconds)
-            case .decrement: scrub(by: -stepSeconds)
+            case .increment: commitBy(TimelineScrubModel.accessibilityStep)
+            case .decrement: commitBy(-TimelineScrubModel.accessibilityStep)
             @unknown default: break
             }
         }
@@ -84,13 +85,66 @@ struct PlaybackTimelineScrubber: View {
         return min(max(scrubPosition / duration, 0), 1)
     }
 
-    private func scrub(by seconds: Double) {
-        guard duration > 0 else { return }
-        isScrubbing = true
-        shouldGlide = false
-        scrubPosition = min(max(scrubPosition + seconds, 0), duration)
-        onSeek(scrubPosition)
+    private func configureRemote() {
+        remote.onChanged = { translation in
+            if !isScrubbing {
+                scrubStart = scrubPosition
+                isScrubbing = true
+                shouldGlide = false
+            }
+            preview(TimelineScrubModel.position(
+                start: scrubStart,
+                duration: duration,
+                normalizedTranslation: translation
+            ))
+        }
+        remote.onEnded = {
+            guard isScrubbing else { return }
+            isScrubbing = false
+            commit(scrubPosition)
+        }
+        remote.setEnabled(isFocused)
+    }
+
+    private func handleMove(_ direction: MoveCommandDirection) {
+        guard isFocused else { return }
+        let sign: Double
+        switch direction {
+        case .left: sign = -1
+        case .right: sign = 1
+        default:
+            repeatStartedAt = nil
+            repeatDirection = 0
+            return
+        }
+        if repeatDirection != sign {
+            repeatDirection = sign
+            repeatStartedAt = Date()
+        }
+        let elapsed = Date().timeIntervalSince(repeatStartedAt ?? Date())
+        let destination = TimelineScrubModel.destination(
+            current: scrubPosition,
+            duration: duration,
+            direction: sign,
+            heldFor: elapsed
+        )
+        commit(destination)
+    }
+
+    private func preview(_ destination: Double) {
+        scrubPosition = destination
+        onPreview(destination)
         onInteraction()
-        isScrubbing = false
+    }
+
+    private func commitBy(_ seconds: Double) {
+        commit(min(max(scrubPosition + seconds, 0), duration))
+    }
+
+    private func commit(_ destination: Double) {
+        scrubPosition = destination
+        onPreview(destination)
+        onSeek(destination)
+        onInteraction()
     }
 }
