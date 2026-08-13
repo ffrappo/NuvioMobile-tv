@@ -54,19 +54,22 @@ struct SignInView: View {
                 Divider()
                 HStack(spacing: 18) {
                     if !showCredentials {
-                        NuvioButton(title: "Use Email Instead", symbol: "keyboard") {
+                        NuvioButton(title: "Email", symbol: "keyboard") {
                             showCredentials = true
                             focus = .email
                         }
+                        .accessibilityLabel("Use Email Instead")
                         .focused($focus, equals: .credentials)
                     }
-                    NuvioButton(title: "Refresh Code", symbol: "arrow.clockwise") {
+                    NuvioButton(title: "Refresh", symbol: "arrow.clockwise") {
                         Task { await auth.startQRLogin() }
                     }
+                    .accessibilityLabel("Refresh Code")
                     .focused($focus, equals: .refresh)
-                    NuvioButton(title: "Continue as Guest", symbol: "person") {
+                    NuvioButton(title: "Guest", symbol: "person") {
                         auth.continueAsGuest()
                     }
+                    .accessibilityLabel("Continue as Guest")
                     .focused($focus, equals: .guest)
                 }
                 if let message = auth.message {

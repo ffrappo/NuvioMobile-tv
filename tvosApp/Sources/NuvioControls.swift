@@ -28,6 +28,9 @@ struct NuvioButton: View {
     private var label: some View {
         Label(title.tvSafe, systemImage: symbol)
             .font(.headline)
+            .lineLimit(1)
+            .allowsTightening(true)
+            .minimumScaleFactor(0.75)
             .frame(maxWidth: .infinity)
     }
 }
