@@ -10,6 +10,7 @@ struct CatalogView: View {
     @EnvironmentObject private var profiles: TVProfileStore
     @EnvironmentObject private var home: HomeStore
     @EnvironmentObject private var preferences: HomePreferencesStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.nuvioTheme) private var theme
     @State private var heroIndex = 0
     @FocusState private var retryFocused: Bool
@@ -89,7 +90,7 @@ struct CatalogView: View {
 
     private func rotateHero() async {
         heroIndex = min(heroIndex, max(home.snapshot.heroItems.count - 1, 0))
-        guard home.snapshot.heroItems.count > 1 else { return }
+        guard home.snapshot.heroItems.count > 1, !reduceMotion else { return }
         while !Task.isCancelled {
             try? await Task.sleep(for: .seconds(10))
             guard !Task.isCancelled else { return }
