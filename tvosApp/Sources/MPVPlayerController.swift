@@ -102,6 +102,31 @@ final class MPVPlaybackSession: ObservableObject {
         if audioTracks != self.audioTracks { self.audioTracks = audioTracks }
         if subtitleTracks != self.subtitleTracks { self.subtitleTracks = subtitleTracks }
     }
+
+    func updateTrackSelection(audioID: Int64? = nil, subtitleID: Int64? = nil, subtitlesOff: Bool = false) {
+        if let audioID {
+            audioTracks = audioTracks.map { track in
+                PlaybackTrack(
+                    id: track.id,
+                    kind: track.kind,
+                    title: track.title,
+                    language: track.language,
+                    isSelected: track.id == audioID
+                )
+            }
+        }
+        if subtitlesOff || subtitleID != nil {
+            subtitleTracks = subtitleTracks.map { track in
+                PlaybackTrack(
+                    id: track.id,
+                    kind: track.kind,
+                    title: track.title,
+                    language: track.language,
+                    isSelected: !subtitlesOff && track.id == subtitleID
+                )
+            }
+        }
+    }
 }
 
 final class MPVPlayerController: UIViewController {
@@ -128,7 +153,6 @@ final class MPVPlayerController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .black
         configureLayer()
-        configureAudio()
         setupMPV()
         progressTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             self?.scheduleProgressPoll()
@@ -230,7 +254,7 @@ final class MPVPlayerController: UIViewController {
         guard let mpv else { return }
         var value = id
         mpv_set_property(mpv, "aid", MPV_FORMAT_INT64, &value)
-        publishPlaybackOptions()
+        Task { @MainActor in session.updateTrackSelection(audioID: id) }
     }
 
     func selectSubtitle(id: Int64?) {
@@ -240,7 +264,9 @@ final class MPVPlayerController: UIViewController {
         } else {
             mpv_set_property_string(mpv, "sid", "no")
         }
-        publishPlaybackOptions()
+        Task { @MainActor in
+            session.updateTrackSelection(subtitleID: id, subtitlesOff: id == nil)
+        }
     }
 
     func setSubtitleFontSize(_ size: Int) {
@@ -255,6 +281,7 @@ final class MPVPlayerController: UIViewController {
         progressTimer?.invalidate()
         progressTimer = nil
         command("stop")
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
 
     private func configureLayer() {
@@ -265,8 +292,13 @@ final class MPVPlayerController: UIViewController {
     }
 
     private func configureAudio() {
-        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
-        try? AVAudioSession.sharedInstance().setActive(true)
+        do {
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setCategory(.playback, mode: .moviePlayback)
+            try audioSession.setActive(true)
+        } catch {
+            AppLog.playback.error("Audio session activation failed detail=\(AppLog.safeDescription(error), privacy: .public)")
+        }
     }
 
     private func setupMPV() {
@@ -298,6 +330,7 @@ final class MPVPlayerController: UIViewController {
             Task { @MainActor in session.update(loading: false, error: "MPV initialization failed.") }
             return
         }
+        configureAudio()
         mpv_set_wakeup_callback(mpv, { context in
             guard let context else { return }
             Unmanaged<MPVPlayerController>.fromOpaque(context).takeUnretainedValue().readEvents()

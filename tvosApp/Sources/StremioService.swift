@@ -92,7 +92,13 @@ struct StremioService {
                         return (
                             index,
                             addon.name,
-                            response.streams.map { StreamSource(addonName: addon.name, stream: $0) },
+                            response.streams.map {
+                                StreamSource(
+                                    addonName: addon.name,
+                                    addonLogoURL: addon.manifest?.logoURL,
+                                    stream: $0
+                                )
+                            },
                             nil
                         )
                     } catch {

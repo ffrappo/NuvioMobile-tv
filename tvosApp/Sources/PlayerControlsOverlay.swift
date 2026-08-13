@@ -6,15 +6,17 @@ struct PlayerControlsOverlay: View {
     let selectedSourceURL: URL
     let activeSkipInterval: SkipInterval?
     let onInteraction: () -> Void
+    let onModalPresentationChanged: (Bool) -> Void
     let onSkip: (SkipInterval) -> Void
     let onSelectSource: (PlayerSourceOption) -> Void
     let onSelectEpisode: (PlayerEpisodeOption) -> Void
 
     @State private var scrubPosition = 0.0
+    @State private var showMoreControls = false
     @FocusState private var focus: Control?
     @Environment(\.nuvioTheme) private var theme
 
-    private enum Control: Hashable { case timeline, playPause, skip }
+    private enum Control: Hashable { case timeline, playPause, more, skip }
 
     var body: some View {
         ZStack {
@@ -64,33 +66,53 @@ struct PlayerControlsOverlay: View {
     }
 
     private var bottomControls: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: showMoreControls ? 20 : 16) {
             timeline
-            transportButtons
-            MenuDivider()
-            PlayerControlMenus(
-                route: route,
-                session: session,
-                selectedSourceURL: selectedSourceURL,
-                onInteraction: onInteraction,
-                onSelectSource: onSelectSource,
-                onSelectEpisode: onSelectEpisode
-            )
+            HStack(spacing: 28) {
+                transportButtons
+                Spacer()
+                Button {
+                    showMoreControls.toggle()
+                    onInteraction()
+                    focus = showMoreControls ? .more : .timeline
+                } label: {
+                    Label(showMoreControls ? "Fewer Controls" : "More Controls", systemImage: "ellipsis")
+                        .font(.callout.weight(.semibold))
+                        .lineLimit(1)
+                        .padding(.horizontal, 4)
+                        .frame(minHeight: 44)
+                }
+                .buttonStyle(.bordered)
+                .focused($focus, equals: .more)
+            }
+            if showMoreControls {
+                PlayerControlMenus(
+                    route: route,
+                    session: session,
+                    selectedSourceURL: selectedSourceURL,
+                    onInteraction: onInteraction,
+                    onModalPresentationChanged: onModalPresentationChanged,
+                    onSelectSource: onSelectSource,
+                    onSelectEpisode: onSelectEpisode
+                )
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
+            }
         }
+        .padding(.horizontal, 26)
+        .padding(.vertical, 22)
+        .nuvioAdaptiveSurface(RoundedRectangle(cornerRadius: 26, style: .continuous))
     }
 
     private var transportButtons: some View {
-        HStack(spacing: 20) {
-            transportButton("gobackward.10", label: "Back 10 Seconds") {
-                seek(by: -10)
-            }
+        HStack(spacing: 18) {
+            transportButton("gobackward.10", label: "Back 10 Seconds") { seek(by: -10) }
             Button {
                 session.toggle()
                 onInteraction()
             } label: {
                 Image(systemName: session.isPaused ? "play.fill" : "pause.fill")
-                    .font(.system(size: 34, weight: .semibold))
-                    .frame(width: 76, height: 76)
+                    .font(.system(size: 30, weight: .semibold))
+                    .frame(width: 64, height: 64)
             }
             .buttonStyle(.borderedProminent)
             .buttonBorderShape(.circle)
@@ -98,14 +120,12 @@ struct PlayerControlsOverlay: View {
             .foregroundStyle(.black)
             .focused($focus, equals: .playPause)
             .accessibilityLabel(session.isPaused ? "Play" : "Pause")
-            transportButton("goforward.10", label: "Forward 10 Seconds") {
-                seek(by: 10)
-            }
+            transportButton("goforward.10", label: "Forward 10 Seconds") { seek(by: 10) }
         }
     }
 
     private var timeline: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 2) {
             PlaybackTimelineScrubber(
                 position: scrubPosition,
                 duration: max(session.duration, 0),
@@ -113,8 +133,8 @@ struct PlayerControlsOverlay: View {
                 onSeek: { position in
                     scrubPosition = position
                     session.seek(to: position)
-                    onInteraction()
-                }
+                },
+                onInteraction: onInteraction
             )
             .focused($focus, equals: .timeline)
             .accessibilityLabel("Playback Position")
@@ -152,8 +172,8 @@ struct PlayerControlsOverlay: View {
     ) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 24, weight: .semibold))
-                .frame(width: 52, height: 52)
+                .font(.system(size: 22, weight: .semibold))
+                .frame(width: 48, height: 48)
         }
         .buttonStyle(.bordered)
         .buttonBorderShape(.circle)
@@ -174,20 +194,18 @@ struct PlayerControlsOverlay: View {
             return source
         }
         var label = source
-        if let summary = option.displaySummary?.trimmedNonEmpty {
-            label += "  \u{00B7}  \(summary)"
-        }
-        label += "  \u{00B7}  \(option.addonName)"
+        if let summary = option.displaySummary?.trimmedNonEmpty { label += "  ·  \(summary)" }
+        label += "  ·  \(option.addonName)"
         return label
     }
 
     private var overlayGradient: LinearGradient {
         LinearGradient(
             stops: [
-                .init(color: .black.opacity(0.72), location: 0),
-                .init(color: .clear, location: 0.32),
-                .init(color: .clear, location: 0.55),
-                .init(color: .black.opacity(0.88), location: 1),
+                .init(color: .black.opacity(0.66), location: 0),
+                .init(color: .clear, location: 0.28),
+                .init(color: .clear, location: 0.56),
+                .init(color: .black.opacity(0.86), location: 1),
             ],
             startPoint: .top,
             endPoint: .bottom
@@ -200,15 +218,6 @@ struct PlayerControlsOverlay: View {
         }
         let code = "S\(season) E\(episode)"
         return route.episodeTitle.map { "\(code)  \($0)" } ?? code
-    }
-}
-
-struct MenuDivider: View {
-    var body: some View {
-        Capsule()
-            .fill(.white.opacity(0.22))
-            .frame(width: 1, height: 40)
-            .accessibilityHidden(true)
     }
 }
 

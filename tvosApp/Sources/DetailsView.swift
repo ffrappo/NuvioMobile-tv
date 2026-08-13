@@ -18,7 +18,6 @@ struct DetailsView: View {
 
     private enum DetailAction: Hashable {
         case favorite
-        case episode(String)
     }
 
     var body: some View {
@@ -36,7 +35,13 @@ struct DetailsView: View {
                         ErrorPanel(message: errorMessage, retry: reload)
                     } else if let detail {
                         if !detail.videos.isEmpty {
-                            episodePicker(detail.videos)
+                            SeriesEpisodesView(
+                                videos: detail.videos,
+                                selectedVideo: selectedVideo,
+                                fallbackArtwork: detail.background ?? detail.poster,
+                                progressRecords: watchProgress.records(contentID: detail.id),
+                                onSelect: { selectedVideo = $0 }
+                            )
                         }
                         StreamSourcesView(
                             summary: detail.summary,
@@ -64,10 +69,6 @@ struct DetailsView: View {
         }
         .background(theme.background)
         .task { await loadDetail() }
-        .onChange(of: selectedVideo?.id) { _, id in
-            guard let id else { return }
-            focusedAction = .episode(id)
-        }
         .fullScreenCover(item: $playerRoute) { route in
             PlayerView(route: route)
         }
@@ -130,47 +131,6 @@ struct DetailsView: View {
         }
         .buttonStyle(.borderedProminent)
         .focused($focusedAction, equals: .favorite)
-    }
-
-    private func episodePicker(_ videos: [StremioVideo]) -> some View {
-        VStack(alignment: .leading, spacing: 18) {
-            DetailSectionHeader(title: "Episodes", symbol: "play.rectangle.on.rectangle")
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 18) {
-                    ForEach(videos) { video in
-                        Button {
-                            selectedVideo = video
-                        } label: {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(video.label.tvSafe)
-                                    .font(.headline)
-                                    .lineLimit(1)
-                                Text(video.description?.tvSafe ?? "Choose this episode")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(2)
-                            }
-                            .frame(width: 330, alignment: .leading)
-                            .padding(20)
-                            .background(
-                                selectedVideo?.id == video.id ? theme.elevatedPanel : theme.panel,
-                                in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            )
-                            .overlay {
-                                if selectedVideo?.id == video.id {
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .stroke(theme.accent, lineWidth: 3)
-                                }
-                            }
-                        }
-                        .buttonStyle(.card)
-                        .focused($focusedAction, equals: .episode(video.id))
-                    }
-                }
-                .padding(8)
-            }
-        }
     }
 
     private func reload() {

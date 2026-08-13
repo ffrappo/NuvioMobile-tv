@@ -224,10 +224,14 @@ struct StremioVideo: Decodable, Hashable, Identifiable {
     let released: String?
     let description: String?
     let thumbnail: String?
+    let seasonPoster: String?
+    let runtime: Int?
+    let isAvailable: Bool
 
     private enum CodingKeys: String, CodingKey {
         case id, name, title, season, episode, number, released
-        case description, overview, thumbnail
+        case description, overview, thumbnail, seasonPoster, runtime, available
+        case seasonPosterPath = "season_poster_path"
     }
 
     init(from decoder: Decoder) throws {
@@ -243,50 +247,15 @@ struct StremioVideo: Decodable, Hashable, Identifiable {
         description = container.decodeFlexibleString(forKey: .description)
             ?? container.decodeFlexibleString(forKey: .overview)
         thumbnail = container.decodeFlexibleString(forKey: .thumbnail)
+        seasonPoster = container.decodeFlexibleString(forKey: .seasonPoster)
+            ?? container.decodeFlexibleString(forKey: .seasonPosterPath)
+        runtime = container.decodeFlexibleInt(forKey: .runtime)
+        isAvailable = (try? container.decode(Bool.self, forKey: .available)) ?? true
     }
 
     var label: String {
         if let season, let episode { return "S\(season) E\(episode)  \(name)" }
         return name
-    }
-}
-
-struct StremioStream: Decodable, Hashable, Identifiable {
-    let id: UUID
-    let name: String
-    let title: String?
-    let description: String?
-    let url: String?
-    let requestHeaders: [String: String]
-    let responseHeaders: [String: String]
-    let videoSize: Int64?
-    let filename: String?
-
-    private enum CodingKeys: String, CodingKey { case name, title, description, url, behaviorHints }
-    private enum BehaviorHintKeys: String, CodingKey { case proxyHeaders, videoSize, filename }
-    private enum ProxyHeaderKeys: String, CodingKey { case request, response }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = UUID()
-        name = container.decodeFlexibleString(forKey: .name)
-            ?? container.decodeFlexibleString(forKey: .title)
-            ?? "Unnamed source"
-        title = container.decodeFlexibleString(forKey: .title)
-        description = container.decodeFlexibleString(forKey: .description)
-        url = container.decodeFlexibleString(forKey: .url)
-        let hints = try? container.nestedContainer(keyedBy: BehaviorHintKeys.self, forKey: .behaviorHints)
-        let proxy = try? hints?.nestedContainer(keyedBy: ProxyHeaderKeys.self, forKey: .proxyHeaders)
-        requestHeaders = (try? proxy?.decode([String: String].self, forKey: .request)) ?? [:]
-        responseHeaders = (try? proxy?.decode([String: String].self, forKey: .response)) ?? [:]
-        videoSize = hints?.decodeFlexibleInt64(forKey: .videoSize)
-        filename = hints?.decodeFlexibleString(forKey: .filename)
-    }
-
-    var directURL: URL? {
-        guard let url, let value = URL(string: url), let scheme = value.scheme?.lowercased(),
-              scheme == "http" || scheme == "https" else { return nil }
-        return value
     }
 }
 
@@ -318,18 +287,6 @@ struct AddonEndpoint: Codable, Hashable, Identifiable {
     }
 
     var id: String { baseURL }
-}
-
-struct StreamSource: Identifiable, Hashable {
-    let addonName: String
-    let stream: StremioStream
-
-    var id: UUID { stream.id }
-}
-
-struct StreamFetchReport {
-    let sources: [StreamSource]
-    let failures: [String]
 }
 
 extension KeyedDecodingContainer {

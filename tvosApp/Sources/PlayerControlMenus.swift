@@ -5,191 +5,140 @@ struct PlayerControlMenus: View {
     @ObservedObject var session: MPVPlaybackSession
     let selectedSourceURL: URL
     let onInteraction: () -> Void
+    let onModalPresentationChanged: (Bool) -> Void
     let onSelectSource: (PlayerSourceOption) -> Void
     let onSelectEpisode: (PlayerEpisodeOption) -> Void
 
-    @State private var showSubtitleAppearance = false
-    @FocusState private var focusedMenu: MenuControl?
+    @State private var presentedPanel: Panel?
 
-    private enum MenuControl: Hashable {
+    enum Panel: String, Identifiable {
         case resize, speed, subtitles, audio, sources, episodes
+        var id: String { rawValue }
     }
 
     private let speeds = [0.5, 0.75, 1, 1.25, 1.5, 2]
 
     var body: some View {
-        HStack(spacing: 18) {
-            resizeMenu
-            speedMenu
-            subtitlesMenu
-            if !session.audioTracks.isEmpty { audioMenu }
+        HStack(spacing: 16) {
+            panelButton(.resize, title: session.resizeMode.title, symbol: session.resizeMode.symbol)
+            panelButton(.speed, title: speedTitle(session.speed), symbol: "speedometer")
+            panelButton(.subtitles, title: "Subtitles", symbol: "captions.bubble")
+            if !session.audioTracks.isEmpty {
+                panelButton(.audio, title: "Audio", symbol: "waveform")
+            }
             AudioRoutePicker(onInteraction: onInteraction)
                 .frame(width: 68, height: 52)
                 .accessibilityLabel("Audio Output")
-            if route.availableSources.count > 1 { sourcesMenu }
-            if route.episodes.count > 1 { episodesMenu }
+            if route.availableSources.count > 1 {
+                panelButton(.sources, title: "Sources", symbol: "arrow.left.arrow.right")
+            }
+            if route.episodes.count > 1 {
+                panelButton(.episodes, title: "Episodes", symbol: "rectangle.stack")
+            }
         }
-        .sheet(isPresented: $showSubtitleAppearance) {
-            SubtitleAppearanceView(session: session)
+        .sheet(item: $presentedPanel) { panel in
+            NavigationStack {
+                List { panelRows(panel) }
+                    .navigationTitle(panel.title)
+            }
+        }
+        .onChange(of: presentedPanel) { _, panel in
+            onModalPresentationChanged(panel != nil)
         }
     }
 
-    private var resizeMenu: some View {
-        Menu {
+    private func panelButton(_ panel: Panel, title: String, symbol: String) -> some View {
+        Button {
+            onInteraction()
+            onModalPresentationChanged(true)
+            presentedPanel = panel
+        } label: {
+            Label(title.tvSafe, systemImage: symbol)
+                .font(.callout.weight(.semibold))
+                .lineLimit(1)
+                .padding(.horizontal, 4)
+                .frame(minHeight: 44)
+        }
+        .buttonStyle(.bordered)
+    }
+
+    @ViewBuilder
+    private func panelRows(_ panel: Panel) -> some View {
+        switch panel {
+        case .resize:
             ForEach(PlayerResizeMode.allCases) { mode in
-                Button {
-                    onInteraction()
+                selectionRow(mode.title, selected: session.resizeMode == mode) {
                     session.setResizeMode(mode)
-                } label: {
-                    selectedLabel(mode.title, selected: session.resizeMode == mode)
                 }
             }
-        } label: {
-            controlLabel(session.resizeMode.title, symbol: session.resizeMode.symbol)
-        }
-        .buttonStyle(.bordered)
-        .focused($focusedMenu, equals: .resize)
-        .accessibilityLabel("Video Size")
-    }
-
-    private var speedMenu: some View {
-        Menu {
+        case .speed:
             ForEach(speeds, id: \.self) { speed in
-                Button {
-                    onInteraction()
+                selectionRow(speedTitle(speed), selected: session.speed == speed) {
                     session.setSpeed(speed)
-                } label: {
-                    selectedLabel(speedTitle(speed), selected: session.speed == speed)
                 }
             }
-        } label: {
-            controlLabel(speedTitle(session.speed), symbol: "speedometer")
-        }
-        .buttonStyle(.bordered)
-        .focused($focusedMenu, equals: .speed)
-        .accessibilityLabel("Playback Speed")
-    }
-
-    private var subtitlesMenu: some View {
-        Menu {
-            Button {
-                onInteraction()
+        case .subtitles:
+            selectionRow("Off", selected: !session.subtitleTracks.contains(where: \.isSelected)) {
                 session.selectSubtitle(id: nil)
-            } label: {
-                selectedLabel("Off", selected: !session.subtitleTracks.contains(where: \.isSelected))
             }
-            if !session.subtitleTracks.isEmpty { Divider() }
             ForEach(session.subtitleTracks) { track in
-                Button {
-                    onInteraction()
+                selectionRow(track.displayName, selected: track.isSelected) {
                     session.selectSubtitle(id: track.id)
-                } label: {
-                    selectedLabel(track.displayName, selected: track.isSelected)
                 }
             }
-            Divider()
-            Button {
-                onInteraction()
-                showSubtitleAppearance = true
+            NavigationLink {
+                SubtitleAppearanceView(session: session)
             } label: {
                 Label("Appearance and Timing", systemImage: "textformat")
             }
-        } label: {
-            controlLabel("Subtitles", symbol: "captions.bubble")
-        }
-        .buttonStyle(.bordered)
-        .focused($focusedMenu, equals: .subtitles)
-        .accessibilityLabel("Subtitles")
-    }
-
-    private var audioMenu: some View {
-        Menu {
+        case .audio:
             ForEach(session.audioTracks) { track in
-                Button {
-                    onInteraction()
+                selectionRow(track.displayName, selected: track.isSelected) {
                     session.selectAudio(id: track.id)
-                } label: {
-                    selectedLabel(track.displayName, selected: track.isSelected)
                 }
             }
-        } label: {
-            controlLabel("Audio", symbol: "waveform")
-        }
-        .buttonStyle(.bordered)
-        .focused($focusedMenu, equals: .audio)
-        .accessibilityLabel("Audio Track")
-    }
-
-    private var sourcesMenu: some View {
-        Menu {
+        case .sources:
             ForEach(route.availableSources) { source in
-                Button {
-                    onInteraction()
+                selectionRow(sourceMenuTitle(source), selected: source.url == selectedSourceURL) {
                     onSelectSource(source)
-                } label: {
-                    selectedLabel(
-                        sourceMenuTitle(source),
-                        selected: source.url == selectedSourceURL
-                    )
                 }
             }
-        } label: {
-            controlLabel("Sources", symbol: "arrow.left.arrow.right")
+        case .episodes:
+            ForEach(route.episodes) { episode in
+                selectionRow(episodeLabel(episode), selected: episode.id == route.contentID) {
+                    onSelectEpisode(episode)
+                }
+            }
         }
-        .buttonStyle(.bordered)
-        .focused($focusedMenu, equals: .sources)
-        .accessibilityLabel("Sources")
     }
 
-    private var episodesMenu: some View {
-        Menu {
-            ForEach(route.episodes) { episode in
-                Button {
-                    onInteraction()
-                    onSelectEpisode(episode)
-                } label: {
-                    selectedLabel(episodeLabel(episode), selected: episode.id == route.contentID)
+    private func selectionRow(
+        _ title: String,
+        selected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button {
+            action()
+            onInteraction()
+            presentedPanel = nil
+        } label: {
+            HStack {
+                Text(title.tvSafe)
+                    .lineLimit(2)
+                Spacer()
+                if selected {
+                    Image(systemName: "checkmark")
+                        .font(.body.weight(.bold))
                 }
             }
-        } label: {
-            controlLabel("Episodes", symbol: "rectangle.stack")
         }
-        .buttonStyle(.bordered)
-        .focused($focusedMenu, equals: .episodes)
-        .accessibilityLabel("Episodes")
     }
 
     private func sourceMenuTitle(_ source: PlayerSourceOption) -> String {
         var title = source.name
-        if let summary = source.displaySummary?.trimmedNonEmpty {
-            title += " \(summary)"
-        }
+        if let summary = source.displaySummary?.trimmedNonEmpty { title += "  ·  \(summary)" }
+        title += "  ·  \(source.addonName)"
         return title
-    }
-
-    private func controlLabel(_ title: String, symbol: String) -> some View {
-        Label(title.tvSafe, systemImage: symbol)
-            .font(.callout.weight(.semibold))
-            .lineLimit(1)
-            .padding(.horizontal, 4)
-            .frame(minHeight: 44)
-    }
-
-    /// tvOS style selection: selected rows are bright with a trailing
-    /// checkmark; unselected rows are secondary so the current choice reads
-    /// instantly.
-    private func selectedLabel(_ title: String, selected: Bool) -> some View {
-        HStack {
-            Text(title.tvSafe)
-                .foregroundStyle(selected ? .primary : .secondary)
-                .fontWeight(selected ? .semibold : .regular)
-            if selected {
-                Image(systemName: "checkmark")
-                    .font(.body.weight(.bold))
-                    .foregroundStyle(.white)
-            }
-        }
-        .padding(.trailing, selected ? 6 : 0)
     }
 
     private func speedTitle(_ speed: Double) -> String {
@@ -201,5 +150,18 @@ struct PlayerControlMenus: View {
             return episode.title
         }
         return "S\(season) E\(number)  \(episode.title)"
+    }
+}
+
+private extension PlayerControlMenus.Panel {
+    var title: String {
+        switch self {
+        case .resize: return "Video Size"
+        case .speed: return "Playback Speed"
+        case .subtitles: return "Subtitles"
+        case .audio: return "Audio Track"
+        case .sources: return "Sources"
+        case .episodes: return "Episodes"
+        }
     }
 }

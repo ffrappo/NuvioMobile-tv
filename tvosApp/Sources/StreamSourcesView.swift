@@ -35,9 +35,7 @@ struct StreamSourcesView: View {
                         .background(theme.panel, in: Capsule())
                 }
             }
-
             sourceContent
-
             ForEach(report.failures, id: \.self) { failure in
                 NuvioStatusMessage(
                     message: failure,
@@ -61,8 +59,7 @@ struct StreamSourcesView: View {
         } else if isLoading {
             HStack(spacing: 16) {
                 ProgressView()
-                Text("Checking enabled addons")
-                    .foregroundStyle(.secondary)
+                Text("Checking enabled addons").foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, minHeight: 130)
             .background(theme.panel, in: RoundedRectangle(cornerRadius: 20))
@@ -74,9 +71,7 @@ struct StreamSourcesView: View {
             )
         } else {
             LazyVGrid(columns: columns, spacing: 16) {
-                ForEach(report.sources) { source in
-                    sourceButton(source)
-                }
+                ForEach(report.sources) { source in sourceButton(source) }
             }
         }
     }
@@ -92,48 +87,48 @@ struct StreamSourcesView: View {
     private func sourceButton(_ source: StreamSource) -> some View {
         let isPlayable = source.stream.directURL != nil
         let info = source.stream.displayInfo
+        let labels = infoLabels(info)
 
-        return Button {
-            play(source)
-        } label: {
+        return Button { play(source) } label: {
             HStack(spacing: 18) {
-                Image(systemName: isPlayable ? "play.fill" : "link.badge.plus")
-                    .font(.title3.weight(.bold))
-                    .foregroundStyle(isPlayable ? .white : .secondary)
-                    .frame(width: 48, height: 48)
-                    .background(Color.white.opacity(0.08), in: Circle())
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(source.stream.name.tvSafe)
-                        .font(.headline)
-                        .lineLimit(1)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 10) {
+                        Text(source.stream.name.tvSafe)
+                            .font(.headline.weight(.bold))
+                            .lineLimit(1)
+                        if !isPlayable {
+                            Text("Unavailable")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                     if let subtitle = sourceSubtitle(source.stream) {
                         Text(subtitle.tvSafe)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .lineLimit(2)
                     }
-                    HStack(spacing: 7) {
-                        ForEach(infoLabels(source, info: info), id: \.self) { label in
-                            Text(label.tvSafe)
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(theme.secondaryText)
-                                .padding(.horizontal, 9)
-                                .padding(.vertical, 3)
-                                .background(Color.white.opacity(0.14), in: Capsule())
+                    if !labels.isEmpty {
+                        HStack(spacing: 7) {
+                            ForEach(Array(labels.prefix(6)), id: \.self) { label in sourceBadge(label) }
                         }
+                        .lineLimit(1)
+                    }
+                    if let filename = source.stream.filename?.trimmedNonEmpty,
+                       filename != source.stream.name,
+                       filename != source.stream.title {
+                        Text(filename.tvSafe)
+                            .font(.caption2.monospaced())
+                            .foregroundStyle(theme.secondaryText)
+                            .lineLimit(1)
                     }
                 }
-
-                Spacer(minLength: 8)
-
-                Text(isPlayable ? "Play" : "Unavailable")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                Spacer(minLength: 12)
+                addonIdentity(source)
             }
             .padding(.horizontal, 20)
-            .padding(.vertical, 12)
-            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .frame(maxWidth: .infinity, minHeight: 126)
             .background(
                 isPlayable ? theme.panel : Color.clear,
                 in: RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -145,16 +140,48 @@ struct StreamSourcesView: View {
         .focused($focusedSource, equals: source.id)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(source.stream.name.tvSafe)
-        .accessibilityValue(isPlayable ? "Play" : "Unavailable")
+        .accessibilityValue(accessibilityValue(source, labels: labels, isPlayable: isPlayable))
         .accessibilityHint("Stream this source")
     }
 
-    private func infoLabels(_ source: StreamSource, info: StreamDisplayInfo) -> [String] {
-        var labels = [
-            info.quality, info.hdr, info.codec,
-        ].compactMap { $0 } + info.audio + info.languages
-        if let size = info.size { labels.append(size) }
-        if !labels.contains(source.addonName) { labels.append(source.addonName) }
+    private func sourceBadge(_ label: String) -> some View {
+        Text(label.tvSafe)
+            .font(.caption.weight(.bold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 9)
+            .padding(.vertical, 4)
+            .background(Color.white.opacity(0.13), in: RoundedRectangle(cornerRadius: 7))
+            .overlay(RoundedRectangle(cornerRadius: 7).stroke(theme.separator, lineWidth: 1))
+    }
+
+    private func addonIdentity(_ source: StreamSource) -> some View {
+        VStack(spacing: 7) {
+            if let logo = source.addonLogoURL {
+                RemoteArtwork(urlString: logo, systemPlaceholder: "puzzlepiece.extension")
+                    .frame(width: 44, height: 44)
+                    .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+            } else {
+                Image(systemName: "puzzlepiece.extension.fill")
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 44, height: 44)
+                    .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 9))
+            }
+            Text(source.addonName.tvSafe)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .minimumScaleFactor(0.75)
+                .multilineTextAlignment(.center)
+                .frame(width: 126)
+        }
+    }
+
+    private func infoLabels(_ info: StreamDisplayInfo) -> [String] {
+        var labels = [info.quality, info.hdr, info.codec].compactMap { $0 }
+        labels.append(contentsOf: info.audio)
+        labels.append(contentsOf: info.languages)
+        if let size = info.size { labels.append("Size \(size)") }
         return labels
     }
 
@@ -162,6 +189,14 @@ struct StreamSourcesView: View {
         if let description = stream.description?.trimmedNonEmpty { return description }
         if let title = stream.title?.trimmedNonEmpty, title != stream.name { return title }
         return nil
+    }
+
+    private func accessibilityValue(
+        _ source: StreamSource,
+        labels: [String],
+        isPlayable: Bool
+    ) -> String {
+        ([isPlayable ? "Ready" : "Unavailable", source.addonName] + labels).joined(separator: ", ")
     }
 
     private func play(_ source: StreamSource) {
@@ -218,13 +253,9 @@ private struct SourceEmptyState: View {
                 .foregroundStyle(.secondary)
                 .frame(width: 62, height: 62)
                 .background(Color.white.opacity(0.10), in: Circle())
-
             VStack(alignment: .leading, spacing: 6) {
-                Text(title)
-                    .font(.headline)
-                Text(message)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+                Text(title).font(.headline)
+                Text(message).font(.callout).foregroundStyle(.secondary)
             }
             Spacer()
         }

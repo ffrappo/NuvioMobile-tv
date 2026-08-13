@@ -1,5 +1,57 @@
 import Foundation
 
+struct StremioStream: Decodable, Hashable, Identifiable {
+    let id: UUID
+    let name: String
+    let title: String?
+    let description: String?
+    let url: String?
+    let requestHeaders: [String: String]
+    let responseHeaders: [String: String]
+    let videoSize: Int64?
+    let filename: String?
+
+    private enum CodingKeys: String, CodingKey { case name, title, description, url, behaviorHints }
+    private enum BehaviorHintKeys: String, CodingKey { case proxyHeaders, videoSize, filename }
+    private enum ProxyHeaderKeys: String, CodingKey { case request, response }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = UUID()
+        name = container.decodeFlexibleString(forKey: .name)
+            ?? container.decodeFlexibleString(forKey: .title)
+            ?? "Unnamed source"
+        title = container.decodeFlexibleString(forKey: .title)
+        description = container.decodeFlexibleString(forKey: .description)
+        url = container.decodeFlexibleString(forKey: .url)
+        let hints = try? container.nestedContainer(keyedBy: BehaviorHintKeys.self, forKey: .behaviorHints)
+        let proxy = try? hints?.nestedContainer(keyedBy: ProxyHeaderKeys.self, forKey: .proxyHeaders)
+        requestHeaders = (try? proxy?.decode([String: String].self, forKey: .request)) ?? [:]
+        responseHeaders = (try? proxy?.decode([String: String].self, forKey: .response)) ?? [:]
+        videoSize = hints?.decodeFlexibleInt64(forKey: .videoSize)
+        filename = hints?.decodeFlexibleString(forKey: .filename)
+    }
+
+    var directURL: URL? {
+        guard let url, let value = URL(string: url), let scheme = value.scheme?.lowercased(),
+              scheme == "http" || scheme == "https" else { return nil }
+        return value
+    }
+}
+
+struct StreamSource: Identifiable, Hashable {
+    let addonName: String
+    let addonLogoURL: String?
+    let stream: StremioStream
+
+    var id: UUID { stream.id }
+}
+
+struct StreamFetchReport {
+    let sources: [StreamSource]
+    let failures: [String]
+}
+
 struct StreamDisplayInfo: Equatable {
     var quality: String?
     var hdr: String?

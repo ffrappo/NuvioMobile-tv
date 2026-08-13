@@ -6,8 +6,8 @@ The reference is the established Compose player under `composeApp/src/commonMain
 
 | Capability | Compose reference | Native tvOS status |
 |---|---|---|
-| Play, pause, seek 10 seconds | `PlayerControls.kt` | Implemented with focused buttons and remote play/pause |
-| Timeline seeking | `PlayerControls.kt` | Implemented with explicit 10-second and 30-second focused buttons |
+| Play, pause, seek 10 seconds | `PlayerControls.kt` | Implemented with focused buttons and system remote commands |
+| Timeline seeking | `PlayerControls.kt` | Implemented with a focusable Siri Remote timeline in 10-second steps |
 | Playback lifecycle and system controls | iOS `NowPlayingController.swift` | Implemented with tvOS Now Playing metadata, toggle, skip, and position commands |
 | Loading and playback errors | `PlayerEngine.kt` | Implemented through MPV events and overlay states |
 | Playback speed | `PlayerEngine.kt`, `PlayerControls.kt` | Implemented for 0.5x through 2x |
@@ -39,17 +39,16 @@ The reference is the established Compose player under `composeApp/src/commonMain
 
 The player copies the iOS Compose capability set into the tvOS-native layout above while using tvOS-native controls instead of mobile-style sheets:
 
-- `PlayerControlsOverlay.swift` owns the title header, focused playback timeline, transport buttons, skip action, and the lower control row.
-- `PlaybackTimelineScrubber.swift` owns the remote-first focused timeline. tvOS has no standard SwiftUI `Slider` equivalent, so the timeline is a native focusable scrubber driven by Siri Remote left and right navigation.
-- `PlayerControlMenus.swift` owns native SwiftUI `Menu` pickers for video size, playback speed, subtitles, audio tracks, sources, and episodes. This replaces the old desktop-style settings sheet with standard tvOS popover-style menus.
-- `SubtitleAppearanceView.swift` owns the only remaining modal surface, limited to subtitle delay and text size adjustments.
-- `PlayerView.swift` owns auto-hiding playback chrome. Tapping the Siri Remote touch surface reveals the controls for 5 seconds; any player interaction resets the timer. Menu and Back first hide the chrome, then leave playback on a second press. This matches Apple TV video player behavior where controls appear on demand and retreat during uninterrupted playback.
-
-The previous `PlayerOptionsView.swift` sheet was removed because it duplicated the iOS capability list in a settings-page metaphor that felt dated on tvOS. Native menus keep the same capabilities closer to Apple TV system playback UI.
+- `PlayerControlsOverlay.swift` owns the title header, focused playback timeline, compact transport buttons, skip action, and progressive More Controls disclosure.
+- `PlaybackTimelineScrubber.swift` owns the remote-first focused timeline. tvOS has no standard SwiftUI or UIKit slider, so the timeline is a focusable editing control driven by Siri Remote left and right navigation.
+- `PlayerControlMenus.swift` owns stable sheet-backed option lists for video size, playback speed, subtitles, audio tracks, sources, and episodes. The player chrome remains mounted while a list is open, and its dismissal timer is suspended, which prevents track polling and menu lifecycle changes from dropping focus.
+- `SubtitleAppearanceView.swift` owns subtitle delay and text size adjustments.
+- `PlayerView.swift` owns auto-hiding playback chrome. A tap reveals the compact timeline and transport surface. More Controls exposes secondary options. Menu and Back first hide the chrome, then leave playback on a second press.
+- The player publishes Now Playing metadata and handles external transport commands through `MPRemoteCommandCenter`. It does not duplicate the Play/Pause path through SwiftUI. MPV stays at unity gain, while tvOS, HDMI-CEC, and IR own volume.
 
 ## Verification
 
-- Apple TV system player conventions reviewed against [Apple HIG: Playing video](https://developer.apple.com/design/human-interface-guidelines/playing-video) and the installed AVKit/SwiftUI tvOS interfaces.
+- Apple TV system player conventions reviewed against [Apple HIG: Playing video](https://developer.apple.com/design/human-interface-guidelines/playing-video), [SwiftUI `onPlayPauseCommand`](https://developer.apple.com/documentation/swiftui/view/onplaypausecommand(perform:)), [SwiftUI focus interactions](https://developer.apple.com/documentation/swiftui/view/focusable(_:interactions:)), and [MediaPlayer remote commands](https://developer.apple.com/documentation/mediaplayer/mpremotecommandcenter).
 - Xcode 27.0 build 27A5228h and AppleTVOS 27.0 SDK reviewed.
 - SwiftUI installed interface confirms `focusSection()` is available on tvOS.
 - Generic tvOS Debug build with signing disabled passes after replacing the dated settings sheet with native menus, a focused Siri Remote timeline scrubber, and auto-hiding player chrome.

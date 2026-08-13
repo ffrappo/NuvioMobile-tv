@@ -72,6 +72,10 @@ final class WatchProgressStore: ObservableObject {
             .max(by: WatchProgressRecord.isOlder)
     }
 
+    func records(contentID: String) -> [WatchProgressRecord] {
+        records.filter { $0.contentID == contentID }
+    }
+
     private func resumableRecord(videoID: String, contentID: String) -> WatchProgressRecord? {
         let record = records
             .filter { $0.videoID == videoID && $0.contentID == contentID }

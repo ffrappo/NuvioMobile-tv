@@ -2,56 +2,48 @@ import SwiftUI
 
 struct SubtitleAppearanceView: View {
     @ObservedObject var session: MPVPlaybackSession
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            List {
-                Section("Timing") {
-                    adjustmentRow(
-                        title: "Subtitle Delay",
-                        value: delayLabel,
-                        decrementLabel: "100 ms Earlier",
-                        incrementLabel: "100 ms Later",
-                        decrement: {
-                            session.setSubtitleDelay(
-                                milliseconds: session.subtitleDelayMilliseconds - 100
-                            )
-                        },
-                        increment: {
-                            session.setSubtitleDelay(
-                                milliseconds: session.subtitleDelayMilliseconds + 100
-                            )
-                        }
-                    )
-                    Button("Reset Delay") {
-                        session.setSubtitleDelay(milliseconds: 0)
+        List {
+            Section("Timing") {
+                adjustmentRow(
+                    title: "Subtitle Delay",
+                    value: delayLabel,
+                    decrementLabel: "100 ms Earlier",
+                    incrementLabel: "100 ms Later",
+                    decrement: {
+                        session.setSubtitleDelay(
+                            milliseconds: session.subtitleDelayMilliseconds - 100
+                        )
+                    },
+                    increment: {
+                        session.setSubtitleDelay(
+                            milliseconds: session.subtitleDelayMilliseconds + 100
+                        )
                     }
-                    .disabled(session.subtitleDelayMilliseconds == 0)
+                )
+                Button("Reset Delay") {
+                    session.setSubtitleDelay(milliseconds: 0)
                 }
-
-                Section("Text Size") {
-                    adjustmentRow(
-                        title: "Font Size",
-                        value: "\(session.subtitleFontSize)",
-                        decrementLabel: "Smaller Text",
-                        incrementLabel: "Larger Text",
-                        decrement: {
-                            session.setSubtitleFontSize(session.subtitleFontSize - 4)
-                        },
-                        increment: {
-                            session.setSubtitleFontSize(session.subtitleFontSize + 4)
-                        }
-                    )
-                }
+                .disabled(session.subtitleDelayMilliseconds == 0)
             }
-            .navigationTitle("Subtitle Appearance")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
-                }
+
+            Section("Text Size") {
+                adjustmentRow(
+                    title: "Font Size",
+                    value: "\(session.subtitleFontSize)",
+                    decrementLabel: "Smaller Text",
+                    incrementLabel: "Larger Text",
+                    decrement: {
+                        session.setSubtitleFontSize(session.subtitleFontSize - 4)
+                    },
+                    increment: {
+                        session.setSubtitleFontSize(session.subtitleFontSize + 4)
+                    }
+                )
             }
         }
+        .navigationTitle("Subtitle Appearance")
     }
 
     private func adjustmentRow(

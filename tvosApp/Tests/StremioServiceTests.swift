@@ -285,6 +285,39 @@ final class StremioServiceTests: XCTestCase {
         XCTAssertEqual(PlayerTimeFormatter.string(3_661), "1:01:01")
     }
 
+    func testEpisodeFixtureDecodesAndroidParityFields() throws {
+        let fixture = #"""
+        {"meta":{"id":"tt1","type":"series","name":"Show","videos":[{
+          "id":"tt1:2:3","title":"Third","season":2,"episode":3,
+          "overview":"Episode overview","thumbnail":"https://example.com/episode.jpg",
+          "seasonPoster":"https://example.com/season.jpg","runtime":47,"available":false
+        }]}}
+        """#.data(using: .utf8)!
+
+        let video = try XCTUnwrap(
+            JSONDecoder().decode(MetaResponse.self, from: fixture).meta.videos.first
+        )
+        XCTAssertEqual(video.name, "Third")
+        XCTAssertEqual(video.description, "Episode overview")
+        XCTAssertEqual(video.seasonPoster, "https://example.com/season.jpg")
+        XCTAssertEqual(video.runtime, 47)
+        XCTAssertFalse(video.isAvailable)
+    }
+
+    func testEpisodeFixtureAcceptsSnakeCaseSeasonPoster() throws {
+        let fixture = #"""
+        {"meta":{"id":"tt1","type":"series","name":"Show","videos":[{
+          "id":"tt1:1:1","name":"First","season_poster_path":"https://example.com/s1.jpg"
+        }]}}
+        """#.data(using: .utf8)!
+
+        let video = try XCTUnwrap(
+            JSONDecoder().decode(MetaResponse.self, from: fixture).meta.videos.first
+        )
+        XCTAssertEqual(video.seasonPoster, "https://example.com/s1.jpg")
+        XCTAssertTrue(video.isAvailable)
+    }
+
     func testStreamDecodesProxyRequestHeaders() throws {
         let fixture = #"""
         {

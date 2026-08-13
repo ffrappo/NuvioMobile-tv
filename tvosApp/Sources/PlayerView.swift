@@ -66,6 +66,7 @@ struct PlayerView: View {
     @State private var nowPlaying: TVNowPlayingController?
     @State private var skipIntervals: [SkipInterval] = []
     @State private var dismissedSkipIntervalIDs: Set<String> = []
+    @State private var isControlPanelPresented = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let progressStore = PlaybackProgressStore()
@@ -83,6 +84,7 @@ struct PlayerView: View {
                     selectedSourceURL: selectedSourceURL ?? route.url,
                     activeSkipInterval: activeSkipInterval,
                     onInteraction: { controls.registerInteraction() },
+                    onModalPresentationChanged: setControlPanelPresented,
                     onSkip: skip,
                     onSelectSource: switchSource,
                     onSelectEpisode: selectEpisode
@@ -129,16 +131,16 @@ struct PlayerView: View {
             lastSavedPosition = position
         }
         .onChange(of: session.isPaused) { _, paused in
+            if isControlPanelPresented {
+                syncNowPlaying(position: session.position, force: true)
+                return
+            }
             if paused {
                 controls.registerInteraction(keepVisible: true)
             } else {
                 controls.registerInteraction()
             }
             syncNowPlaying(position: session.position, force: true)
-        }
-        .onPlayPauseCommand {
-            session.toggle()
-            controls.registerInteraction()
         }
         .onTapGesture {
             controls.registerInteraction()
@@ -188,7 +190,12 @@ struct PlayerView: View {
     }
 
     private func handleRemotePress(_ type: UIPress.PressType) {
-        controls.registerInteraction()
+        controls.registerInteraction(keepVisible: isControlPanelPresented)
+    }
+
+    private func setControlPanelPresented(_ presented: Bool) {
+        isControlPanelPresented = presented
+        controls.registerInteraction(keepVisible: presented || session.isPaused)
     }
 
     private func switchSource(_ source: PlayerSourceOption) {

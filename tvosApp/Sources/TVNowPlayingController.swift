@@ -40,6 +40,13 @@ final class TVNowPlayingController {
         clear()
         targets.forEach { $0.0.removeTarget($0.1) }
         targets.removeAll()
+        let center = MPRemoteCommandCenter.shared()
+        center.playCommand.isEnabled = false
+        center.pauseCommand.isEnabled = false
+        center.togglePlayPauseCommand.isEnabled = false
+        center.skipForwardCommand.isEnabled = false
+        center.skipBackwardCommand.isEnabled = false
+        center.changePlaybackPositionCommand.isEnabled = false
     }
 
     private func publish() {
@@ -48,6 +55,8 @@ final class TVNowPlayingController {
 
     private func configureCommands() {
         let center = MPRemoteCommandCenter.shared()
+        center.playCommand.isEnabled = true
+        center.pauseCommand.isEnabled = true
         center.togglePlayPauseCommand.isEnabled = true
         center.skipForwardCommand.isEnabled = true
         center.skipBackwardCommand.isEnabled = true
@@ -55,6 +64,20 @@ final class TVNowPlayingController {
         center.skipForwardCommand.preferredIntervals = [10]
         center.skipBackwardCommand.preferredIntervals = [10]
 
+        add(center.playCommand) { [weak self] _ in
+            Task { @MainActor in
+                guard let session = self?.session, session.isPaused else { return }
+                session.toggle()
+            }
+            return .success
+        }
+        add(center.pauseCommand) { [weak self] _ in
+            Task { @MainActor in
+                guard let session = self?.session, !session.isPaused else { return }
+                session.toggle()
+            }
+            return .success
+        }
         add(center.togglePlayPauseCommand) { [weak self] _ in
             Task { @MainActor in self?.session?.toggle() }
             return .success
