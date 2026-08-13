@@ -8,143 +8,83 @@ struct PlaybackTimelineScrubber: View {
     let onSeek: (Double) -> Void
     let onInteraction: () -> Void
 
-    @State private var scrubPosition = 0.0
-    @State private var scrubStart = 0.0
+    @State private var previewPosition = 0.0
     @State private var isScrubbing = false
-    @State private var lastExternalPosition = 0.0
-    @State private var shouldGlide = false
-    @State private var repeatStartedAt: Date?
-    @State private var repeatDirection = 0.0
-    @State private var remote = SiriRemoteScrubCoordinator()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    private let pollInterval = 0.5
-    private let glideMaxDelta = 2.0
 
     var body: some View {
         GeometryReader { proxy in
-            let width = proxy.size.width
             ZStack(alignment: .leading) {
                 Capsule()
                     .fill(.white.opacity(isFocused ? 0.38 : 0.25))
-                    .frame(height: trackHeight)
+                    .frame(height: isFocused ? 11 : 7)
                 Capsule()
                     .fill(.white)
-                    .frame(width: width * progress, height: trackHeight)
+                    .frame(width: proxy.size.width * progress, height: isFocused ? 11 : 7)
                 if isFocused {
                     Circle()
                         .fill(.white)
-                        .frame(width: thumbSize, height: thumbSize)
+                        .frame(width: 26, height: 26)
                         .shadow(color: .black.opacity(0.35), radius: 6, y: 2)
-                        .offset(x: max(0, width * progress - thumbSize / 2))
+                        .offset(x: max(0, proxy.size.width * progress - 13))
                 }
+                TVTimelinePanControl(
+                    progress: progress,
+                    isEnabled: isFocused,
+                    onChanged: preview,
+                    onEnded: commitPreview
+                )
             }
             .frame(maxHeight: .infinity)
-            .contentShape(Rectangle())
-            .animation(
-                isScrubbing || !shouldGlide || reduceMotion ? nil : .linear(duration: pollInterval),
-                value: scrubPosition
-            )
         }
         .frame(height: isFocused ? 34 : 18)
         .focusable(true, interactions: .edit)
         .focusEffectDisabled()
-        .onAppear {
-            scrubPosition = position
-            lastExternalPosition = position
-            configureRemote()
+        .onAppear { previewPosition = position }
+        .onChange(of: position) { _, value in
+            if !isScrubbing { previewPosition = value }
         }
-        .onDisappear { remote.setEnabled(false) }
-        .onChange(of: isFocused) { _, focused in
-            repeatStartedAt = nil
-            repeatDirection = 0
-            remote.setEnabled(focused)
+        .onMoveCommand { direction in
+            switch direction {
+            case .left: commit(previewPosition - 10)
+            case .right: commit(previewPosition + 10)
+            default: break
+            }
         }
-        .onChange(of: position) { _, position in
-            let delta = position - lastExternalPosition
-            shouldGlide = delta > 0 && delta <= glideMaxDelta
-            lastExternalPosition = position
-            if !isScrubbing { scrubPosition = position }
-        }
-        .onMoveCommand(perform: handleMove)
         .accessibilityAdjustableAction { direction in
             switch direction {
-            case .increment: commitBy(TimelineScrubModel.accessibilityStep)
-            case .decrement: commitBy(-TimelineScrubModel.accessibilityStep)
+            case .increment: commit(previewPosition + 10)
+            case .decrement: commit(previewPosition - 10)
             @unknown default: break
             }
         }
         .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: isFocused)
     }
 
-    private var trackHeight: Double { isFocused ? 11 : 7 }
-    private var thumbSize: Double { 26 }
-
     private var progress: Double {
         guard duration > 0 else { return 0 }
-        return min(max(scrubPosition / duration, 0), 1)
+        return min(max(previewPosition / duration, 0), 1)
     }
 
-    private func configureRemote() {
-        remote.onChanged = { translation in
-            if !isScrubbing {
-                scrubStart = scrubPosition
-                isScrubbing = true
-                shouldGlide = false
-            }
-            preview(TimelineScrubModel.position(
-                start: scrubStart,
-                duration: duration,
-                normalizedTranslation: translation
-            ))
-        }
-        remote.onEnded = {
-            guard isScrubbing else { return }
-            isScrubbing = false
-            commit(scrubPosition)
-        }
-        remote.setEnabled(isFocused)
-    }
-
-    private func handleMove(_ direction: MoveCommandDirection) {
-        guard isFocused else { return }
-        let sign: Double
-        switch direction {
-        case .left: sign = -1
-        case .right: sign = 1
-        default:
-            repeatStartedAt = nil
-            repeatDirection = 0
-            return
-        }
-        if repeatDirection != sign {
-            repeatDirection = sign
-            repeatStartedAt = Date()
-        }
-        let elapsed = Date().timeIntervalSince(repeatStartedAt ?? Date())
-        let destination = TimelineScrubModel.destination(
-            current: scrubPosition,
-            duration: duration,
-            direction: sign,
-            heldFor: elapsed
-        )
-        commit(destination)
-    }
-
-    private func preview(_ destination: Double) {
-        scrubPosition = destination
-        onPreview(destination)
+    private func preview(_ progress: Double) {
+        guard duration > 0 else { return }
+        isScrubbing = true
+        previewPosition = progress * duration
+        onPreview(previewPosition)
         onInteraction()
     }
 
-    private func commitBy(_ seconds: Double) {
-        commit(min(max(scrubPosition + seconds, 0), duration))
+    private func commitPreview() {
+        guard isScrubbing else { return }
+        isScrubbing = false
+        commit(previewPosition)
     }
 
-    private func commit(_ destination: Double) {
-        scrubPosition = destination
-        onPreview(destination)
-        onSeek(destination)
+    private func commit(_ position: Double) {
+        let clamped = min(max(position, 0), duration)
+        previewPosition = clamped
+        onPreview(clamped)
+        onSeek(clamped)
         onInteraction()
     }
 }
