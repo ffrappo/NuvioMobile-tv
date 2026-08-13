@@ -84,8 +84,8 @@ Executed evidence:
 
 - `xcodegen generate --spec tvosApp/project.yml` succeeded.
 - Signing-disabled generic tvOS Debug build succeeded with Xcode 27.0 and AppleTVOS 27.0 SDK.
-- The simulator XCTest suite passed 54 unit tests with zero failures on destination `C88E5129-768F-4C58-8DF3-ADA7D514FBD6`. Log: `/tmp/nuvio-tests-2.log`. Deterministic tests verify bounded ordered batching, cancellation, catalog and artwork coalescing, thumbnail cache clearing, catalog cache expiry, and catalog cache clearing.
-- Three XCUI remote-navigation tests passed on the same tvOS 27 simulator: native root-sidebar exposure, Home to details to Home Back/Menu round trip, and expanded-sidebar hero exclusion. Result bundle: `/tmp/nuvio-ui-all.xcresult`.
+- The simulator XCTest suite passed 54 unit tests with zero failures on destination `C88E5129-768F-4C58-8DF3-ADA7D514FBD6`. Final result bundle: `/tmp/nuvio-unit-final.xcresult`. Deterministic tests verify bounded ordered batching, cancellation, catalog and artwork coalescing, thumbnail cache clearing, catalog cache expiry, and catalog cache clearing.
+- Three XCUI remote-navigation tests passed on the same tvOS 27 simulator: native root-sidebar exposure, Home to details to Home Back/Menu round trip, and expanded-sidebar hero exclusion. Final result bundle: `/tmp/nuvio-ui-final.xcresult`.
 - Kept visual receipts: `Documentation/Screenshots/home-sidebar-expanded.png` and `Documentation/Screenshots/root-sidebar-items.png`.
 - All 10,234 Swift source and test lines remain in files at or below 400 lines. The largest is `MPVPlayerController.swift` at 400 lines.
 - `git diff --check` passed, and `graphify update` rebuilt a 14,314-node graph with 33,399 edges.
