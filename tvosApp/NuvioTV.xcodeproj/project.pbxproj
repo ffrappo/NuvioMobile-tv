@@ -77,6 +77,7 @@
 		C802F622936E4FDCBDCE8BDE /* MediaPosterButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A37C88476BCF90A05336D5 /* MediaPosterButton.swift */; };
 		C8EF625AE98D1023FE7DE19A /* PlayerControlsOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2AFC2D037541A3D7A11A6E2 /* PlayerControlsOverlay.swift */; };
 		C982CCCBA6EDFF6871AF16D0 /* SkipSegmentsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4967F64D741AB65B25526B8 /* SkipSegmentsService.swift */; };
+		CAF83376A664B50DD220421F /* SidebarContentInsets.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB2C0F0CE1640779232015E /* SidebarContentInsets.swift */; };
 		CB4FE6DE4F4A2038847E8042 /* MPVKit-GPL in Frameworks */ = {isa = PBXBuildFile; productRef = 2031E2C11FBF3E4EAF7DA13C /* MPVKit-GPL */; };
 		CBED960FE44E31B33CA37821 /* CatalogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE2FEDA020CC691768F55DBE /* CatalogView.swift */; };
 		CC3096D4FA59031ACD995472 /* AddonTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40377AAD4E194D473EC8DFFC /* AddonTransport.swift */; };
@@ -210,6 +211,7 @@
 		C9465F850C56F7A461E6C744 /* HomePreferencesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePreferencesStore.swift; sourceTree = "<group>"; };
 		CC2BAA7F1FD89709C92D44FE /* AuthModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthModels.swift; sourceTree = "<group>"; };
 		CDAB2BB8B6536D57835C2990 /* HomeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeStore.swift; sourceTree = "<group>"; };
+		CDB2C0F0CE1640779232015E /* SidebarContentInsets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarContentInsets.swift; sourceTree = "<group>"; };
 		CE240C1E5873B2E908D10D36 /* IntegrationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationStore.swift; sourceTree = "<group>"; };
 		D101E15479EA8BF6F8B8B1AE /* AddonsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddonsView.swift; sourceTree = "<group>"; };
 		D127742E10DEC08D931D90AB /* AddonManifestModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddonManifestModels.swift; sourceTree = "<group>"; };
@@ -313,6 +315,7 @@
 				94F6C839C63851E17F71A673 /* SettingsHomeSection.swift */,
 				2D0CA3ABA039F9BF009C2AEB /* SettingsIntegrationsSection.swift */,
 				44E8A9DA69945B36709DBC01 /* SettingsView.swift */,
+				CDB2C0F0CE1640779232015E /* SidebarContentInsets.swift */,
 				958FD18C6EA14520C046C529 /* SignInView.swift */,
 				C4967F64D741AB65B25526B8 /* SkipSegmentsService.swift */,
 				0239D059AEB5C413463A3FFA /* Stores.swift */,
@@ -607,6 +610,7 @@
 				FBFF9FFDBED8A7812B597F50 /* SettingsHomeSection.swift in Sources */,
 				B66774F38BE1693203C0E460 /* SettingsIntegrationsSection.swift in Sources */,
 				A0BD3A24E14F3967135F0D89 /* SettingsView.swift in Sources */,
+				CAF83376A664B50DD220421F /* SidebarContentInsets.swift in Sources */,
 				41EDEC0FD1E0EA9846D553D7 /* SignInView.swift in Sources */,
 				C982CCCBA6EDFF6871AF16D0 /* SkipSegmentsService.swift in Sources */,
 				F591B69D29765F08FE7AC204 /* Stores.swift in Sources */,

@@ -20,27 +20,27 @@ struct AppShellView: View {
                         onOpenCatalog: showCatalog,
                         onOpenCollection: showCollection
                     )
-                        .safeAreaPadding(.leading, 360)
+                    .sidebarContentInsets()
                 }
                 Tab("Discover", systemImage: "safari", value: .discover) {
                     DiscoverView(onSelect: showDetails)
-                        .safeAreaPadding(.leading, 360)
+                        .sidebarContentInsets()
                 }
                 Tab("Search", systemImage: "magnifyingglass", value: .search, role: .search) {
                     SearchView(onSelect: showDetails)
-                        .safeAreaPadding(.leading, 360)
+                        .sidebarContentInsets()
                 }
                 Tab("Library", systemImage: "rectangle.stack", value: .library) {
                     LibraryView(onSelect: showDetails)
-                        .safeAreaPadding(.leading, 360)
+                        .sidebarContentInsets()
                 }
                 Tab("Addons", systemImage: "puzzlepiece.extension", value: .addons) {
                     AddonsView()
-                        .safeAreaPadding(.leading, 360)
+                        .sidebarContentInsets()
                 }
                 Tab("Settings", systemImage: "gearshape", value: .settings) {
                     SettingsView()
-                        .safeAreaPadding(.leading, 360)
+                        .sidebarContentInsets()
                 }
             }
             .tabViewStyle(.sidebarAdaptable)
