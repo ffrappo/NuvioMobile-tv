@@ -51,7 +51,6 @@ targets:
           - CFBundleURLName: com.nuvio.app.tvos.details
             CFBundleURLSchemes:
               - nuvio
-        UIApplicationSupportsIndirectInputEvents: true
 
   NuvioTopShelf:
     type: tv-app-extension
