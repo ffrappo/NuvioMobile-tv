@@ -7,6 +7,30 @@ struct StreamAddonResult: Sendable {
     let failure: String?
 }
 
+struct StreamRequest: Hashable, Sendable {
+    let type: String
+    let id: String
+    let addons: [AddonEndpoint]
+
+    var key: String {
+        ([type, id] + addons.map { "\($0.baseURL)|\($0.providesStreams)" }).joined(separator: "|")
+    }
+}
+
+actor StreamRepository {
+    static let shared = StreamRepository()
+
+    private let service: StremioService
+
+    init(service: StremioService = StremioService()) {
+        self.service = service
+    }
+
+    func results(for request: StreamRequest, limit: Int = 3) -> AsyncStream<StreamAddonResult> {
+        service.streamResults(type: request.type, id: request.id, addons: request.addons, limit: limit)
+    }
+}
+
 extension StremioService {
     func streamResults(
         type: String,

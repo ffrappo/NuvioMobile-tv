@@ -20,7 +20,7 @@ struct StreamSourcesView: View {
     @FocusState private var focusedSource: UUID?
     @Environment(\.nuvioTheme) private var theme
 
-    private let service = StremioService()
+    private let repository = StreamRepository.shared
     private let playbackCapabilities = TVPlaybackCapabilities.current
 
     var body: some View {
@@ -298,7 +298,8 @@ struct StreamSourcesView: View {
         isLoading = true
         report = StreamFetchReport(sources: [], failures: [])
         var byIndex: [Int: StreamAddonResult] = [:]
-        for await result in service.streamResults(type: type, id: videoID, addons: addons) {
+        let request = StreamRequest(type: type, id: videoID, addons: addons)
+        for await result in await repository.results(for: request) {
             guard !Task.isCancelled else { return }
             byIndex[result.index] = result
             let ordered = byIndex.values.sorted { $0.index < $1.index }
@@ -309,6 +310,7 @@ struct StreamSourcesView: View {
                 }
             )
         }
+        guard !Task.isCancelled else { return }
         isLoading = false
     }
 }
