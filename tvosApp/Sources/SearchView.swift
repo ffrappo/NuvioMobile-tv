@@ -4,6 +4,7 @@ struct SearchView: View {
     @EnvironmentObject private var addons: AddonStore
     @StateObject private var store = SearchStore()
     @State private var query = ""
+    @State private var searchTask: Task<Void, Never>?
     let onSelect: (MetaSummary) -> Void
 
     var body: some View {
@@ -19,11 +20,28 @@ struct SearchView: View {
             .padding(.vertical, 48)
         }
         .searchable(text: $query, prompt: "Movies and series")
-        .onSubmit(of: .search) { Task { await store.search(query, addons: addons.homeAddons) } }
+        .onSubmit(of: .search) { startSearch(immediately: true) }
         .onChange(of: query) { _, value in
+            searchTask?.cancel()
             if value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 store.clear()
+            } else {
+                startSearch(immediately: false)
             }
+        }
+        .onDisappear { searchTask?.cancel() }
+    }
+
+    private func startSearch(immediately: Bool) {
+        searchTask?.cancel()
+        let value = query
+        let availableAddons = addons.homeAddons
+        searchTask = Task {
+            if !immediately {
+                try? await Task.sleep(for: .milliseconds(350))
+            }
+            guard !Task.isCancelled else { return }
+            await store.search(value, addons: availableAddons)
         }
     }
 
