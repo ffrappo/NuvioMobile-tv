@@ -1,6 +1,6 @@
 # Apple TV validation record
 
-Reviewed: 2026-08-12
+Reviewed: 2026-08-13
 Contributor: Francesco Frapporti
 
 ## Scope
@@ -62,6 +62,31 @@ Verified behaviors included:
 - phone-first QR sign-in
 - native tab navigation and search
 - player transport, timeline, menus, subtitle controls, audio routing, and Now Playing commands
+
+## Redesign validation, 2026-08-13
+
+The Android TV app at commit `88517217f9100b50036579cc343aa05009864685` was the primary organization reference. The shared Compose app was the secondary parity reference. The native redesign was validated against the current checkout through these receipts:
+
+- Catalog browsing moved from blank Search into the dedicated Discover root.
+- Home, Discover, Search, collections, and source loading use bounded concurrency of three and publish completed batches without waiting for every addon.
+- Catalog requests share a provider-aware repository with request coalescing, ten-minute caching, actual-page-size pagination, cancellation, duplicate filtering, and a repeated-page stop guard.
+- Stream sources publish in addon order through a coalescing repository and remove stale partial results when a new title request starts.
+- Detail requests are provider-aware, coalesced, and cached for fifteen minutes. Large JSON decoding runs away from UI-isolated work.
+- Artwork requests coalesce and use ImageIO thumbnail decoding with bounded memory cost.
+- Home, catalogs, Discover, Search, Library, details, seasons, episodes, and sources use native SwiftUI focusable controls, stable identity, lazy containers, and reusable poster cards.
+- Season order is numeric with Specials last. Episode focus is restored per season, and in-progress episodes show progress.
+- Unsupported playback sources remain visible with a compatibility explanation and cannot launch.
+- Simulator review at 1920 by 1080 confirmed catalog loading, the large Home hero, See All rails, collapsed-sidebar safe areas, and the expanded-sidebar exclusion margin. Screenshot receipt: `/tmp/nuvio-home-safe360.png`.
+
+Executed evidence:
+
+- `xcodegen generate --spec tvosApp/project.yml` succeeded.
+- Signing-disabled generic tvOS Debug build succeeded with Xcode 27.0 and AppleTVOS 27.0 SDK.
+- The simulator XCTest suite passed 37 tests with zero failures on destination `C88E5129-768F-4C58-8DF3-ADA7D514FBD6`. Log: `/tmp/nuvio-tests-2.log`.
+- All 9,434 Swift source and test lines remain in files at or below 400 lines. The largest is `MPVPlayerController.swift` at 395 lines.
+- `git diff --check` passed, and `graphify update` rebuilt a 14,168-node graph with 33,156 edges.
+
+The installed SDK is tvOS 27.0. tvOS 26.6-specific availability was reviewed through Apple documentation, while compilation and runtime evidence in this pass comes from SDK 27.0 with a tvOS 18.0 deployment target. Directional focus, Back/Menu, VoiceOver, Larger Text, Reduce Motion, Reduce Transparency, cancellation under live navigation, and source switching still require a final physical Apple TV acceptance pass for this redesign.
 
 ## Security hardening
 

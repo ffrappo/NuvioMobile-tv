@@ -10,8 +10,10 @@ Implemented:
 
 - phone-first QR sign-in, email sign-in, and guest mode
 - account profiles, library, collections, addons, Home preferences, and progress synchronization
-- Home, Search, Library, details, episodes, and stream selection
-- native tvOS focus and navigation, including system card focus effects
+- Home, Discover, Search, Library, details, seasons, episodes, and progressively published stream selection
+- provider-aware catalogs with See All grids, genre filtering, caching, request coalescing, bounded addon fan-out, and pagination
+- collection and Home catalog sources resolved through the same catalog model
+- native tvOS focus and navigation, including system card focus effects and per-season episode focus restoration
 - dynamic Top Shelf rows with stable deep links plus branded static fallback artwork
 - MPV playback, request headers, Now Playing controls, subtitles, audio tracks, speed, video sizing, source switching, and manual episode selection
 - Reduce Motion, Increase Contrast, Reduce Transparency, Larger Text, and VoiceOver-aware controls
@@ -114,10 +116,12 @@ Run the tests on an installed compatible tvOS simulator when one is available in
 
 - `project.yml` is the project source of truth.
 - `Sources/NuvioTVApp.swift` creates the app stores and services.
-- `Sources/AppShellView.swift` owns top-level tabs and routing.
-- service and store files own account, catalog, addon, collection, profile, and progress behavior.
+- `Sources/AppShellView.swift` owns Home, Discover, Search, Library, Addons, and Settings tabs plus details and catalog routes.
+- `CatalogRepository`, `DetailsRepository`, `StreamRepository`, and `ArtworkLoader` coalesce repeated requests and isolate provider-aware loading.
+- Home, Discover, Search, Library, collections, and catalog grids reuse stable native poster and rail components.
+- service and store files own account, addon, collection, profile, catalog, and progress behavior.
 - player files own MPV, Metal output, controls, menus, Now Playing integration, and progress persistence.
-- `Tests/StremioServiceTests.swift` covers protocol decoding, URL construction, focus contracts, and progress persistence.
+- `Tests/StremioServiceTests.swift`, `CatalogModelTests.swift`, and `PlaybackCapabilityTests.swift` cover protocol decoding, provider-aware URL construction, catalog identity and pagination, playback capability gates, focus contracts, and progress persistence.
 
 See [PLAYER_PARITY.md](Documentation/PLAYER_PARITY.md) for the implemented playback matrix and intentional platform boundaries.
 
