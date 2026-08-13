@@ -107,7 +107,7 @@ A complete Debug generic-tvOS build must prove:
 Completed on 2026-08-13:
 
 - generic tvOS Debug build succeeded with signing disabled
-- the current tvOS 27 simulator suite passed 53 tests with zero failures after the catalog, detail, source, player-control, playback-volume, and interruption corrections
+- the current tvOS 27 simulator suite passed 54 tests with zero failures after the catalog, detail, source, artwork, player-control, playback-volume, and interruption corrections
 - scheme-level `build-for-testing` succeeded
 - asset compilation, extension embedding, and `ValidateEmbeddedBinary` succeeded
 - live Cinemeta movie and series catalog decoding succeeded

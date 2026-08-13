@@ -83,6 +83,7 @@
 		CED0807133004628F4B3F25E /* TopShelfCatalogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 527675F9B092745D8B31BFD9 /* TopShelfCatalogService.swift */; };
 		D149CD3FC476E0D153D26867 /* NuvioControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51FCD104A61FCAE3B60D12FD /* NuvioControls.swift */; };
 		D40896A4FD7538537AF42EBF /* PlayerControlsVisibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96D5B2597935756E1FBADFBE /* PlayerControlsVisibility.swift */; };
+		D5785D411273BB2EBA7AB8F2 /* ArtworkLoaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F86630D59E100CD35931F528 /* ArtworkLoaderTests.swift */; };
 		D7A204DDB089392F63AC4A21 /* AddonsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D101E15479EA8BF6F8B8B1AE /* AddonsView.swift */; };
 		D91C7E56946233EB62D40BD9 /* StreamSourcesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB64C4919946C587C5324E0C /* StreamSourcesView.swift */; };
 		E519A1983E8298A3105BB68A /* PlayerControlStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = F18FD64ECA02F81C05D32427 /* PlayerControlStrip.swift */; };
@@ -219,6 +220,7 @@
 		F1C38F74A5B5620AADFE4362 /* HomePersonalViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePersonalViews.swift; sourceTree = "<group>"; };
 		F6A37C88476BCF90A05336D5 /* MediaPosterButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPosterButton.swift; sourceTree = "<group>"; };
 		F70D0C6976504C288AC74B65 /* CatalogModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogModels.swift; sourceTree = "<group>"; };
+		F86630D59E100CD35931F528 /* ArtworkLoaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkLoaderTests.swift; sourceTree = "<group>"; };
 		FCD191E61EBE513E96B6E2A9 /* ArtworkCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkCache.swift; sourceTree = "<group>"; };
 		FD27016DD0E674D8332CF7F4 /* DiscoveryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -334,6 +336,7 @@
 		2F628D78B8E367D9B832796F /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				F86630D59E100CD35931F528 /* ArtworkLoaderTests.swift */,
 				C425062F50824010361F8D05 /* AsyncBatcherTests.swift */,
 				2B26CB1691AF39F127797C79 /* CatalogModelTests.swift */,
 				82956D899696970A117196B1 /* NuvioDeepLinkTests.swift */,
@@ -575,6 +578,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D5785D411273BB2EBA7AB8F2 /* ArtworkLoaderTests.swift in Sources */,
 				2038D4D793A4FF4E6FCD4708 /* AsyncBatcherTests.swift in Sources */,
 				264FD2FF58FCD8ABB9197BB5 /* CatalogModelTests.swift in Sources */,
 				1C0ADAEA5135CEC4A96BA43F /* NuvioDeepLinkTests.swift in Sources */,

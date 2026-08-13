@@ -9,14 +9,22 @@ actor ArtworkLoader {
     private var inFlight: [URL: Task<UIImage?, Never>] = [:]
     private let maxPixelSize = 1_200
 
-    init() {
-        cache.countLimit = 320
-        cache.totalCostLimit = 160 * 1_024 * 1_024
-        let configuration = URLSessionConfiguration.default
-        configuration.urlCache = URLCache.shared
-        configuration.requestCachePolicy = .returnCacheDataElseLoad
-        configuration.timeoutIntervalForRequest = 20
-        session = URLSession(configuration: configuration)
+    init(
+        session: URLSession? = nil,
+        countLimit: Int = 320,
+        totalCostLimit: Int = 160 * 1_024 * 1_024
+    ) {
+        cache.countLimit = countLimit
+        cache.totalCostLimit = totalCostLimit
+        if let session {
+            self.session = session
+        } else {
+            let configuration = URLSessionConfiguration.default
+            configuration.urlCache = URLCache.shared
+            configuration.requestCachePolicy = .returnCacheDataElseLoad
+            configuration.timeoutIntervalForRequest = 20
+            self.session = URLSession(configuration: configuration)
+        }
     }
 
     func cachedImage(for url: URL) -> UIImage? {
