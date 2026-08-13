@@ -69,8 +69,8 @@ final class MPVPlaybackSession: ObservableObject {
     /// Equality-guarded writes so a 0.5 s polling tick only invalidates the
     /// session when something actually changed. `@Published` has no built-in
     /// equality check, so unconditional assignments would re-render every
-    /// observing view (overlay, menus, volume slider, now-playing mirror) on
-    /// every tick even when the values are identical.
+    /// observing view (overlay, menus, and now-playing mirror) on every tick
+    /// even when the values are identical.
     func update(paused: Bool? = nil, loading: Bool? = nil, error: String? = nil) {
         if let paused, paused != isPaused { isPaused = paused }
         if let loading, loading != isLoading { isLoading = loading }
@@ -317,6 +317,11 @@ final class MPVPlayerController: UIViewController {
         setOption(mpv, "ao", "audiounit")
         setOption(mpv, "audio-channels", "auto")
         setOption(mpv, "audio-fallback-to-null", "yes")
+        // tvOS owns output volume through the Siri Remote, Control Center,
+        // HDMI-CEC, or IR. Keep mpv at unity gain and never expose software
+        // amplification as a competing volume layer.
+        setOption(mpv, "volume", "100")
+        setOption(mpv, "volume-max", "100")
         setOption(mpv, "vulkan-swap-mode", "fifo")
         setOption(mpv, "vulkan-queue-count", "1")
         setOption(mpv, "vulkan-async-compute", "no")
