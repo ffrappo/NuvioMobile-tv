@@ -59,6 +59,7 @@ struct DetailsView: View {
                             },
                             onPlay: { playerRoute = $0 }
                         )
+                        .id(selectedVideo?.id ?? detail.id)
                         DetailCreditsView(detail: detail)
                     }
                 }
