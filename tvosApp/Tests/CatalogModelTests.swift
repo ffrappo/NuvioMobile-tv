@@ -1,6 +1,73 @@
 import XCTest
 @testable import NuvioTV
 
+final class RepositoryConcurrencyTests: XCTestCase {
+    override func tearDown() {
+        TestURLProtocol.clear()
+        super.tearDown()
+    }
+
+    func testCatalogRepositoryCoalescesConcurrentPages() async throws {
+        let count = LockedCounter()
+        TestURLProtocol.setHandler { _ in
+            count.increment()
+            return .init(
+                statusCode: 200,
+                data: Data(#"{"metas":[{"id":"tt1","type":"movie","name":"One"}]}"#.utf8),
+                delay: .milliseconds(80)
+            )
+        }
+        let repository = CatalogRepository(
+            service: StremioService(session: TestURLProtocol.session()),
+            cacheLifetime: 600
+        )
+        let descriptor = descriptor()
+        async let first = repository.firstPage(of: descriptor)
+        async let second = repository.firstPage(of: descriptor)
+        let pages = try await [first, second]
+        XCTAssertEqual(pages.map(\.items.count), [1, 1])
+        XCTAssertEqual(count.value, 1)
+    }
+
+    func testCatalogRepositoryUsesAndClearsCache() async throws {
+        let count = LockedCounter()
+        TestURLProtocol.setHandler { _ in
+            count.increment()
+            return .init(
+                statusCode: 200,
+                data: Data(#"{"metas":[{"id":"tt1","type":"movie","name":"One"}]}"#.utf8),
+                delay: .zero
+            )
+        }
+        let repository = CatalogRepository(
+            service: StremioService(session: TestURLProtocol.session()),
+            cacheLifetime: 600
+        )
+        _ = try await repository.firstPage(of: descriptor())
+        _ = try await repository.firstPage(of: descriptor())
+        XCTAssertEqual(count.value, 1)
+        await repository.clearCache()
+        _ = try await repository.firstPage(of: descriptor())
+        XCTAssertEqual(count.value, 2)
+    }
+
+    private func descriptor() -> CatalogDescriptor {
+        CatalogDescriptor(
+            baseURL: "https://example.test", addonID: "test", addonName: "Test",
+            type: "movie", catalogID: "top", catalogName: "Top", genre: nil,
+            genres: [], supportsPagination: true
+        )
+    }
+}
+
+private final class LockedCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+    var value: Int { lock.withLock { count } }
+    func increment() { lock.withLock { count += 1 } }
+}
+
+
 final class CatalogModelTests: XCTestCase {
     func testSearchCatalogDescriptorsUseEveryCompatibleAddonCatalog() throws {
         let first = try manifest(from: #"""
