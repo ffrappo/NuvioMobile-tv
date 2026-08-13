@@ -5,6 +5,8 @@ struct PlayerSelectionPanel: View {
     let route: PlayerRoute
     @ObservedObject var session: MPVPlaybackSession
     let selectedSourceURL: URL
+    let onSubtitleSelection: (PlaybackTrack?) -> Void
+    let onSubtitleAppearanceChanged: () -> Void
     let onSelectSource: (PlayerSourceOption) -> Void
     let onSelectEpisode: (PlayerEpisodeOption) -> Void
 
@@ -19,7 +21,10 @@ struct PlayerSelectionPanel: View {
             }
             .navigationTitle(panel.title)
             .navigationDestination(isPresented: $showsSubtitleAppearance) {
-                SubtitleAppearanceView(session: session)
+                SubtitleAppearanceView(
+                    session: session,
+                    onPreferenceChanged: onSubtitleAppearanceChanged
+                )
             }
         }
     }
@@ -29,12 +34,12 @@ struct PlayerSelectionPanel: View {
         switch panel {
         case .subtitles:
             row("Off", symbol: "captions.bubble", selected: !session.subtitleTracks.contains(where: \.isSelected)) {
-                session.selectSubtitle(id: nil)
+                onSubtitleSelection(nil)
                 dismiss()
             }
             ForEach(session.subtitleTracks) { track in
                 row(track.displayName, symbol: "captions.bubble.fill", selected: track.isSelected) {
-                    session.selectSubtitle(id: track.id)
+                    onSubtitleSelection(track)
                     dismiss()
                 }
             }

@@ -13,17 +13,15 @@ final class MPVPlaybackSession: ObservableObject {
     @Published private(set) var audioTracks: [PlaybackTrack] = []
     @Published private(set) var subtitleTracks: [PlaybackTrack] = []
     @Published private(set) var subtitleDelayMilliseconds = 0
-    @Published private(set) var subtitleFontSize = 52
+    @Published private(set) var subtitleFontSize = SubtitleAppearancePreference.defaultFontSize
     @Published private(set) var errorMessage: String?
     @Published private(set) var activeSourceName = ""
     var onControlPress: (() -> Void)?
+    var onSubtitleTracksChanged: (([PlaybackTrack]) -> Void)?
 
-    fileprivate weak var controller: MPVPlayerController?
+    weak var controller: MPVPlayerController?
 
-    func toggle() {
-        controller?.togglePlayback()
-    }
-
+    func toggle() { controller?.togglePlayback() }
     func play() { controller?.setPaused(false) }
     func pause() { controller?.setPaused(true) }
 
@@ -46,12 +44,7 @@ final class MPVPlaybackSession: ObservableObject {
     func setResizeMode(_ mode: PlayerResizeMode) { controller?.setResizeMode(mode) }
     func selectAudio(id: Int64) { controller?.selectAudio(id: id) }
     func selectSubtitle(id: Int64?) { controller?.selectSubtitle(id: id) }
-    func setSubtitleDelay(milliseconds: Int) {
-        controller?.setSubtitleDelay(milliseconds: milliseconds)
-    }
-    func setSubtitleFontSize(_ size: Int) { controller?.setSubtitleFontSize(size) }
     func updateActiveSourceName(_ name: String) { activeSourceName = name }
-    func switchSource(url: URL) { controller?.load(url: url) }
     func stop() { controller?.stop() }
 
     func beginLoading() {
@@ -96,6 +89,7 @@ final class MPVPlaybackSession: ObservableObject {
         if resizeMode != self.resizeMode { self.resizeMode = resizeMode }
         if audioTracks != self.audioTracks { self.audioTracks = audioTracks }
         if subtitleTracks != self.subtitleTracks { self.subtitleTracks = subtitleTracks }
+        onSubtitleTracksChanged?(subtitleTracks)
     }
 
     func updateTrackSelection(audioID: Int64? = nil, subtitleID: Int64? = nil, subtitlesOff: Bool = false) {

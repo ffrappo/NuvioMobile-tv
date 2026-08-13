@@ -7,6 +7,8 @@ struct PlayerControlsOverlay: View {
     let activeSkipInterval: SkipInterval?
     let onInteraction: () -> Void
     let onModalPresentationChanged: (Bool) -> Void
+    let onSubtitleSelection: (PlaybackTrack?) -> Void
+    let onSubtitleAppearanceChanged: () -> Void
     let onSkip: (SkipInterval) -> Void
     let onSelectSource: (PlayerSourceOption) -> Void
     let onSelectEpisode: (PlayerEpisodeOption) -> Void
@@ -76,6 +78,8 @@ struct PlayerControlsOverlay: View {
                     selectedSourceURL: selectedSourceURL,
                     onInteraction: onInteraction,
                     onModalPresentationChanged: onModalPresentationChanged,
+                    onSubtitleSelection: onSubtitleSelection,
+                    onSubtitleAppearanceChanged: onSubtitleAppearanceChanged,
                     onSelectSource: onSelectSource,
                     onSelectEpisode: onSelectEpisode
                 )

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SubtitleAppearanceView: View {
     @ObservedObject var session: MPVPlaybackSession
+    let onPreferenceChanged: () -> Void
 
     var body: some View {
         List {
@@ -15,15 +16,18 @@ struct SubtitleAppearanceView: View {
                         session.setSubtitleDelay(
                             milliseconds: session.subtitleDelayMilliseconds - 100
                         )
+                        onPreferenceChanged()
                     },
                     increment: {
                         session.setSubtitleDelay(
                             milliseconds: session.subtitleDelayMilliseconds + 100
                         )
+                        onPreferenceChanged()
                     }
                 )
                 Button("Reset Delay") {
                     session.setSubtitleDelay(milliseconds: 0)
+                    onPreferenceChanged()
                 }
                 .disabled(session.subtitleDelayMilliseconds == 0)
             }
@@ -36,9 +40,11 @@ struct SubtitleAppearanceView: View {
                     incrementLabel: "Larger Text",
                     decrement: {
                         session.setSubtitleFontSize(session.subtitleFontSize - 4)
+                        onPreferenceChanged()
                     },
                     increment: {
                         session.setSubtitleFontSize(session.subtitleFontSize + 4)
+                        onPreferenceChanged()
                     }
                 )
             }

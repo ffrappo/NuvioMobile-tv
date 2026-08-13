@@ -144,6 +144,97 @@ final class PlayerFeatureTests: XCTestCase {
         XCTAssertEqual(stream.displayInfo.size, "15.0 GB")
     }
 
+    func testSubtitlePreferenceRestoresByIDThenLanguageThenName() throws {
+        let tracks = [
+            PlaybackTrack(
+                id: 7,
+                kind: .subtitle,
+                title: "English SDH",
+                language: "en-US",
+                isSelected: false
+            ),
+            PlaybackTrack(
+                id: 8,
+                kind: .subtitle,
+                title: "Italian",
+                language: "it",
+                isSelected: false
+            ),
+        ]
+        let exact = SubtitleTrackPreference(track: tracks[1])
+        XCTAssertEqual(SubtitlePreferenceStore.matchingTrack(for: exact, in: tracks)?.id, 8)
+
+        let encoded = try JSONEncoder().encode(exact)
+        let moved = try JSONDecoder().decode(SubtitleTrackPreference.self, from: encoded)
+        let differentIDs = tracks.map { track in
+            PlaybackTrack(
+                id: track.id + 100,
+                kind: track.kind,
+                title: track.title,
+                language: track.language,
+                isSelected: false
+            )
+        }
+        XCTAssertEqual(
+            SubtitlePreferenceStore.matchingTrack(for: moved, in: differentIDs)?.language,
+            "it"
+        )
+
+        let byName = SubtitleTrackPreference(track: PlaybackTrack(
+            id: 99,
+            kind: .subtitle,
+            title: "English SDH",
+            language: nil,
+            isSelected: false
+        ))
+        XCTAssertEqual(
+            SubtitlePreferenceStore.matchingTrack(for: byName, in: differentIDs)?.title,
+            "English SDH"
+        )
+    }
+
+    func testSubtitlePreferenceStorePersistsSelectionAndAppearancePerProfile() {
+        let defaults = isolatedDefaults()
+        let store = SubtitlePreferenceStore(defaults: defaults)
+        let track = PlaybackTrack(id: 4, kind: .subtitle, title: "Italian", language: "it", isSelected: true)
+        store.saveSelection(SubtitleTrackPreference(track: track), contentID: "tt1", profileID: 2)
+        store.saveAppearance(
+            SubtitleAppearancePreference(fontSize: 68, delayMilliseconds: -300),
+            profileID: 2,
+            videoID: "tt1:1:1"
+        )
+
+        XCTAssertEqual(store.selection(contentID: "tt1", profileID: 2)?.trackID, 4)
+        XCTAssertEqual(store.appearance(profileID: 2, videoID: "tt1:1:1").fontSize, 68)
+        XCTAssertEqual(
+            store.appearance(profileID: 2, videoID: "tt1:1:1").delayMilliseconds,
+            -300
+        )
+        XCTAssertEqual(
+            store.appearance(profileID: 2, videoID: "tt1:1:2").delayMilliseconds,
+            0
+        )
+        XCTAssertEqual(
+            store.appearance(profileID: 2, videoID: "tt1:1:2").fontSize,
+            68
+        )
+        XCTAssertNil(store.selection(contentID: "tt1", profileID: 1))
+    }
+
+    func testDisabledSubtitlePreferencePersists() {
+        let defaults = isolatedDefaults()
+        let store = SubtitlePreferenceStore(defaults: defaults)
+        store.saveSelection(.disabled, contentID: "tt1", profileID: 1)
+        XCTAssertEqual(store.selection(contentID: "tt1", profileID: 1)?.selection, .disabled)
+    }
+
+    private func isolatedDefaults() -> UserDefaults {
+        let suite = "PlayerFeatureTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.removePersistentDomain(forName: suite)
+        return defaults
+    }
+
     func testAppleTVHDRejectsUnsupportedDirectVideoProfiles() {
         let capabilities = TVPlaybackCapabilities(modelIdentifier: "AppleTV5,3")
         XCTAssertEqual(

@@ -6,6 +6,8 @@ struct PlayerControlStrip: View {
     let selectedSourceURL: URL
     let onInteraction: () -> Void
     let onModalPresentationChanged: (Bool) -> Void
+    let onSubtitleSelection: (PlaybackTrack?) -> Void
+    let onSubtitleAppearanceChanged: () -> Void
     let onSelectSource: (PlayerSourceOption) -> Void
     let onSelectEpisode: (PlayerEpisodeOption) -> Void
 
@@ -18,21 +20,29 @@ struct PlayerControlStrip: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            actionButton(session.resizeMode.title, symbol: session.resizeMode.symbol) {
+            actionButton(accessibilityLabel: session.resizeMode.title, symbol: session.resizeMode.symbol) {
                 session.setResizeMode(session.resizeMode.next)
             }
-            actionButton(speedTitle, symbol: "speedometer") {
+            actionButton(accessibilityLabel: speedTitle, symbol: "speedometer") {
                 session.setSpeed(session.speed.nextPlaybackSpeed)
             }
-            actionButton("Subtitles", symbol: "captions.bubble") { presentedPanel = .subtitles }
+            actionButton(accessibilityLabel: "Subtitles", symbol: "captions.bubble") {
+                presentedPanel = .subtitles
+            }
             if !session.audioTracks.isEmpty {
-                actionButton("Audio", symbol: "waveform") { presentedPanel = .audio }
+                actionButton(accessibilityLabel: "Audio", symbol: "waveform") {
+                    presentedPanel = .audio
+                }
             }
             if route.availableSources.count > 1 {
-                actionButton("Sources", symbol: "arrow.left.arrow.right") { presentedPanel = .sources }
+                actionButton(accessibilityLabel: "Sources", symbol: "arrow.left.arrow.right") {
+                    presentedPanel = .sources
+                }
             }
             if route.episodes.count > 1 {
-                actionButton("Episodes", symbol: "rectangle.stack") { presentedPanel = .episodes }
+                actionButton(accessibilityLabel: "Episodes", symbol: "rectangle.stack") {
+                    presentedPanel = .episodes
+                }
             }
             AudioRoutePicker(onInteraction: onInteraction)
                 .frame(width: 68, height: 52)
@@ -48,6 +58,8 @@ struct PlayerControlStrip: View {
                 route: route,
                 session: session,
                 selectedSourceURL: selectedSourceURL,
+                onSubtitleSelection: onSubtitleSelection,
+                onSubtitleAppearanceChanged: onSubtitleAppearanceChanged,
                 onSelectSource: onSelectSource,
                 onSelectEpisode: onSelectEpisode
             )
@@ -58,18 +70,21 @@ struct PlayerControlStrip: View {
         }
     }
 
-    private func actionButton(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {
+    private func actionButton(
+        accessibilityLabel: String,
+        symbol: String,
+        action: @escaping () -> Void
+    ) -> some View {
         Button {
             action()
             onInteraction()
         } label: {
-            Label(title.tvSafe, systemImage: symbol)
-                .font(.callout.weight(.semibold))
-                .lineLimit(1)
-                .padding(.horizontal, 4)
-                .frame(minHeight: 44)
+            Image(systemName: symbol)
+                .font(.system(size: 22, weight: .semibold))
+                .frame(width: 50, height: 44)
         }
         .buttonStyle(PlayerPillButtonStyle())
+        .accessibilityLabel(accessibilityLabel)
     }
 
     private var speedTitle: String {

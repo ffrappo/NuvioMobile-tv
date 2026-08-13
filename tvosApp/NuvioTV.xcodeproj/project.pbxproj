@@ -22,6 +22,7 @@
 		288149F15DB17BF817228167 /* DetailsBackdrop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991FB2DA8387C6A116A42C82 /* DetailsBackdrop.swift */; };
 		2D8E979895B9334AD80139AF /* StreamInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452B791F55EE4C48627A3A4E /* StreamInfo.swift */; };
 		2F9FFDD1291DD4FCEE335AA3 /* NuvioTopShelf.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1299CF09F4B54B1BB82CFC41 /* NuvioTopShelf.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		3408DC2EFB381E813C999744 /* MPVSubtitleSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A7944B1E48428ED2DC6984 /* MPVSubtitleSession.swift */; };
 		3DF7651B0D6F6D02C2D4820F /* MPVPlayerStatePublishing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5130437B6988CB319EA38E68 /* MPVPlayerStatePublishing.swift */; };
 		3E0DA39CFE3089B4C3D39234 /* AudioRoutePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 660DC53C71DE152831CC0C12 /* AudioRoutePicker.swift */; };
 		3E5C13C1C6F3DFDD6884062B /* MPVPlayerNetworking.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD0750902F3BA140EC65E3B /* MPVPlayerNetworking.swift */; };
@@ -55,6 +56,7 @@
 		8E0CCDEA1BAF757F380DA096 /* SiriRemoteScrubCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986228C57369102FB7294425 /* SiriRemoteScrubCoordinator.swift */; };
 		8FA2E75DF748C5B380FE0664 /* TVPlaybackCapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 794DC63C098524D2EFC80493 /* TVPlaybackCapabilities.swift */; };
 		915A02A9FC8D5A1D422EA261 /* CollectionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F624ED2E01AFD6E2561BA84 /* CollectionStore.swift */; };
+		9215C4F5D8471BA20BCC2F2D /* SubtitlePreferenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10C2AC95756A0A802D0E4B89 /* SubtitlePreferenceStore.swift */; };
 		925E9F56616FDCCEB472EFFB /* DetailsLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ADDE41620605558D20294CB /* DetailsLoadingView.swift */; };
 		9305EAFB83D782A6E03488DA /* NuvioTVNavigationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5FABF0ECD7D8DE6D1685AC2 /* NuvioTVNavigationUITests.swift */; };
 		98F37D1326719865EA48A7FF /* NuvioTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9743E52A15DDE3E903942F2C /* NuvioTheme.swift */; };
@@ -146,6 +148,7 @@
 		0793D8511263AD11562CA2F5 /* TVProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TVProfileStore.swift; sourceTree = "<group>"; };
 		0E063DF1A7166F7F4FDC0C3F /* PlayerErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerErrorView.swift; sourceTree = "<group>"; };
 		0F07B941E578633135926312 /* PlaybackCapabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackCapabilityTests.swift; sourceTree = "<group>"; };
+		10C2AC95756A0A802D0E4B89 /* SubtitlePreferenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitlePreferenceStore.swift; sourceTree = "<group>"; };
 		10F96A6131AF0A35CE5B3E10 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		112EB72F7608816A19421933 /* PlayerSelectionPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSelectionPanel.swift; sourceTree = "<group>"; };
 		1299CF09F4B54B1BB82CFC41 /* NuvioTopShelf.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = NuvioTopShelf.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -201,6 +204,7 @@
 		991FB2DA8387C6A116A42C82 /* DetailsBackdrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsBackdrop.swift; sourceTree = "<group>"; };
 		9ADDE41620605558D20294CB /* DetailsLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsLoadingView.swift; sourceTree = "<group>"; };
 		AAD0750902F3BA140EC65E3B /* MPVPlayerNetworking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPVPlayerNetworking.swift; sourceTree = "<group>"; };
+		B1A7944B1E48428ED2DC6984 /* MPVSubtitleSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPVSubtitleSession.swift; sourceTree = "<group>"; };
 		B2AFC2D037541A3D7A11A6E2 /* PlayerControlsOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerControlsOverlay.swift; sourceTree = "<group>"; };
 		B5716F31FB038AFA879C132F /* SubtitleAppearanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleAppearanceView.swift; sourceTree = "<group>"; };
 		BE3830B7B3B9DD609AE362CE /* CatalogRail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogRail.swift; sourceTree = "<group>"; };
@@ -299,6 +303,7 @@
 				302544E09DAD6A87C91FB11C /* MPVPlayerController.swift */,
 				AAD0750902F3BA140EC65E3B /* MPVPlayerNetworking.swift */,
 				5130437B6988CB319EA38E68 /* MPVPlayerStatePublishing.swift */,
+				B1A7944B1E48428ED2DC6984 /* MPVSubtitleSession.swift */,
 				DEBDD5DC9525EBCC8643B70D /* NuvioAccountLibraryService.swift */,
 				EDB1B3656C3DA6EDA345CED4 /* NuvioAccountService.swift */,
 				51FCD104A61FCAE3B60D12FD /* NuvioControls.swift */,
@@ -329,6 +334,7 @@
 				DB64C4919946C587C5324E0C /* StreamSourcesView.swift */,
 				DE4CBBD7A31E58DE8D2CB62F /* StremioService.swift */,
 				B5716F31FB038AFA879C132F /* SubtitleAppearanceView.swift */,
+				10C2AC95756A0A802D0E4B89 /* SubtitlePreferenceStore.swift */,
 				C8E8F663B260630B74942734 /* TimelineScrubModel.swift */,
 				C2FC4480363CC0C65536C9A8 /* TVAudioSessionCoordinator.swift */,
 				8CA8D158F406C206AD751836 /* TVNowPlayingController.swift */,
@@ -594,6 +600,7 @@
 				B08120C4F269B799CFC54713 /* MPVPlayerController.swift in Sources */,
 				3E5C13C1C6F3DFDD6884062B /* MPVPlayerNetworking.swift in Sources */,
 				3DF7651B0D6F6D02C2D4820F /* MPVPlayerStatePublishing.swift in Sources */,
+				3408DC2EFB381E813C999744 /* MPVSubtitleSession.swift in Sources */,
 				C802F622936E4FDCBDCE8BDE /* MediaPosterButton.swift in Sources */,
 				735E71DE6BDF098559CEB269 /* Models.swift in Sources */,
 				AB8903DA6B406A79E2C44C34 /* NuvioAccountLibraryService.swift in Sources */,
@@ -626,6 +633,7 @@
 				D91C7E56946233EB62D40BD9 /* StreamSourcesView.swift in Sources */,
 				A7399FFC8DB765DFFFC36554 /* StremioService.swift in Sources */,
 				7ADAACAEBC1B13EDAA1A6B7B /* SubtitleAppearanceView.swift in Sources */,
+				9215C4F5D8471BA20BCC2F2D /* SubtitlePreferenceStore.swift in Sources */,
 				824E002FC5327DD5BD5167F7 /* TVAudioSessionCoordinator.swift in Sources */,
 				ABB53549A923F9D74484E51B /* TVNowPlayingController.swift in Sources */,
 				8FA2E75DF748C5B380FE0664 /* TVPlaybackCapabilities.swift in Sources */,

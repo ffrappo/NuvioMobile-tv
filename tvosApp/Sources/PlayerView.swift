@@ -55,6 +55,7 @@ struct PlayerView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var integrations: IntegrationStore
     @EnvironmentObject private var syncedProgress: WatchProgressStore
+    @EnvironmentObject private var profiles: TVProfileStore
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var session = MPVPlaybackSession()
     @StateObject private var controls = PlayerControlsVisibility()
@@ -67,9 +68,12 @@ struct PlayerView: View {
     @State private var skipIntervals: [SkipInterval] = []
     @State private var dismissedSkipIntervalIDs: Set<String> = []
     @State private var isControlPanelPresented = false
+    @State private var pendingSubtitlePreference: SubtitleTrackPreference?
+    @State private var didRestoreSubtitleSelection = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let progressStore = PlaybackProgressStore()
+    private let subtitlePreferences = SubtitlePreferenceStore()
     private let skipService = SkipSegmentsService()
 
     var body: some View {
@@ -85,6 +89,8 @@ struct PlayerView: View {
                     activeSkipInterval: activeSkipInterval,
                     onInteraction: { controls.registerInteraction() },
                     onModalPresentationChanged: setControlPanelPresented,
+                    onSubtitleSelection: selectSubtitle,
+                    onSubtitleAppearanceChanged: persistSubtitleAppearance,
                     onSkip: skip,
                     onSelectSource: switchSource,
                     onSelectEpisode: selectEpisode
@@ -97,6 +103,8 @@ struct PlayerView: View {
         }
         .onAppear {
             UIApplication.shared.isIdleTimerDisabled = true
+            configureSubtitlePreferences()
+            session.onSubtitleTracksChanged = restoreSubtitleSelectionIfPossible
             selectedSourceURL = route.url
             session.updateActiveSourceName(route.initialSource?.name ?? route.sourceName)
             resumePosition = syncedProgress.resumablePosition(
@@ -118,6 +126,7 @@ struct PlayerView: View {
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
             session.onControlPress = nil
+            session.onSubtitleTracksChanged = nil
             controls.cancel()
             saveProgress()
             nowPlaying?.invalidate()
@@ -198,8 +207,61 @@ struct PlayerView: View {
         controls.registerInteraction(keepVisible: isControlPanelPresented || session.isPaused)
     }
 
+    private func configureSubtitlePreferences() {
+        pendingSubtitlePreference = subtitlePreferences.selection(
+            contentID: route.summary.id,
+            profileID: profiles.activeProfileID
+        )
+        let appearance = subtitlePreferences.appearance(
+            profileID: profiles.activeProfileID,
+            videoID: route.videoID
+        )
+        session.setSubtitleFontSize(appearance.fontSize)
+        session.setSubtitleDelay(milliseconds: appearance.delayMilliseconds)
+        didRestoreSubtitleSelection = pendingSubtitlePreference == nil
+    }
+
+    private func selectSubtitle(_ track: PlaybackTrack?) {
+        let preference = SubtitleTrackPreference(track: track)
+        subtitlePreferences.saveSelection(
+            preference,
+            contentID: route.summary.id,
+            profileID: profiles.activeProfileID
+        )
+        pendingSubtitlePreference = preference
+        didRestoreSubtitleSelection = true
+        session.selectSubtitle(id: track?.id)
+    }
+
+    private func restoreSubtitleSelectionIfPossible(_ tracks: [PlaybackTrack]) {
+        guard !didRestoreSubtitleSelection, let preference = pendingSubtitlePreference else { return }
+        switch preference.selection {
+        case .disabled:
+            didRestoreSubtitleSelection = true
+            session.selectSubtitle(id: nil)
+        case .internalTrack:
+            guard let track = SubtitlePreferenceStore.matchingTrack(for: preference, in: tracks) else {
+                return
+            }
+            didRestoreSubtitleSelection = true
+            session.selectSubtitle(id: track.id)
+        }
+    }
+
+    private func persistSubtitleAppearance() {
+        subtitlePreferences.saveAppearance(
+            SubtitleAppearancePreference(
+                fontSize: session.subtitleFontSize,
+                delayMilliseconds: session.subtitleDelayMilliseconds
+            ),
+            profileID: profiles.activeProfileID,
+            videoID: route.videoID
+        )
+    }
+
     private func switchSource(_ source: PlayerSourceOption) {
         saveProgress()
+        didRestoreSubtitleSelection = pendingSubtitlePreference == nil
         selectedSourceURL = source.url
         session.updateActiveSourceName(source.name)
         nowPlaying?.updateMetadata(title: route.title, subtitle: source.name)

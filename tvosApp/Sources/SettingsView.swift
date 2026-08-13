@@ -101,10 +101,12 @@ struct SettingsView: View {
         watchProgress.clearForLogout()
         collections.clearForLogout()
         home.clearForLogout()
+        let profileID = profiles.activeProfileID
         profiles.clear()
         integrations.clearForLogout()
         homePreferences.clearForLogout()
         PlaybackProgressStore().clearAll()
+        SubtitlePreferenceStore().clear(profileID: profileID)
         await auth.logout()
     }
 }
