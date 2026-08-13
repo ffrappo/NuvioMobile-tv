@@ -11,6 +11,7 @@ struct CatalogView: View {
     @EnvironmentObject private var home: HomeStore
     @EnvironmentObject private var preferences: HomePreferencesStore
     @Environment(\.nuvioTheme) private var theme
+    @State private var heroIndex = 0
     @FocusState private var retryFocused: Bool
 
     var body: some View {
@@ -33,10 +34,11 @@ struct CatalogView: View {
         } else if !home.snapshot.hasContent {
             emptyState
         } else {
-            if let hero = home.snapshot.heroItems.first {
-                HomeHeroView(item: hero) {
-                    onSelect(hero)
+            if !home.snapshot.heroItems.isEmpty {
+                HomeHeroView(item: home.snapshot.heroItems[heroIndex % home.snapshot.heroItems.count]) {
+                    onSelect(home.snapshot.heroItems[heroIndex % home.snapshot.heroItems.count])
                 }
+                .task(id: home.snapshot.heroItems.map(\.id)) { await rotateHero() }
             }
             if !home.snapshot.continueWatching.isEmpty {
                 Text("Continue Watching")
@@ -81,6 +83,18 @@ struct CatalogView: View {
                     onSelect: onSelect,
                     onOpenCatalog: { onOpenCatalog(.from(section)) }
                 )
+            }
+        }
+    }
+
+    private func rotateHero() async {
+        heroIndex = min(heroIndex, max(home.snapshot.heroItems.count - 1, 0))
+        guard home.snapshot.heroItems.count > 1 else { return }
+        while !Task.isCancelled {
+            try? await Task.sleep(for: .seconds(10))
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeInOut(duration: 0.45)) {
+                heroIndex = (heroIndex + 1) % home.snapshot.heroItems.count
             }
         }
     }
