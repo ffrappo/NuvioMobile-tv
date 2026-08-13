@@ -14,7 +14,7 @@ struct DetailsView: View {
     @State private var playerRoute: PlayerRoute?
     @FocusState private var focusedAction: DetailAction?
 
-    private let service = StremioService()
+    private let detailsRepository = DetailsRepository.shared
 
     private enum DetailAction: Hashable {
         case favorite
@@ -29,8 +29,7 @@ struct DetailsView: View {
                     hero
 
                     if isLoading {
-                        ProgressView("Loading details")
-                            .frame(maxWidth: .infinity, minHeight: 240)
+                        DetailsLoadingView()
                     } else if let errorMessage {
                         ErrorPanel(message: errorMessage, retry: reload)
                     } else if let detail {
@@ -142,11 +141,7 @@ struct DetailsView: View {
         isLoading = true
         errorMessage = nil
         do {
-            let loaded = try await service.details(
-                type: summary.type,
-                id: summary.id,
-                baseURL: summary.metadataBaseURL ?? StremioService.cinemetaBaseURL.absoluteString
-            )
+            let loaded = try await detailsRepository.detail(for: summary)
             detail = loaded
             let latestResume = watchProgress.latestResumableRecord(contentID: summary.id)
             selectedVideo = summary.playbackVideoID.flatMap { videoID in
@@ -163,33 +158,6 @@ struct DetailsView: View {
             errorMessage = error.userMessage
         }
         isLoading = false
-    }
-}
-
-private struct DetailsBackdrop: View {
-    let urlString: String?
-    @Environment(\.nuvioTheme) private var theme
-
-    var body: some View {
-        GeometryReader { proxy in
-            RemoteArtwork(urlString: urlString, systemPlaceholder: "film.fill")
-                .frame(width: proxy.size.width, height: min(proxy.size.height * 0.86, 820))
-                .overlay {
-                    ZStack {
-                        Color.black.opacity(0.45)
-                        LinearGradient(
-                            stops: [
-                                .init(color: .clear, location: 0),
-                                .init(color: theme.background.opacity(0.58), location: 0.62),
-                                .init(color: theme.background, location: 1)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    }
-                }
-        }
-        .ignoresSafeArea()
     }
 }
 

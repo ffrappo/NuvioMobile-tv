@@ -17,6 +17,7 @@
 		264FD2FF58FCD8ABB9197BB5 /* CatalogModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B26CB1691AF39F127797C79 /* CatalogModelTests.swift */; };
 		27C199D33D48FE16E1F27FBA /* PlayerControlMenus.swift in Sources */ = {isa = PBXBuildFile; fileRef = E723FE2419E3A281C9A1C792 /* PlayerControlMenus.swift */; };
 		27D61384067C9BD73191E897 /* AuthStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F7D7B62F6F49435D9DF63AE /* AuthStore.swift */; };
+		288149F15DB17BF817228167 /* DetailsBackdrop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991FB2DA8387C6A116A42C82 /* DetailsBackdrop.swift */; };
 		2D8E979895B9334AD80139AF /* StreamInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452B791F55EE4C48627A3A4E /* StreamInfo.swift */; };
 		2F9FFDD1291DD4FCEE335AA3 /* NuvioTopShelf.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1299CF09F4B54B1BB82CFC41 /* NuvioTopShelf.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3DF7651B0D6F6D02C2D4820F /* MPVPlayerStatePublishing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5130437B6988CB319EA38E68 /* MPVPlayerStatePublishing.swift */; };
@@ -26,6 +27,7 @@
 		41EDEC0FD1E0EA9846D553D7 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958FD18C6EA14520C046C529 /* SignInView.swift */; };
 		4200128317A802BB497D33A6 /* PlayerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C27E09B744C2CE890A87E44F /* PlayerModels.swift */; };
 		4492E0066035C1098B1BD4B4 /* AppShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728F8B7A925C4B231A981A64 /* AppShellView.swift */; };
+		44E2047EF24233D36EF834D2 /* DetailsRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DE767FC1514F0A26683261C /* DetailsRepository.swift */; };
 		46CEF7E4D525E0D17C2C81AF /* TVProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0793D8511263AD11562CA2F5 /* TVProfileStore.swift */; };
 		47E3EBC0763BA0985BE8E921 /* DetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D6169A51B12FA3CED04AC6E /* DetailsView.swift */; };
 		4AAD039883596C3DFDAE1223 /* WatchProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32B6238CEAC5F5804D9056E1 /* WatchProgressStore.swift */; };
@@ -46,6 +48,7 @@
 		824E002FC5327DD5BD5167F7 /* TVAudioSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2FC4480363CC0C65536C9A8 /* TVAudioSessionCoordinator.swift */; };
 		8FA2E75DF748C5B380FE0664 /* TVPlaybackCapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 794DC63C098524D2EFC80493 /* TVPlaybackCapabilities.swift */; };
 		915A02A9FC8D5A1D422EA261 /* CollectionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F624ED2E01AFD6E2561BA84 /* CollectionStore.swift */; };
+		925E9F56616FDCCEB472EFFB /* DetailsLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ADDE41620605558D20294CB /* DetailsLoadingView.swift */; };
 		98F37D1326719865EA48A7FF /* NuvioTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9743E52A15DDE3E903942F2C /* NuvioTheme.swift */; };
 		9C571A78C579E9FF2F66ABE0 /* ArtworkCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCD191E61EBE513E96B6E2A9 /* ArtworkCache.swift */; };
 		A0BD3A24E14F3967135F0D89 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44E8A9DA69945B36709DBC01 /* SettingsView.swift */; };
@@ -153,6 +156,7 @@
 		60FD5664E979436B49C41ADA /* HomeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeModels.swift; sourceTree = "<group>"; };
 		660DC53C71DE152831CC0C12 /* AudioRoutePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRoutePicker.swift; sourceTree = "<group>"; };
 		6D6169A51B12FA3CED04AC6E /* DetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsView.swift; sourceTree = "<group>"; };
+		6DE767FC1514F0A26683261C /* DetailsRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsRepository.swift; sourceTree = "<group>"; };
 		6F624ED2E01AFD6E2561BA84 /* CollectionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionStore.swift; sourceTree = "<group>"; };
 		728F8B7A925C4B231A981A64 /* AppShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShellView.swift; sourceTree = "<group>"; };
 		786FC58A58F4DEFF56C9B9BF /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
@@ -166,6 +170,8 @@
 		958FD18C6EA14520C046C529 /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		96D5B2597935756E1FBADFBE /* PlayerControlsVisibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerControlsVisibility.swift; sourceTree = "<group>"; };
 		9743E52A15DDE3E903942F2C /* NuvioTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NuvioTheme.swift; sourceTree = "<group>"; };
+		991FB2DA8387C6A116A42C82 /* DetailsBackdrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsBackdrop.swift; sourceTree = "<group>"; };
+		9ADDE41620605558D20294CB /* DetailsLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsLoadingView.swift; sourceTree = "<group>"; };
 		AAD0750902F3BA140EC65E3B /* MPVPlayerNetworking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPVPlayerNetworking.swift; sourceTree = "<group>"; };
 		B2AFC2D037541A3D7A11A6E2 /* PlayerControlsOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerControlsOverlay.swift; sourceTree = "<group>"; };
 		B5716F31FB038AFA879C132F /* SubtitleAppearanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleAppearanceView.swift; sourceTree = "<group>"; };
@@ -231,6 +237,9 @@
 				D425767B80D0A4CFDF4B1FF7 /* CatalogRepository.swift */,
 				DE2FEDA020CC691768F55DBE /* CatalogView.swift */,
 				6F624ED2E01AFD6E2561BA84 /* CollectionStore.swift */,
+				991FB2DA8387C6A116A42C82 /* DetailsBackdrop.swift */,
+				9ADDE41620605558D20294CB /* DetailsLoadingView.swift */,
+				6DE767FC1514F0A26683261C /* DetailsRepository.swift */,
 				6D6169A51B12FA3CED04AC6E /* DetailsView.swift */,
 				E882E3D905C9BC3A6F7BD6E6 /* DiscoverView.swift */,
 				FD27016DD0E674D8332CF7F4 /* DiscoveryStore.swift */,
@@ -472,6 +481,9 @@
 				592E9D4BE6FE81CF93D713F2 /* CatalogRepository.swift in Sources */,
 				CBED960FE44E31B33CA37821 /* CatalogView.swift in Sources */,
 				915A02A9FC8D5A1D422EA261 /* CollectionStore.swift in Sources */,
+				288149F15DB17BF817228167 /* DetailsBackdrop.swift in Sources */,
+				925E9F56616FDCCEB472EFFB /* DetailsLoadingView.swift in Sources */,
+				44E2047EF24233D36EF834D2 /* DetailsRepository.swift in Sources */,
 				47E3EBC0763BA0985BE8E921 /* DetailsView.swift in Sources */,
 				0DE3CA12024E2A2AE334744C /* DiscoverView.swift in Sources */,
 				594EC92E3129DE177FCA3832 /* DiscoveryStore.swift in Sources */,
