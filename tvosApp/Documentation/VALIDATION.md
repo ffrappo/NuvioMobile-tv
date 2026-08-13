@@ -85,7 +85,7 @@ Executed evidence:
 - Signing-disabled generic tvOS Debug build succeeded with Xcode 27.0 and AppleTVOS 27.0 SDK.
 - The simulator XCTest suite passed 48 tests with zero failures on destination `C88E5129-768F-4C58-8DF3-ADA7D514FBD6`. Log: `/tmp/nuvio-tests-2.log`.
 - All 9,770 Swift source and test lines remain in files at or below 400 lines. The largest is `MPVPlayerController.swift` at 400 lines.
-- `git diff --check` passed, and `graphify update` rebuilt a 14,168-node graph with 33,156 edges.
+- `git diff --check` passed, and `graphify update` rebuilt a 14,229-node graph with 33,233 edges.
 
 The installed SDK is tvOS 27.0. tvOS 26.6-specific availability was reviewed through Apple documentation, while compilation and runtime evidence in this pass comes from SDK 27.0 with a tvOS 18.0 deployment target. Directional focus, Back/Menu, VoiceOver, Larger Text, Reduce Motion, Reduce Transparency, cancellation under live navigation, and source switching still require a final physical Apple TV acceptance pass for this redesign.
 

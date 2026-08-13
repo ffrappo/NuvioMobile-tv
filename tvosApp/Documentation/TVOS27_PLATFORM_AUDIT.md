@@ -116,7 +116,7 @@ Completed on 2026-08-13:
 - the physical-device XCTest suite passed 30 tests with zero failures
 - the outgoing nine-commit range passed `gitleaks` with zero findings
 - changed Swift, test, and Python source files remain at or below 400 lines
-- `graphify update` completed with 14,168 nodes, 33,156 edges, and 690 communities
+- `graphify update` completed with 14,229 nodes, 33,233 edges, and 710 communities
 - simulator visual review confirmed the large Home hero, loaded catalog rail, See All action, and expanded-sidebar content exclusion at 1920 by 1080
 
 Physical screen review remains the final human acceptance step for Top Shelf placement, native card tilt, directional focus, Back/Menu behavior, VoiceOver, Larger Text, Increase Contrast, Reduce Motion, Reduce Transparency, Siri Remote transport, cancellation during navigation, and the TV or receiver volume route. CoreDevice screenshot capture returned error `25004`, so automated evidence does not include a new physical television screenshot for this redesign.
