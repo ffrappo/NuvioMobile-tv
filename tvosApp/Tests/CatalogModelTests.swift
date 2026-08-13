@@ -29,6 +29,25 @@ final class RepositoryConcurrencyTests: XCTestCase {
         XCTAssertEqual(count.value, 1)
     }
 
+    func testCatalogRepositoryExpiresCachedPage() async throws {
+        let count = LockedCounter()
+        TestURLProtocol.setHandler { _ in
+            count.increment()
+            return .init(
+                statusCode: 200,
+                data: Data(#"{"metas":[{"id":"tt1","type":"movie","name":"One"}]}"#.utf8),
+                delay: .zero
+            )
+        }
+        let repository = CatalogRepository(
+            service: StremioService(session: TestURLProtocol.session()),
+            cacheLifetime: 0
+        )
+        _ = try await repository.firstPage(of: descriptor())
+        _ = try await repository.firstPage(of: descriptor())
+        XCTAssertEqual(count.value, 2)
+    }
+
     func testCatalogRepositoryUsesAndClearsCache() async throws {
         let count = LockedCounter()
         TestURLProtocol.setHandler { _ in
