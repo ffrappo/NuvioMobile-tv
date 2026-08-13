@@ -44,6 +44,7 @@ final class CatalogModelTests: XCTestCase {
         ])
         XCTAssertEqual(descriptors.map(\.catalogID), ["popular", "genre"])
         XCTAssertEqual(descriptors.map(\.genre), [nil, "Drama"])
+        XCTAssertEqual(descriptors.last?.genres, ["Drama", "Comedy"])
         XCTAssertEqual(descriptors.map(\.supportsPagination), [true, false])
     }
 
