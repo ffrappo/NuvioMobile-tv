@@ -24,8 +24,11 @@ struct SearchView: View {
         .onSubmit(of: .search) { startSearch(immediately: true) }
         .onChange(of: query) { _, value in
             searchTask?.cancel()
-            if value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.isEmpty {
                 store.clear()
+            } else if trimmed.count < 2 {
+                store.clear(message: "Enter at least two characters.")
             } else {
                 startSearch(immediately: false)
             }
@@ -82,17 +85,17 @@ final class SearchStore: ObservableObject {
         self.repository = repository
     }
 
-    func clear() {
+    func clear(message nextMessage: String? = nil) {
         requestID = UUID()
         items = []
         isLoading = false
-        message = nil
+        message = nextMessage
     }
 
     func search(_ rawQuery: String, addons: [HomeAddon]) async {
         let query = rawQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else {
-            clear()
+        guard query.count >= 2 else {
+            clear(message: query.isEmpty ? nil : "Enter at least two characters.")
             return
         }
         requestID = UUID()
