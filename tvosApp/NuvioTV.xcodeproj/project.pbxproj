@@ -91,7 +91,6 @@
 		E519A1983E8298A3105BB68A /* PlayerControlStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = F18FD64ECA02F81C05D32427 /* PlayerControlStrip.swift */; };
 		E67EFD118537FF0B04A36A1F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C4C9739C9C26824BF9517638 /* Assets.xcassets */; };
 		E6B49DD6F0ED706328C50151 /* CatalogModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70D0C6976504C288AC74B65 /* CatalogModels.swift */; };
-		E7AA1CDB09BD9DBBFF178F45 /* TVTimelinePanControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0D5C3BCA31DFB40867FD402 /* TVTimelinePanControl.swift */; };
 		E876CF7B534A3C53332B06CC /* AuthSessionStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 488DB3FFFEB6F50217317990 /* AuthSessionStorage.swift */; };
 		F194D86512B38FAB5852D5AB /* PlayerFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A39469765AC8C6989D0FC4 /* PlayerFeatureTests.swift */; };
 		F528FFC3C00965B4B0D5FB96 /* StreamRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58E0E9A7BAF0F570B47EDEF5 /* StreamRepository.swift */; };
@@ -198,7 +197,6 @@
 		9743E52A15DDE3E903942F2C /* NuvioTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NuvioTheme.swift; sourceTree = "<group>"; };
 		991FB2DA8387C6A116A42C82 /* DetailsBackdrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsBackdrop.swift; sourceTree = "<group>"; };
 		9ADDE41620605558D20294CB /* DetailsLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsLoadingView.swift; sourceTree = "<group>"; };
-		A0D5C3BCA31DFB40867FD402 /* TVTimelinePanControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TVTimelinePanControl.swift; sourceTree = "<group>"; };
 		AAD0750902F3BA140EC65E3B /* MPVPlayerNetworking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPVPlayerNetworking.swift; sourceTree = "<group>"; };
 		B2AFC2D037541A3D7A11A6E2 /* PlayerControlsOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerControlsOverlay.swift; sourceTree = "<group>"; };
 		B5716F31FB038AFA879C132F /* SubtitleAppearanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleAppearanceView.swift; sourceTree = "<group>"; };
@@ -331,7 +329,6 @@
 				794DC63C098524D2EFC80493 /* TVPlaybackCapabilities.swift */,
 				0793D8511263AD11562CA2F5 /* TVProfileStore.swift */,
 				4FFC449C8B388C4AA1C7C9DE /* TVSyncClientIdentity.swift */,
-				A0D5C3BCA31DFB40867FD402 /* TVTimelinePanControl.swift */,
 				32B6238CEAC5F5804D9056E1 /* WatchProgressStore.swift */,
 			);
 			path = Sources;
@@ -627,7 +624,6 @@
 				8FA2E75DF748C5B380FE0664 /* TVPlaybackCapabilities.swift in Sources */,
 				46CEF7E4D525E0D17C2C81AF /* TVProfileStore.swift in Sources */,
 				23E6766D484C5DEAE9779FFB /* TVSyncClientIdentity.swift in Sources */,
-				E7AA1CDB09BD9DBBFF178F45 /* TVTimelinePanControl.swift in Sources */,
 				4AAD039883596C3DFDAE1223 /* WatchProgressStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

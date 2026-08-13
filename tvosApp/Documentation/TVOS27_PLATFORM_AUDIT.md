@@ -64,7 +64,7 @@ Installed SDK headers were also reviewed in:
 - Reserve a 360-point leading exclusion zone for every root tab while the sidebar is expanded. A 1920 by 1080 simulator receipt confirmed that the hero title, description, CTA, and catalog rail remain outside the system sidebar.
 - Keep regular seasons in ascending order and place Specials last. Restore the last focused episode independently for each season.
 - Show compatible and incompatible stream sources together. Disable unsupported playback while retaining a concise reason instead of hiding the source.
-- On tvOS 26.6, map horizontal Siri Remote pan distance against the visible timeline width and commit the exact previewed position when the pan ends. Keep predictable 10-second left, right, and VoiceOver adjustments.
+- On tvOS 26.6, use a focusable UIKit pan control with Swiftfin's 200-point damping on a 0-100 progress scale. Debounce movement for 700 ms before seeking, and retain the pending preview until the player confirms the destination. Directional fallback moves one percent of duration per press, bounded to 15 through 90 seconds; VoiceOver keeps 10-second adjustments.
 
 ## Catalog and performance receipt
 

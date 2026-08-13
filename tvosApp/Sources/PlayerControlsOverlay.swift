@@ -113,7 +113,6 @@ struct PlayerControlsOverlay: View {
                 position: scrubPosition,
                 duration: max(session.duration, 0),
                 isFocused: focus == .timeline,
-                onPreview: { scrubPosition = $0 },
                 onSeek: { position in
                     scrubPosition = position
                     session.seek(to: position)
@@ -121,15 +120,6 @@ struct PlayerControlsOverlay: View {
                 onInteraction: onInteraction
             )
             .focused($focus, equals: .timeline)
-            .accessibilityLabel("Playback Position")
-            .accessibilityValue(PlayerTimeFormatter.string(scrubPosition))
-            HStack {
-                Text(PlayerTimeFormatter.string(scrubPosition))
-                Spacer()
-                Text("-\(PlayerTimeFormatter.string(max(0, session.duration - scrubPosition)))")
-            }
-            .font(.callout.monospacedDigit().weight(.medium))
-            .foregroundStyle(theme.secondaryText)
         }
     }
 
