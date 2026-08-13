@@ -76,7 +76,6 @@ struct PlayerView: View {
         ZStack {
             Color.black.ignoresSafeArea()
             MPVPlayerView(session: session).ignoresSafeArea()
-                .onAppear { session.onPress = handleRemotePress }
             if controls.isVisible {
                 PlayerControlsOverlay(
                     route: route,
@@ -117,7 +116,6 @@ struct PlayerView: View {
         }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
-            session.onPress = nil
             controls.cancel()
             saveProgress()
             nowPlaying?.invalidate()
@@ -187,10 +185,6 @@ struct PlayerView: View {
         dismissedSkipIntervalIDs.insert(interval.id)
         session.seek(to: interval.endTime)
         controls.registerInteraction()
-    }
-
-    private func handleRemotePress() {
-        controls.registerInteraction(keepVisible: isControlPanelPresented)
     }
 
     private func setControlPanelPresented(_ presented: Bool) {

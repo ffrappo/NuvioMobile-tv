@@ -16,7 +16,6 @@ final class MPVPlaybackSession: ObservableObject {
     @Published private(set) var subtitleFontSize = 52
     @Published private(set) var errorMessage: String?
     @Published private(set) var activeSourceName = ""
-    var onPress: (() -> Void)?
 
     fileprivate weak var controller: MPVPlayerController?
 
@@ -148,8 +147,6 @@ final class MPVPlayerController: UIViewController {
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }
 
-    override var canBecomeFirstResponder: Bool { true }
-
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
@@ -172,11 +169,6 @@ final class MPVPlayerController: UIViewController {
             pendingURL = nil
             command("loadfile", url.absoluteString, "replace")
         }
-    }
-
-    override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
-        if !presses.isEmpty { session.onPress?() }
-        super.pressesBegan(presses, with: event)
     }
 
     func load(
