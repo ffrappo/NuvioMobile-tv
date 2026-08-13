@@ -15,6 +15,7 @@ settings:
     TVOS_BUNDLE_IDENTIFIER: com.nuvio.app.tvos.dev
     TVOS_TOP_SHELF_BUNDLE_IDENTIFIER: com.nuvio.app.tvos.dev.topshelf
     TVOS_TEST_BUNDLE_IDENTIFIER: com.nuvio.app.tvos.dev.tests
+    TVOS_UI_TEST_BUNDLE_IDENTIFIER: com.nuvio.app.tvos.dev.uitests
 
 targets:
   NuvioTV:
@@ -89,6 +90,20 @@ targets:
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Nuvio.app/Nuvio"
         BUNDLE_LOADER: "$(TEST_HOST)"
 
+  NuvioTVUITests:
+    type: bundle.ui-testing
+    platform: tvOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: UITests
+    dependencies:
+      - target: NuvioTV
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "$(TVOS_UI_TEST_BUNDLE_IDENTIFIER)"
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: NuvioTV
+
 schemes:
   NuvioTV:
     build:
@@ -96,9 +111,11 @@ schemes:
         NuvioTV: all
         NuvioTopShelf: all
         NuvioTVTests: [test]
+        NuvioTVUITests: [test]
     run:
       config: Debug
     test:
       config: Debug
       targets:
         - NuvioTVTests
+        - NuvioTVUITests

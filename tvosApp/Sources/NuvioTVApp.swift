@@ -14,6 +14,13 @@ struct NuvioTVApp: App {
     @StateObject private var deepLinkStore = NuvioDeepLinkStore()
 
     init() {
+        if ProcessInfo.processInfo.arguments.contains("-ui-testing") {
+            UserDefaults.standard.set(true, forKey: "nuvio.tv.continueAsGuest.v1")
+            UserDefaults.standard.set(
+                [StremioService.cinemetaBaseURL.absoluteString],
+                forKey: "nuvio.tv.addonBases.v1"
+            )
+        }
         let preferences = HomePreferencesStore()
         let progress = WatchProgressStore()
         let collections = CollectionStore()

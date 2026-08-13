@@ -110,7 +110,7 @@ xcodebuild \
   build-for-testing
 ```
 
-Run the tests on an installed compatible tvOS simulator when one is available in Xcode.
+Run the unit and XCUI remote-navigation suites on an installed compatible tvOS simulator. The checked-in UI tests launch deterministic guest mode, expose the native root sidebar, exercise details Back/Menu navigation, and attach kept screenshots for expanded-sidebar geometry.
 
 ## Architecture
 
@@ -121,7 +121,8 @@ Run the tests on an installed compatible tvOS simulator when one is available in
 - Home, Discover, Search, Library, collections, and catalog grids reuse stable native poster and rail components.
 - service and store files own account, addon, collection, profile, catalog, and progress behavior.
 - player files own MPV, Metal output, controls, menus, Now Playing integration, and progress persistence.
-- `Tests/StremioServiceTests.swift`, `CatalogModelTests.swift`, and `PlaybackCapabilityTests.swift` cover protocol decoding, provider-aware URL construction, catalog identity and pagination, playback capability gates, focus contracts, and progress persistence.
+- `Tests/StremioServiceTests.swift`, `CatalogModelTests.swift`, `AsyncBatcherTests.swift`, `ArtworkLoaderTests.swift`, and `PlaybackCapabilityTests.swift` cover protocol decoding, provider-aware URL construction, catalog identity and pagination, coalescing, caching, bounded cancellation, playback capability gates, focus contracts, and progress persistence.
+- `UITests/NuvioTVNavigationUITests.swift` drives `XCUIRemote` through root sidebar, details, and Back/Menu flows, with kept screenshots in `Documentation/Screenshots`.
 
 See [PLAYER_PARITY.md](Documentation/PLAYER_PARITY.md) for the implemented playback matrix and intentional platform boundaries.
 

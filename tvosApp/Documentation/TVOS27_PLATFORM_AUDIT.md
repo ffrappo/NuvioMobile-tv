@@ -107,7 +107,7 @@ A complete Debug generic-tvOS build must prove:
 Completed on 2026-08-13:
 
 - generic tvOS Debug build succeeded with signing disabled
-- the current tvOS 27 simulator suite passed 54 tests with zero failures after the catalog, detail, source, artwork, player-control, playback-volume, and interruption corrections
+- the current tvOS 27 simulator suite passed 54 unit tests and 3 XCUI remote-navigation tests with zero failures after the catalog, detail, source, artwork, player-control, playback-volume, and interruption corrections
 - scheme-level `build-for-testing` succeeded
 - asset compilation, extension embedding, and `ValidateEmbeddedBinary` succeeded
 - live Cinemeta movie and series catalog decoding succeeded
@@ -117,6 +117,7 @@ Completed on 2026-08-13:
 - the outgoing nine-commit range passed `gitleaks` with zero findings
 - changed Swift, test, and Python source files remain at or below 400 lines
 - `graphify update` completed with 14,229 nodes, 33,233 edges, and 710 communities
-- simulator visual review confirmed the large Home hero, loaded catalog rail, See All action, and expanded-sidebar content exclusion at 1920 by 1080
+- simulator XCUI receipts verify all six native root-sidebar labels, a Home to details to Home Back/Menu round trip, and expanded-sidebar hero exclusion
+- kept screenshots: `Documentation/Screenshots/home-sidebar-expanded.png` and `Documentation/Screenshots/root-sidebar-items.png`
 
 Physical screen review remains the final human acceptance step for Top Shelf placement, native card tilt, redesigned-route directional focus, Back/Menu behavior, VoiceOver, Larger Text, Increase Contrast, Reduce Motion, Reduce Transparency, and cancellation during navigation. The player was installed on an Apple TV HD (`AppleTV5,3`) running tvOS 26.6 as bundle `com.nuvio.app.tvos.dev`; a 1920 by 1080 screenshot was recorded at `/tmp/nuvio-audio-route-deployed.png`. The at-television tester confirmed directional and Select input reveal controls, subtitle and audio controls are reachable, Play/Pause responds to one physical press, and physical Volume Up and Volume Down control the selected tvOS audio route during playback. That receipt predates the catalog redesign. CoreDevice cannot inspect the audio output route and returns capability error 1001, so the physical result is the authoritative transport receipt.
