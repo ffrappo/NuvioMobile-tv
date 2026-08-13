@@ -178,8 +178,8 @@ struct TVCollectionSource: Decodable, Equatable {
 
 private extension KeyedDecodingContainer {
     func decodeFlexibleInt64IfPresent(forKey key: Key) throws -> Int64? {
-        if let value = try decodeIfPresent(Int64.self, forKey: key) { return value }
-        if let value = try decodeIfPresent(String.self, forKey: key) { return Int64(value) }
+        if let value = try? decode(Int64.self, forKey: key) { return value }
+        if let value = try? decode(String.self, forKey: key) { return Int64(value) }
         return nil
     }
 }

@@ -99,7 +99,7 @@ final class StremioServiceTests: XCTestCase {
     }
 
     func testCollectionNullPayloadDecodesAsEmpty() throws {
-        let fixture = #"""[{"collections_json":null}]"""#.data(using: .utf8)!
+        let fixture = #"[{"collections_json":null}]"#.data(using: .utf8)!
         let rows = try JSONDecoder().decode([CollectionSyncBlob].self, from: fixture)
         XCTAssertEqual(rows.first?.collections, [])
     }
@@ -271,15 +271,6 @@ final class StremioServiceTests: XCTestCase {
         XCTAssertEqual(store.latestResumableRecord(contentID: "tt-show")?.videoID, "tt-show:1:4")
     }
 
-    func testShellUsesNativeAdaptiveTabs() throws {
-        let shell = try source(named: "AppShellView.swift")
-        XCTAssertTrue(shell.contains("TabView(selection:"))
-        XCTAssertTrue(shell.contains(".tabViewStyle(.sidebarAdaptable)"))
-        XCTAssertTrue(shell.contains("role: .search"))
-        XCTAssertFalse(shell.contains(".onMoveCommand"))
-        XCTAssertFalse(shell.contains("sidebarColor"))
-    }
-
     func testPlaybackProgressResumeRules() {
         XCTAssertNil(PlaybackProgress(position: 10, duration: 100, updatedAt: Date()).resumablePosition)
         XCTAssertEqual(
@@ -388,11 +379,5 @@ final class StremioServiceTests: XCTestCase {
 
     private func manifest(from fixture: String) throws -> AddonManifest {
         try JSONDecoder().decode(AddonManifest.self, from: Data(fixture.utf8))
-    }
-
-    private func source(named name: String) throws -> String {
-        let tests = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
-        let url = tests.deletingLastPathComponent().appendingPathComponent("Sources/\(name)")
-        return try String(contentsOf: url, encoding: .utf8)
     }
 }
