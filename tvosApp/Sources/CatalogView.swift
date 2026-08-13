@@ -10,7 +10,6 @@ struct CatalogView: View {
     @EnvironmentObject private var profiles: TVProfileStore
     @EnvironmentObject private var home: HomeStore
     @EnvironmentObject private var preferences: HomePreferencesStore
-    @EnvironmentObject private var collections: CollectionStore
     @Environment(\.nuvioTheme) private var theme
     @FocusState private var retryFocused: Bool
 
