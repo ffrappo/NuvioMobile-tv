@@ -72,6 +72,7 @@ struct PlayerView: View {
     @State private var didRestoreSubtitleSelection = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    private let exitCoordinator = PlayerExitCoordinator()
     private let progressStore = PlaybackProgressStore()
     private let subtitlePreferences = SubtitlePreferenceStore()
     private let skipService = SkipSegmentsService()
@@ -105,6 +106,7 @@ struct PlayerView: View {
             UIApplication.shared.isIdleTimerDisabled = true
             configureSubtitlePreferences()
             session.onSubtitleTracksChanged = restoreSubtitleSelectionIfPossible
+            session.onMenuPress = handleExitCommand
             selectedSourceURL = route.url
             session.updateActiveSourceName(route.initialSource?.name ?? route.sourceName)
             resumePosition = syncedProgress.resumablePosition(
@@ -126,6 +128,7 @@ struct PlayerView: View {
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
             session.onControlPress = nil
+            session.onMenuPress = nil
             session.onSubtitleTracksChanged = nil
             controls.cancel()
             saveProgress()
@@ -154,15 +157,7 @@ struct PlayerView: View {
         .onTapGesture {
             controls.registerInteraction()
         }
-        .onExitCommand {
-            if controls.isVisible {
-                controls.hide()
-            } else {
-                saveProgress()
-                session.stop()
-                dismiss()
-            }
-        }
+        .onExitCommand { _ = handleExitCommand() }
         .onChange(of: scenePhase) { _, phase in
             if phase != .active, !session.isPaused {
                 session.pause()
@@ -205,6 +200,24 @@ struct PlayerView: View {
 
     private func handleControlPress() {
         controls.registerInteraction(keepVisible: isControlPanelPresented || session.isPaused)
+    }
+
+    private func handleExitCommand() -> Bool {
+        switch exitCoordinator.action(
+            panelPresented: isControlPanelPresented,
+            controlsVisible: controls.isVisible
+        ) {
+        case .closePanel:
+            return false
+        case .hideControls:
+            controls.hide()
+            return true
+        case .leavePlayer:
+            saveProgress()
+            session.stop()
+            dismiss()
+            return true
+        }
     }
 
     private func configureSubtitlePreferences() {

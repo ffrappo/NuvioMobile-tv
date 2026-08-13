@@ -17,6 +17,7 @@ final class MPVPlaybackSession: ObservableObject {
     @Published private(set) var errorMessage: String?
     @Published private(set) var activeSourceName = ""
     var onControlPress: (() -> Void)?
+    var onMenuPress: (() -> Bool)?
     var onSubtitleTracksChanged: (([PlaybackTrack]) -> Void)?
 
     weak var controller: MPVPlayerController?
@@ -127,6 +128,7 @@ final class MPVPlayerController: UIViewController {
     private var pendingURL: URL?
     private var pendingStartPosition: Double?
     private var didConfigureAudioSession = false
+    var consumedMenuPresses: Set<ObjectIdentifier> = []
     private lazy var audioSession = TVAudioSessionCoordinator(
         isPlaying: { [weak self] in !(self?.session.isPaused ?? true) },
         pause: { [weak self] in self?.setPaused(true) },
@@ -166,19 +168,6 @@ final class MPVPlayerController: UIViewController {
             pendingURL = nil
             command("loadfile", url.absoluteString, "replace")
         }
-    }
-
-    override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
-        let wakesControls = presses.contains { press in
-            switch press.type {
-            case .upArrow, .downArrow, .leftArrow, .rightArrow, .select, .playPause:
-                return true
-            default:
-                return false
-            }
-        }
-        if wakesControls { session.onControlPress?() }
-        super.pressesBegan(presses, with: event)
     }
 
     func load(

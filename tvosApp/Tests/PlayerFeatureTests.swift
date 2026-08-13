@@ -235,6 +235,31 @@ final class PlayerFeatureTests: XCTestCase {
         return defaults
     }
 
+    func testPlayerExitCoordinatorUsesOneStepBackOrder() {
+        let coordinator = PlayerExitCoordinator()
+        XCTAssertEqual(
+            coordinator.action(panelPresented: true, controlsVisible: true),
+            .closePanel
+        )
+        XCTAssertEqual(
+            coordinator.action(panelPresented: false, controlsVisible: true),
+            .hideControls
+        )
+        XCTAssertEqual(
+            coordinator.action(panelPresented: false, controlsVisible: false),
+            .leavePlayer
+        )
+    }
+
+    func testPlayerPressRouterConsumesOnlyMenuAndWakesForControls() {
+        XCTAssertTrue(PlayerPressRouter.isMenu(.menu))
+        XCTAssertFalse(PlayerPressRouter.isMenu(.playPause))
+        XCTAssertTrue(PlayerPressRouter.wakesControls(.downArrow))
+        XCTAssertTrue(PlayerPressRouter.wakesControls(.select))
+        XCTAssertTrue(PlayerPressRouter.wakesControls(.playPause))
+        XCTAssertFalse(PlayerPressRouter.wakesControls(.menu))
+    }
+
     func testAppleTVHDRejectsUnsupportedDirectVideoProfiles() {
         let capabilities = TVPlaybackCapabilities(modelIdentifier: "AppleTV5,3")
         XCTAssertEqual(
