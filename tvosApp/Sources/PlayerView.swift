@@ -76,6 +76,7 @@ struct PlayerView: View {
         ZStack {
             Color.black.ignoresSafeArea()
             MPVPlayerView(session: session).ignoresSafeArea()
+                .onAppear { session.onControlPress = handleControlPress }
             if controls.isVisible {
                 PlayerControlsOverlay(
                     route: route,
@@ -116,6 +117,7 @@ struct PlayerView: View {
         }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
+            session.onControlPress = nil
             controls.cancel()
             saveProgress()
             nowPlaying?.invalidate()
@@ -190,6 +192,10 @@ struct PlayerView: View {
     private func setControlPanelPresented(_ presented: Bool) {
         isControlPanelPresented = presented
         controls.registerInteraction(keepVisible: presented || session.isPaused)
+    }
+
+    private func handleControlPress() {
+        controls.registerInteraction(keepVisible: isControlPanelPresented || session.isPaused)
     }
 
     private func switchSource(_ source: PlayerSourceOption) {
