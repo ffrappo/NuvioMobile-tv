@@ -16,21 +16,27 @@ struct AppShellView: View {
             TabView(selection: $selection) {
                 Tab("Home", systemImage: "house", value: .home) {
                     CatalogView(onSelect: showDetails, onOpenCatalog: showCatalog)
+                        .safeAreaPadding(.leading, 360)
                 }
                 Tab("Discover", systemImage: "safari", value: .discover) {
                     DiscoverView(onSelect: showDetails)
+                        .safeAreaPadding(.leading, 360)
                 }
                 Tab("Search", systemImage: "magnifyingglass", value: .search, role: .search) {
                     SearchView(onSelect: showDetails)
+                        .safeAreaPadding(.leading, 360)
                 }
                 Tab("Library", systemImage: "rectangle.stack", value: .library) {
                     LibraryView(onSelect: showDetails)
+                        .safeAreaPadding(.leading, 360)
                 }
                 Tab("Addons", systemImage: "puzzlepiece.extension", value: .addons) {
                     AddonsView()
+                        .safeAreaPadding(.leading, 360)
                 }
                 Tab("Settings", systemImage: "gearshape", value: .settings) {
                     SettingsView()
+                        .safeAreaPadding(.leading, 360)
                 }
             }
             .tabViewStyle(.sidebarAdaptable)
