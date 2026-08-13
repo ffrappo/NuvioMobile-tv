@@ -12,7 +12,7 @@ Implemented:
 - account profiles, library, collections, addons, Home preferences, and progress synchronization
 - Home, Discover, Search, Library, details, seasons, episodes, and progressively published stream selection
 - provider-aware catalogs with See All grids, genre filtering, caching, request coalescing, bounded addon fan-out, and pagination
-- collection and Home catalog sources resolved through the same catalog model
+- collection and Home catalog sources resolved through the same catalog model, with dedicated routed collection and folder browsing
 - native tvOS focus and navigation, including system card focus effects and per-season episode focus restoration
 - dynamic Top Shelf rows with stable deep links plus branded static fallback artwork
 - MPV playback, request headers, Now Playing controls, subtitles, audio tracks, speed, video sizing, source switching, and manual episode selection

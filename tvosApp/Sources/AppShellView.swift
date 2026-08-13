@@ -15,7 +15,11 @@ struct AppShellView: View {
         NavigationStack(path: $path) {
             TabView(selection: $selection) {
                 Tab("Home", systemImage: "house", value: .home) {
-                    CatalogView(onSelect: showDetails, onOpenCatalog: showCatalog)
+                    CatalogView(
+                        onSelect: showDetails,
+                        onOpenCatalog: showCatalog,
+                        onOpenCollection: showCollection
+                    )
                         .safeAreaPadding(.leading, 360)
                 }
                 Tab("Discover", systemImage: "safari", value: .discover) {
@@ -47,6 +51,8 @@ struct AppShellView: View {
                     DetailsView(summary: summary)
                 case .catalog(let listing):
                     CatalogGridScreen(listing: listing, onSelect: showDetails)
+                case .collection(let collection):
+                    CollectionDetailView(collection: collection, onSelect: showDetails)
                 }
             }
         }
@@ -82,6 +88,10 @@ struct AppShellView: View {
         path.append(.catalog(listing))
     }
 
+    private func showCollection(_ collection: TVCollection) {
+        path.append(.collection(collection))
+    }
+
     private func synchronizeAccount() async {
         guard authStore.session != nil else {
             await addonStore.refreshManifests()
@@ -100,6 +110,7 @@ struct AppShellView: View {
 enum AppRoute: Hashable {
     case details(MetaSummary)
     case catalog(CatalogListing)
+    case collection(TVCollection)
 }
 
 enum AppSection: String, Hashable {

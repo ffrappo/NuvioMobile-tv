@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		053182041D217A9A82814869 /* HomeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60FD5664E979436B49C41ADA /* HomeModels.swift */; };
+		0658CCD2A5EC7CE1A925C745 /* CollectionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E497C02C2696E9B4EFE34B02 /* CollectionDetailView.swift */; };
 		0DE3CA12024E2A2AE334744C /* DiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E882E3D905C9BC3A6F7BD6E6 /* DiscoverView.swift */; };
 		0E98EA26B2C6F282CCFCF3AE /* StremioServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DC198665629AD3BB6EBDFC /* StremioServiceTests.swift */; };
 		12A5669EEE742FEA82106E11 /* CatalogGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED2E28126A1D06E58F49DA23 /* CatalogGridView.swift */; };
@@ -33,6 +34,7 @@
 		4AAD039883596C3DFDAE1223 /* WatchProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32B6238CEAC5F5804D9056E1 /* WatchProgressStore.swift */; };
 		51AA6A27E7AD07DD8D537D7A /* NuvioAccountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDB1B3656C3DA6EDA345CED4 /* NuvioAccountService.swift */; };
 		551B00955BBBF0FC93D1551D /* DetailCreditsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DD7AA4A7AFFEF22EB6F8A7 /* DetailCreditsView.swift */; };
+		553E72BA152465FA65892E61 /* CatalogCollectionRail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47371145CAF7346457EA1F6A /* CatalogCollectionRail.swift */; };
 		578A37659AF71DB6B82A4818 /* HomeCatalogViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CC9181A82F45440F38E447B /* HomeCatalogViews.swift */; };
 		591C52DFBAEFF63946BCDBBE /* PlaybackCapabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F07B941E578633135926312 /* PlaybackCapabilityTests.swift */; };
 		592DFAD268B96B6B978898EC /* HomeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAB2BB8B6536D57835C2990 /* HomeStore.swift */; };
@@ -144,6 +146,7 @@
 		44E8A9DA69945B36709DBC01 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		450850237231EB649EE2F3EE /* SeriesEpisodesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesEpisodesView.swift; sourceTree = "<group>"; };
 		452B791F55EE4C48627A3A4E /* StreamInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamInfo.swift; sourceTree = "<group>"; };
+		47371145CAF7346457EA1F6A /* CatalogCollectionRail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogCollectionRail.swift; sourceTree = "<group>"; };
 		485448B0289172A18B5F39B0 /* NuvioTopShelfProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NuvioTopShelfProvider.swift; sourceTree = "<group>"; };
 		488DB3FFFEB6F50217317990 /* AuthSessionStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthSessionStorage.swift; sourceTree = "<group>"; };
 		4CC9181A82F45440F38E447B /* HomeCatalogViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeCatalogViews.swift; sourceTree = "<group>"; };
@@ -198,6 +201,7 @@
 		DE4CBBD7A31E58DE8D2CB62F /* StremioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StremioService.swift; sourceTree = "<group>"; };
 		DEBDD5DC9525EBCC8643B70D /* NuvioAccountLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NuvioAccountLibraryService.swift; sourceTree = "<group>"; };
 		E082ACA18B306E4D2DFC76F4 /* NuvioTV.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = NuvioTV.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E497C02C2696E9B4EFE34B02 /* CollectionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionDetailView.swift; sourceTree = "<group>"; };
 		E723FE2419E3A281C9A1C792 /* PlayerControlMenus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerControlMenus.swift; sourceTree = "<group>"; };
 		E882E3D905C9BC3A6F7BD6E6 /* DiscoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverView.swift; sourceTree = "<group>"; };
 		ED2E28126A1D06E58F49DA23 /* CatalogGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogGridView.swift; sourceTree = "<group>"; };
@@ -236,11 +240,13 @@
 				CC2BAA7F1FD89709C92D44FE /* AuthModels.swift */,
 				488DB3FFFEB6F50217317990 /* AuthSessionStorage.swift */,
 				4F7D7B62F6F49435D9DF63AE /* AuthStore.swift */,
+				47371145CAF7346457EA1F6A /* CatalogCollectionRail.swift */,
 				ED2E28126A1D06E58F49DA23 /* CatalogGridView.swift */,
 				F70D0C6976504C288AC74B65 /* CatalogModels.swift */,
 				BE3830B7B3B9DD609AE362CE /* CatalogRail.swift */,
 				D425767B80D0A4CFDF4B1FF7 /* CatalogRepository.swift */,
 				DE2FEDA020CC691768F55DBE /* CatalogView.swift */,
+				E497C02C2696E9B4EFE34B02 /* CollectionDetailView.swift */,
 				6F624ED2E01AFD6E2561BA84 /* CollectionStore.swift */,
 				76DD7AA4A7AFFEF22EB6F8A7 /* DetailCreditsView.swift */,
 				991FB2DA8387C6A116A42C82 /* DetailsBackdrop.swift */,
@@ -482,11 +488,13 @@
 				A838EF00ACFDCEE61E603671 /* AuthModels.swift in Sources */,
 				E876CF7B534A3C53332B06CC /* AuthSessionStorage.swift in Sources */,
 				27D61384067C9BD73191E897 /* AuthStore.swift in Sources */,
+				553E72BA152465FA65892E61 /* CatalogCollectionRail.swift in Sources */,
 				12A5669EEE742FEA82106E11 /* CatalogGridView.swift in Sources */,
 				E6B49DD6F0ED706328C50151 /* CatalogModels.swift in Sources */,
 				B12A04351ABBCC929D42F46D /* CatalogRail.swift in Sources */,
 				592E9D4BE6FE81CF93D713F2 /* CatalogRepository.swift in Sources */,
 				CBED960FE44E31B33CA37821 /* CatalogView.swift in Sources */,
+				0658CCD2A5EC7CE1A925C745 /* CollectionDetailView.swift in Sources */,
 				915A02A9FC8D5A1D422EA261 /* CollectionStore.swift in Sources */,
 				551B00955BBBF0FC93D1551D /* DetailCreditsView.swift in Sources */,
 				288149F15DB17BF817228167 /* DetailsBackdrop.swift in Sources */,

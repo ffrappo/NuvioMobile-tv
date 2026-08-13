@@ -94,7 +94,7 @@ struct ContinueWatchingCard: Identifiable, Equatable {
     }
 }
 
-struct TVCollection: Decodable, Equatable, Identifiable {
+struct TVCollection: Decodable, Equatable, Hashable, Identifiable {
     let id: String
     let title: String
     let backdropImageUrl: String?
@@ -115,7 +115,7 @@ struct TVCollection: Decodable, Equatable, Identifiable {
     }
 }
 
-struct TVCollectionFolder: Decodable, Equatable, Identifiable {
+struct TVCollectionFolder: Decodable, Equatable, Hashable, Identifiable {
     let id: String
     let title: String
     let coverImageUrl: String?
@@ -140,7 +140,7 @@ struct TVCollectionFolder: Decodable, Equatable, Identifiable {
     }
 }
 
-struct TVCollectionSource: Decodable, Equatable {
+struct TVCollectionSource: Decodable, Equatable, Hashable {
     let provider: String
     let addonId: String?
     let type: String?

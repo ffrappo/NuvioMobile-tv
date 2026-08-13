@@ -3,6 +3,7 @@ import SwiftUI
 struct CatalogView: View {
     let onSelect: (MetaSummary) -> Void
     var onOpenCatalog: (CatalogListing) -> Void = { _ in }
+    var onOpenCollection: (TVCollection) -> Void = { _ in }
 
     @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var addons: AddonStore
@@ -11,8 +12,6 @@ struct CatalogView: View {
     @EnvironmentObject private var preferences: HomePreferencesStore
     @EnvironmentObject private var collections: CollectionStore
     @Environment(\.nuvioTheme) private var theme
-    @State private var loadedFolders: [String: [MetaSummary]] = [:]
-    @State private var selectedFolderByCollection: [String: String] = [:]
     @FocusState private var retryFocused: Bool
 
     var body: some View {
@@ -71,7 +70,9 @@ struct CatalogView: View {
                 )
             }
             ForEach(home.snapshot.collections) { collection in
-                collectionRail(collection)
+                CatalogCollectionRail(collection: collection) {
+                    onOpenCollection(collection)
+                }
             }
             ForEach(home.snapshot.sections) { section in
                 CatalogRail(
@@ -102,49 +103,6 @@ struct CatalogView: View {
         let preference = preferences.value.preference(for: section.id)
         if let custom = preference?.customTitle.trimmedNonEmpty { return custom }
         return section.title
-    }
-
-    private func collectionRail(_ collection: TVCollection) -> some View {
-        VStack(alignment: .leading, spacing: 18) {
-            Text(collection.title.tvSafe).font(.title2.weight(.semibold)).padding(.horizontal, 48)
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 26) {
-                    ForEach(collection.folders) { folder in
-                        FolderButton(
-                            folder: folder,
-                            count: loadedFolders[folder.id]?.count
-                        ) {
-                            select(folder, in: collection)
-                        }
-                    }
-                }
-                .padding(.horizontal, 48)
-                .padding(.vertical, 18)
-            }
-            if let selectedID = selectedFolderByCollection[collection.id] ?? collection.folders.first?.id,
-               let folder = collection.folders.first(where: { $0.id == selectedID }),
-               let items = loadedFolders[selectedID], !items.isEmpty {
-                CatalogRail(
-                    title: folder.title,
-                    subtitle: collection.title,
-                    items: items,
-                    onSelect: onSelect
-                )
-            }
-        }
-    }
-
-    private func select(_ folder: TVCollectionFolder, in collection: TVCollection) {
-        selectedFolderByCollection[collection.id] = folder.id
-        Task {
-            let items = await collections.items(for: folder, addons: addons.homeAddons)
-            loadedFolders[folder.id] = items
-            if folder.sources.count == 1,
-               let source = folder.sources.first,
-               let listing = collections.listing(for: source, addons: addons.homeAddons, items: items) {
-                onOpenCatalog(listing)
-            }
-        }
     }
 
     private var loadingState: some View {
