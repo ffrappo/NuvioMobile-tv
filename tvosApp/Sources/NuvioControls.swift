@@ -38,7 +38,9 @@ struct NuvioPanel<Content: View>: View {
     var body: some View {
         content
             .padding(28)
-            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .nuvioAdaptiveSurface(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+            )
     }
 }
 

@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Nuvio</string>
+	<string>Nuvio Top Shelf</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -14,31 +14,16 @@
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>com.nuvio.app.tvos.details</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>nuvio</string>
-			</array>
-		</dict>
-	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
-	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.entertainment</string>
-	<key>NSAppTransportSecurity</key>
+	<key>NSExtension</key>
 	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.tv-top-shelf</string>
+		<key>NSExtensionPrincipalClass</key>
+		<string>$(PRODUCT_MODULE_NAME).NuvioTopShelfProvider</string>
 	</dict>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
 </dict>
 </plist>

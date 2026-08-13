@@ -10,7 +10,6 @@ struct PlayerControlMenus: View {
 
     @State private var showSubtitleAppearance = false
     @FocusState private var focusedMenu: MenuControl?
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private enum MenuControl: Hashable {
         case resize, speed, subtitles, audio, sources, episodes
@@ -46,13 +45,9 @@ struct PlayerControlMenus: View {
                 }
             }
         } label: {
-            controlLabel(
-                session.resizeMode.title,
-                symbol: session.resizeMode.symbol,
-                focused: focusedMenu == .resize
-            )
+            controlLabel(session.resizeMode.title, symbol: session.resizeMode.symbol)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
         .focused($focusedMenu, equals: .resize)
         .accessibilityLabel("Video Size")
     }
@@ -68,13 +63,9 @@ struct PlayerControlMenus: View {
                 }
             }
         } label: {
-            controlLabel(
-                speedTitle(session.speed),
-                symbol: "speedometer",
-                focused: focusedMenu == .speed
-            )
+            controlLabel(speedTitle(session.speed), symbol: "speedometer")
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
         .focused($focusedMenu, equals: .speed)
         .accessibilityLabel("Playback Speed")
     }
@@ -104,9 +95,9 @@ struct PlayerControlMenus: View {
                 Label("Appearance and Timing", systemImage: "textformat")
             }
         } label: {
-            controlLabel("Subtitles", symbol: "captions.bubble", focused: focusedMenu == .subtitles)
+            controlLabel("Subtitles", symbol: "captions.bubble")
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
         .focused($focusedMenu, equals: .subtitles)
         .accessibilityLabel("Subtitles")
     }
@@ -122,9 +113,9 @@ struct PlayerControlMenus: View {
                 }
             }
         } label: {
-            controlLabel("Audio", symbol: "waveform", focused: focusedMenu == .audio)
+            controlLabel("Audio", symbol: "waveform")
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
         .focused($focusedMenu, equals: .audio)
         .accessibilityLabel("Audio Track")
     }
@@ -143,9 +134,9 @@ struct PlayerControlMenus: View {
                 }
             }
         } label: {
-            controlLabel("Sources", symbol: "arrow.left.arrow.right", focused: focusedMenu == .sources)
+            controlLabel("Sources", symbol: "arrow.left.arrow.right")
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
         .focused($focusedMenu, equals: .sources)
         .accessibilityLabel("Sources")
     }
@@ -161,9 +152,9 @@ struct PlayerControlMenus: View {
                 }
             }
         } label: {
-            controlLabel("Episodes", symbol: "rectangle.stack", focused: focusedMenu == .episodes)
+            controlLabel("Episodes", symbol: "rectangle.stack")
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
         .focused($focusedMenu, equals: .episodes)
         .accessibilityLabel("Episodes")
     }
@@ -176,27 +167,12 @@ struct PlayerControlMenus: View {
         return title
     }
 
-    /// Pill with an explicit focused state. tvOS draws no focus ring for
-    /// `.plain` styled buttons, so without this the controls are indistinguishable
-    /// from the background while focused.
-    private func controlLabel(_ title: String, symbol: String, focused: Bool) -> some View {
+    private func controlLabel(_ title: String, symbol: String) -> some View {
         Label(title.tvSafe, systemImage: symbol)
             .font(.callout.weight(.semibold))
             .lineLimit(1)
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 4)
             .frame(minHeight: 44)
-            .background(
-                Color.white.opacity(focused ? 0.34 : 0.12),
-                in: Capsule()
-            )
-            .overlay {
-                if focused {
-                    Capsule().strokeBorder(Color.white.opacity(0.7), lineWidth: 1.5)
-                }
-            }
-            .scaleEffect(focused ? 1.08 : 1)
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: focused)
-            .contentShape(Capsule())
     }
 
     /// tvOS style selection: selected rows are bright with a trailing

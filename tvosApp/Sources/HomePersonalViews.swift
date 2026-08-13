@@ -24,15 +24,25 @@ private struct ProgressButton: View {
     let item: ContinueWatchingCard
     let action: () -> Void
 
-    @FocusState private var isFocused: Bool
-
     var body: some View {
-        Button(action: action) {
-            ProgressCard(item: item)
-                .nuvioTileFocus(isFocused)
+        VStack(alignment: .leading, spacing: 10) {
+            Button(action: action) {
+                ZStack(alignment: .bottomLeading) {
+                    RemoteArtwork(
+                        urlString: item.episodeThumbnail ?? item.summary.background ?? item.summary.poster,
+                        systemPlaceholder: "play.rectangle.fill"
+                    )
+                    .frame(width: 370, height: 208)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    if !item.isUpcoming {
+                        ProgressCardProgressBar(progress: item.progress)
+                    }
+                }
+            }
+            .buttonStyle(.card)
+            ProgressCardText(item: item)
         }
-        .buttonStyle(.plain)
-        .focused($isFocused)
+        .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityHint("Opens details")
     }
@@ -47,20 +57,11 @@ private struct ProgressButton: View {
     }
 }
 
-struct ProgressCard: View {
+struct ProgressCardText: View {
     let item: ContinueWatchingCard
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            ZStack(alignment: .bottomLeading) {
-                RemoteArtwork(
-                    urlString: item.episodeThumbnail ?? item.summary.background ?? item.summary.poster,
-                    systemPlaceholder: "play.rectangle.fill"
-                )
-                .frame(width: 370, height: 208)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                if !item.isUpcoming { progressBar }
-            }
             Text(item.summary.name.tvSafe)
                 .font(.headline)
                 .lineLimit(1)
@@ -69,19 +70,6 @@ struct ProgressCard: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
-    }
-
-    private var progressBar: some View {
-        GeometryReader { proxy in
-            ZStack(alignment: .leading) {
-                Capsule().fill(.black.opacity(0.52))
-                Capsule()
-                    .fill(Color.white.opacity(0.90))
-                    .frame(width: proxy.size.width * item.progress)
-            }
-        }
-        .frame(height: 7)
-        .padding(12)
     }
 
     private var metadata: String {
@@ -93,34 +81,36 @@ struct ProgressCard: View {
     }
 }
 
+struct ProgressCardProgressBar: View {
+    let progress: Double
+
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack(alignment: .leading) {
+                Capsule().fill(.black.opacity(0.52))
+                Capsule()
+                    .fill(Color.white.opacity(0.90))
+                    .frame(width: proxy.size.width * progress)
+            }
+        }
+        .frame(height: 7)
+        .padding(12)
+    }
+}
+
 struct FolderButton: View {
     let folder: TVCollectionFolder
     let count: Int?
     let action: () -> Void
 
-    @FocusState private var isFocused: Bool
-
-    var body: some View {
-        Button(action: action) {
-            FolderCard(folder: folder, count: count)
-                .nuvioTileFocus(isFocused)
-        }
-        .buttonStyle(.plain)
-        .focused($isFocused)
-        .accessibilityLabel(folder.title.tvSafe)
-        .accessibilityHint("Shows this collection")
-    }
-}
-
-struct FolderCard: View {
-    let folder: TVCollectionFolder
-    let count: Int?
-
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            RemoteArtwork(urlString: folder.coverImageUrl, systemPlaceholder: "folder.fill")
-                .frame(width: 250, height: folder.tileShape.lowercased() == "landscape" ? 150 : 250)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            Button(action: action) {
+                RemoteArtwork(urlString: folder.coverImageUrl, systemPlaceholder: "folder.fill")
+                    .frame(width: 250, height: folder.tileShape.lowercased() == "landscape" ? 150 : 250)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+            .buttonStyle(.card)
             if !folder.hideTitle {
                 Text(folder.title.tvSafe)
                     .font(.headline)
@@ -131,6 +121,9 @@ struct FolderCard: View {
                 Text("\(count) titles").font(.caption).foregroundStyle(.secondary)
             }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(folder.title.tvSafe)
+        .accessibilityHint("Shows this collection")
     }
 }
 
@@ -138,6 +131,7 @@ struct RemoteArtwork: View {
     let urlString: String?
     let systemPlaceholder: String
     @State private var loaded: UIImage?
+    @Environment(\.nuvioTheme) private var theme
 
     private var image: UIImage? {
         if let loaded { return loaded }
@@ -153,7 +147,7 @@ struct RemoteArtwork: View {
                     .scaledToFill()
             } else {
                 ZStack {
-                    NuvioTheme.panel
+                    theme.panel
                     Image(systemName: systemPlaceholder)
                         .font(.system(size: 54))
                         .foregroundStyle(.secondary)

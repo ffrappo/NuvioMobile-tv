@@ -12,6 +12,7 @@ struct PlayerControlsOverlay: View {
 
     @State private var scrubPosition = 0.0
     @FocusState private var focus: Control?
+    @Environment(\.nuvioTheme) private var theme
 
     private enum Control: Hashable { case timeline, playPause, skip }
 
@@ -45,12 +46,12 @@ struct PlayerControlsOverlay: View {
                 if let episode = episodeLabel {
                     Text(episode.tvSafe)
                         .font(.headline)
-                        .foregroundStyle(.white.opacity(0.86))
+                        .foregroundStyle(theme.secondaryText)
                         .lineLimit(1)
                 }
                 Text(sourceLabel.tvSafe)
                     .font(.callout)
-                    .foregroundStyle(.white.opacity(0.62))
+                    .foregroundStyle(theme.secondaryText)
                     .lineLimit(1)
             }
             Spacer()
@@ -124,7 +125,7 @@ struct PlayerControlsOverlay: View {
                 Text("-\(PlayerTimeFormatter.string(max(0, session.duration - scrubPosition)))")
             }
             .font(.callout.monospacedDigit().weight(.medium))
-            .foregroundStyle(.white.opacity(0.78))
+            .foregroundStyle(theme.secondaryText)
         }
     }
 

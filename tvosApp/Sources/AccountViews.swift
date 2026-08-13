@@ -2,12 +2,13 @@ import SwiftUI
 
 struct AccountGateView: View {
     @EnvironmentObject private var auth: AuthStore
+    @Environment(\.nuvioTheme) private var theme
 
     var body: some View {
         switch auth.status {
         case .loading:
             ZStack {
-                NuvioTheme.background.ignoresSafeArea()
+                theme.background.ignoresSafeArea()
                 VStack(spacing: 18) {
                     ProgressView().controlSize(.large)
                     Text("Restoring Your Account").font(.title3.weight(.semibold))

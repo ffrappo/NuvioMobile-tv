@@ -35,6 +35,20 @@
                ReferencedContainer = "container:NuvioTV.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "535E505389B5357315C0FA6C"
+               BuildableName = "NuvioTopShelf.appex"
+               BlueprintName = "NuvioTopShelf"
+               ReferencedContainer = "container:NuvioTV.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

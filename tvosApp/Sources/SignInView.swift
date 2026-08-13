@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SignInView: View {
     @EnvironmentObject private var auth: AuthStore
+    @Environment(\.nuvioTheme) private var theme
     @State private var email = ""
     @State private var password = ""
     @State private var showCredentials = false
@@ -15,7 +16,7 @@ struct SignInView: View {
             signInPanel
         }
         .padding(70)
-        .background(NuvioTheme.background.ignoresSafeArea())
+        .background(theme.background.ignoresSafeArea())
         .defaultFocus($focus, .refresh)
         .task { if auth.qrSession == nil { await auth.startQRLogin() } }
     }

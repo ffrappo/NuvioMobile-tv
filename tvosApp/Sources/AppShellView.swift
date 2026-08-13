@@ -6,6 +6,8 @@ struct AppShellView: View {
     @EnvironmentObject private var integrationStore: IntegrationStore
     @EnvironmentObject private var libraryStore: LibraryStore
     @EnvironmentObject private var profileStore: TVProfileStore
+    @EnvironmentObject private var deepLinkStore: NuvioDeepLinkStore
+    @Environment(\.nuvioTheme) private var theme
     @State private var selection: AppSection = .home
     @State private var path: [MetaSummary] = []
 
@@ -29,12 +31,33 @@ struct AppShellView: View {
                 }
             }
             .tabViewStyle(.sidebarAdaptable)
-            .background(NuvioTheme.background.ignoresSafeArea())
+            .background(theme.background.ignoresSafeArea())
             .navigationDestination(for: MetaSummary.self) { summary in
                 DetailsView(summary: summary)
             }
         }
         .task(id: authStore.signedInEmail) { await synchronizeAccount() }
+        .task(id: deepLinkStore.pending) {
+            guard let deepLink = deepLinkStore.pending else { return }
+            await route(deepLink)
+        }
+    }
+
+    @MainActor
+    private func route(_ deepLink: NuvioDeepLink) async {
+        defer { deepLinkStore.consume(deepLink) }
+        switch deepLink.destination {
+        case let .details(type, id):
+            do {
+                let detail = try await StremioService().details(type: type, id: id)
+                selection = .home
+                path = [detail.summary]
+            } catch {
+                AppLog.provider.error(
+                    "Deep link metadata failed type=\(type, privacy: .public) id=\(id, privacy: .public) detail=\(AppLog.safeDescription(error), privacy: .public)"
+                )
+            }
+        }
     }
 
     private func showDetails(_ summary: MetaSummary) {

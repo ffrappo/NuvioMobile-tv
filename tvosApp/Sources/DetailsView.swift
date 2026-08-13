@@ -6,6 +6,7 @@ struct DetailsView: View {
     @EnvironmentObject private var library: LibraryStore
     @EnvironmentObject private var addonStore: AddonStore
     @EnvironmentObject private var watchProgress: WatchProgressStore
+    @Environment(\.nuvioTheme) private var theme
     @State private var detail: MetaDetail?
     @State private var isLoading = true
     @State private var errorMessage: String?
@@ -61,7 +62,7 @@ struct DetailsView: View {
                 .padding(.bottom, 80)
             }
         }
-        .background(NuvioTheme.background)
+        .background(theme.background)
         .task { await loadDetail() }
         .onChange(of: selectedVideo?.id) { _, id in
             guard let id else { return }
@@ -79,7 +80,7 @@ struct DetailsView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                 .overlay {
                     RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .stroke(Color.white.opacity(0.16), lineWidth: 1)
+                        .stroke(theme.separator, lineWidth: 1)
                 }
                 .shadow(color: .black.opacity(0.65), radius: 28, y: 16)
 
@@ -152,13 +153,18 @@ struct DetailsView: View {
                             }
                             .frame(width: 330, alignment: .leading)
                             .padding(20)
-                            .nuvioSurfaceFocus(
-                                focusedAction == .episode(video.id),
-                                selected: selectedVideo?.id == video.id,
-                                cornerRadius: 16
+                            .background(
+                                selectedVideo?.id == video.id ? theme.elevatedPanel : theme.panel,
+                                in: RoundedRectangle(cornerRadius: 16, style: .continuous)
                             )
+                            .overlay {
+                                if selectedVideo?.id == video.id {
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .stroke(theme.accent, lineWidth: 3)
+                                }
+                            }
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.card)
                         .focused($focusedAction, equals: .episode(video.id))
                     }
                 }
@@ -202,6 +208,7 @@ struct DetailsView: View {
 
 private struct DetailsBackdrop: View {
     let urlString: String?
+    @Environment(\.nuvioTheme) private var theme
 
     var body: some View {
         GeometryReader { proxy in
@@ -213,8 +220,8 @@ private struct DetailsBackdrop: View {
                         LinearGradient(
                             stops: [
                                 .init(color: .clear, location: 0),
-                                .init(color: NuvioTheme.background.opacity(0.58), location: 0.62),
-                                .init(color: NuvioTheme.background, location: 1)
+                                .init(color: theme.background.opacity(0.58), location: 0.62),
+                                .init(color: theme.background, location: 1)
                             ],
                             startPoint: .top,
                             endPoint: .bottom
@@ -229,6 +236,7 @@ private struct DetailsBackdrop: View {
 private struct DetailFacts: View {
     let detail: MetaDetail?
     let summary: MetaSummary
+    @Environment(\.nuvioTheme) private var theme
 
     var body: some View {
         HStack(spacing: 12) {
@@ -251,12 +259,13 @@ private struct DetailFacts: View {
             .padding(.horizontal, 14)
             .frame(minHeight: 38)
             .background(Color.black.opacity(0.42), in: Capsule())
-            .overlay(Capsule().stroke(Color.white.opacity(0.12), lineWidth: 1))
+            .overlay(Capsule().stroke(theme.separator, lineWidth: 1))
     }
 }
 
 private struct DetailTags: View {
     let detail: MetaDetail?
+    @Environment(\.nuvioTheme) private var theme
 
     var body: some View {
         HStack(spacing: 12) {
@@ -265,7 +274,7 @@ private struct DetailTags: View {
                     .font(.callout.weight(.semibold))
                     .padding(.horizontal, 15)
                     .frame(minHeight: 38)
-                    .background(NuvioTheme.panel, in: Capsule())
+                    .background(theme.panel, in: Capsule())
             }
 
             if let released = detail?.released {

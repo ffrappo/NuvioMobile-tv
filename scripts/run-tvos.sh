@@ -16,8 +16,10 @@ confirm that Xcode trusts the device before running this script.
 Configuration:
   TVOS_DEVICE_ID                CoreDevice identifier. A positional value wins.
   TVOS_DEVELOPMENT_TEAM         Apple Developer team identifier.
-  TVOS_BUNDLE_IDENTIFIER        App identifier. Default: com.nuvio.app.tvos.dev
-  TVOS_TEST_BUNDLE_IDENTIFIER   Test identifier. Defaults to app identifier plus .tests.
+  TVOS_BUNDLE_IDENTIFIER          App identifier. Default: com.nuvio.app.tvos.dev
+  TVOS_TOP_SHELF_BUNDLE_IDENTIFIER
+                                  Top Shelf identifier. Defaults to app identifier plus .topshelf.
+  TVOS_TEST_BUNDLE_IDENTIFIER     Test identifier. Defaults to app identifier plus .tests.
   TVOS_CODE_SIGN_STYLE          Xcode signing style. Default: Automatic
 EOF
 }
@@ -35,6 +37,7 @@ command -v xcodegen >/dev/null 2>&1 || {
 device_id="${1:-${TVOS_DEVICE_ID:-}}"
 development_team="${TVOS_DEVELOPMENT_TEAM:-}"
 bundle_id="${TVOS_BUNDLE_IDENTIFIER:-com.nuvio.app.tvos.dev}"
+top_shelf_bundle_id="${TVOS_TOP_SHELF_BUNDLE_IDENTIFIER:-${bundle_id}.topshelf}"
 test_bundle_id="${TVOS_TEST_BUNDLE_IDENTIFIER:-${bundle_id}.tests}"
 sign_style="${TVOS_CODE_SIGN_STYLE:-Automatic}"
 derived_data="$repo_root/build/tvos-derived"
@@ -55,6 +58,7 @@ if [[ -z "$development_team" ]]; then
 fi
 
 export TVOS_BUNDLE_IDENTIFIER="$bundle_id"
+export TVOS_TOP_SHELF_BUNDLE_IDENTIFIER="$top_shelf_bundle_id"
 export TVOS_TEST_BUNDLE_IDENTIFIER="$test_bundle_id"
 
 echo "Generating the NuvioTV Xcode project"
@@ -85,7 +89,9 @@ xcodebuild \
   -allowProvisioningUpdates \
   DEVELOPMENT_TEAM="$development_team" \
   CODE_SIGN_STYLE="$sign_style" \
-  PRODUCT_BUNDLE_IDENTIFIER="$bundle_id" \
+  TVOS_BUNDLE_IDENTIFIER="$bundle_id" \
+  TVOS_TOP_SHELF_BUNDLE_IDENTIFIER="$top_shelf_bundle_id" \
+  TVOS_TEST_BUNDLE_IDENTIFIER="$test_bundle_id" \
   build
 
 if [[ ! -d "$app_path" ]]; then

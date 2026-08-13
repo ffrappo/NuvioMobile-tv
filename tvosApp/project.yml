@@ -13,6 +13,7 @@ settings:
   base:
     SWIFT_VERSION: "5.0"
     TVOS_BUNDLE_IDENTIFIER: com.nuvio.app.tvos.dev
+    TVOS_TOP_SHELF_BUNDLE_IDENTIFIER: com.nuvio.app.tvos.dev.topshelf
     TVOS_TEST_BUNDLE_IDENTIFIER: com.nuvio.app.tvos.dev.tests
 
 targets:
@@ -27,6 +28,8 @@ targets:
     dependencies:
       - package: MPVKit
         product: MPVKit-GPL
+      - target: NuvioTopShelf
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: "$(TVOS_BUNDLE_IDENTIFIER)"
@@ -44,7 +47,33 @@ targets:
         LSApplicationCategoryType: public.app-category.entertainment
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
+        CFBundleURLTypes:
+          - CFBundleURLName: com.nuvio.app.tvos.details
+            CFBundleURLSchemes:
+              - nuvio
         UIApplicationSupportsIndirectInputEvents: true
+
+  NuvioTopShelf:
+    type: tv-app-extension
+    platform: tvOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: TopShelf
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "$(TVOS_TOP_SHELF_BUNDLE_IDENTIFIER)"
+        PRODUCT_NAME: NuvioTopShelf
+        PRODUCT_MODULE_NAME: NuvioTopShelf
+        SKIP_INSTALL: YES
+    info:
+      path: Generated/TopShelf-Info.plist
+      properties:
+        CFBundleDisplayName: Nuvio Top Shelf
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.tv-top-shelf
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).NuvioTopShelfProvider"
 
   NuvioTVTests:
     type: bundle.unit-test
@@ -66,6 +95,7 @@ schemes:
     build:
       targets:
         NuvioTV: all
+        NuvioTopShelf: all
         NuvioTVTests: [test]
     run:
       config: Debug

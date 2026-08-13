@@ -17,6 +17,7 @@ struct StreamSourcesView: View {
     @State private var report = StreamFetchReport(sources: [], failures: [])
     @State private var isLoading = false
     @FocusState private var focusedSource: UUID?
+    @Environment(\.nuvioTheme) private var theme
 
     private let service = StremioService()
 
@@ -31,7 +32,7 @@ struct StreamSourcesView: View {
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 14)
                         .frame(minHeight: 36)
-                        .background(NuvioTheme.panel, in: Capsule())
+                        .background(theme.panel, in: Capsule())
                 }
             }
 
@@ -64,7 +65,7 @@ struct StreamSourcesView: View {
                     .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, minHeight: 130)
-            .background(NuvioTheme.panel, in: RoundedRectangle(cornerRadius: 20))
+            .background(theme.panel, in: RoundedRectangle(cornerRadius: 20))
         } else if report.sources.isEmpty {
             SourceEmptyState(
                 symbol: "magnifyingglass",
@@ -116,7 +117,7 @@ struct StreamSourcesView: View {
                         ForEach(infoLabels(source, info: info), id: \.self) { label in
                             Text(label.tvSafe)
                                 .font(.caption.weight(.semibold))
-                                .foregroundStyle(.white.opacity(0.92))
+                                .foregroundStyle(theme.secondaryText)
                                 .padding(.horizontal, 9)
                                 .padding(.vertical, 3)
                                 .background(Color.white.opacity(0.14), in: Capsule())
@@ -133,10 +134,13 @@ struct StreamSourcesView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
             .frame(maxWidth: .infinity)
-            .nuvioSurfaceFocus(focusedSource == source.id, cornerRadius: 18)
+            .background(
+                isPlayable ? theme.panel : Color.clear,
+                in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+            )
             .opacity(isPlayable ? 1 : 0.5)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.card)
         .disabled(!isPlayable)
         .focused($focusedSource, equals: source.id)
         .accessibilityElement(children: .combine)
@@ -205,6 +209,7 @@ private struct SourceEmptyState: View {
     let symbol: String
     let title: String
     let message: String
+    @Environment(\.nuvioTheme) private var theme
 
     var body: some View {
         HStack(spacing: 20) {
@@ -225,7 +230,7 @@ private struct SourceEmptyState: View {
         }
         .padding(24)
         .frame(maxWidth: .infinity, minHeight: 130)
-        .background(NuvioTheme.panel, in: RoundedRectangle(cornerRadius: 20))
+        .background(theme.panel, in: RoundedRectangle(cornerRadius: 20))
     }
 }
 

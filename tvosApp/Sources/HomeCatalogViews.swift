@@ -5,6 +5,7 @@ struct HomeHeroView: View {
     let onSelect: () -> Void
 
     @FocusState private var focused: Bool
+    @Environment(\.nuvioTheme) private var theme
 
     var body: some View {
         Button(action: onSelect) {
@@ -16,7 +17,7 @@ struct HomeHeroView: View {
                 .frame(height: 520)
                 .overlay(
                     LinearGradient(
-                        colors: [.clear, NuvioTheme.background.opacity(0.25), NuvioTheme.background],
+                        colors: [.clear, theme.background.opacity(0.25), theme.background],
                         startPoint: .top,
                         endPoint: .bottom
                     )
@@ -28,7 +29,7 @@ struct HomeHeroView: View {
                     if let description = item.description?.trimmedNonEmpty {
                         Text(description.tvSafe)
                             .font(.title3)
-                            .foregroundStyle(.white.opacity(0.82))
+                            .foregroundStyle(theme.secondaryText)
                             .lineLimit(3)
                             .frame(maxWidth: 850, alignment: .leading)
                     }
@@ -85,32 +86,14 @@ private struct PosterButton: View {
     let item: MetaSummary
     let action: () -> Void
 
-    @FocusState private var isFocused: Bool
-
-    var body: some View {
-        Button(action: action) {
-            PosterCard(item: item)
-                .nuvioTileFocus(isFocused)
-        }
-        .buttonStyle(.plain)
-        .focused($isFocused)
-        .accessibilityLabel(
-            [item.name, item.releaseInfo, item.type.capitalized]
-                .compactMap { $0 }
-                .joined(separator: ", ")
-        )
-        .accessibilityHint("Opens details")
-    }
-}
-
-struct PosterCard: View {
-    let item: MetaSummary
-
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            RemoteArtwork(urlString: item.poster, systemPlaceholder: "film")
-                .frame(width: 220, height: 320)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            Button(action: action) {
+                RemoteArtwork(urlString: item.poster, systemPlaceholder: "film")
+                    .frame(width: 220, height: 320)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+            .buttonStyle(.card)
             Text(item.name.tvSafe)
                 .font(.headline)
                 .lineLimit(1)
@@ -119,5 +102,12 @@ struct PosterCard: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            [item.name, item.releaseInfo, item.type.capitalized]
+                .compactMap { $0 }
+                .joined(separator: ", ")
+        )
+        .accessibilityHint("Opens details")
     }
 }

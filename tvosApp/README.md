@@ -11,11 +11,15 @@ Implemented:
 - phone-first QR sign-in, email sign-in, and guest mode
 - account profiles, library, collections, addons, Home preferences, and progress synchronization
 - Home, Search, Library, details, episodes, and stream selection
-- native tvOS focus and navigation
+- native tvOS focus and navigation, including system card focus effects
+- dynamic Top Shelf rows with stable deep links plus branded static fallback artwork
 - MPV playback, request headers, Now Playing controls, subtitles, audio tracks, speed, video sizing, source switching, and manual episode selection
+- Reduce Motion, Increase Contrast, Reduce Transparency, Larger Text, and VoiceOver-aware controls
 - addon management and playback integration settings
 
 Planned follow-up work is listed in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+See [Documentation/TVOS27_PLATFORM_AUDIT.md](Documentation/TVOS27_PLATFORM_AUDIT.md) for the current Apple API review, implementation decisions, provider receipts, and validation contract.
 
 ## Requirements
 

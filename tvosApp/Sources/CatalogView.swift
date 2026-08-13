@@ -9,6 +9,7 @@ struct CatalogView: View {
     @EnvironmentObject private var home: HomeStore
     @EnvironmentObject private var preferences: HomePreferencesStore
     @EnvironmentObject private var collections: CollectionStore
+    @Environment(\.nuvioTheme) private var theme
     @State private var loadedFolders: [String: [MetaSummary]] = [:]
     @State private var selectedFolderByCollection: [String: String] = [:]
     @FocusState private var retryFocused: Bool
@@ -21,7 +22,7 @@ struct CatalogView: View {
             }
             .padding(.bottom, 60)
         }
-        .background(NuvioTheme.background)
+        .background(theme.background)
         .task(id: reloadKey) { await reload() }
         .refreshable { await reload(force: true) }
     }
@@ -170,7 +171,7 @@ struct CatalogView: View {
         Label(message.tvSafe, systemImage: home.snapshot.isOffline ? "wifi.slash" : "exclamationmark.triangle.fill")
             .font(.headline)
             .padding(.horizontal, 22).padding(.vertical, 14)
-            .background(.ultraThinMaterial, in: Capsule())
+            .nuvioAdaptiveSurface(Capsule(), material: .ultraThinMaterial)
             .padding(.horizontal, 48).padding(.top, 30)
     }
 }

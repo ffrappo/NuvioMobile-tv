@@ -4,6 +4,7 @@ struct SettingsIntegrationsSection: View {
     @ObservedObject var auth: AuthStore
     @ObservedObject var addons: AddonStore
     @ObservedObject var integrations: IntegrationStore
+    @Environment(\.nuvioTheme) private var theme
     var focus: FocusState<SettingsView.Action?>.Binding
 
     var body: some View {
@@ -73,7 +74,7 @@ struct SettingsIntegrationsSection: View {
             Spacer()
             Text(status)
                 .font(.callout.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.82))
+                .foregroundStyle(theme.secondaryText)
         }
     }
 }

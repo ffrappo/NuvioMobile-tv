@@ -11,6 +11,7 @@ struct NuvioTVApp: App {
     @StateObject private var watchProgressStore: WatchProgressStore
     @StateObject private var collectionStore: CollectionStore
     @StateObject private var homeStore: HomeStore
+    @StateObject private var deepLinkStore = NuvioDeepLinkStore()
 
     init() {
         let preferences = HomePreferencesStore()
@@ -43,18 +44,12 @@ struct NuvioTVApp: App {
                 .environmentObject(watchProgressStore)
                 .environmentObject(collectionStore)
                 .environmentObject(homeStore)
+                .environmentObject(deepLinkStore)
+                .nuvioThemeEnvironment()
                 .preferredColorScheme(.dark)
+                .onOpenURL(perform: deepLinkStore.receive)
         }
     }
-}
-
-enum NuvioTheme {
-    static let background = Color(red: 0.035, green: 0.035, blue: 0.045)
-    static let panel = Color.white.opacity(0.075)
-    static let secondaryText = Color.white.opacity(0.68)
-    /// Selection accent for chosen cards (episodes, sources). Matches the
-    /// tvOS system blue so selected state reads as a system affordance.
-    static let accent = Color(red: 0.20, green: 0.55, blue: 1.0)
 }
 
 extension String {
