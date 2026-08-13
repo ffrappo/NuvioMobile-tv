@@ -62,3 +62,19 @@ A complete Debug generic-tvOS build must prove:
 - built app declares `nuvio` under `CFBundleURLTypes`
 - extension declares `com.apple.tv-top-shelf` and the correct principal class
 - all source files remain at or below 400 lines
+
+## Validation results
+
+Completed on 2026-08-13:
+
+- generic tvOS Debug build succeeded with signing disabled
+- scheme-level `build-for-testing` succeeded
+- asset compilation, extension embedding, and `ValidateEmbeddedBinary` succeeded
+- live Cinemeta movie and series catalog decoding succeeded
+- a signed development build installed and launched on an Apple TV running tvOS 26.6
+- a `nuvio://details` display action launched the installed app and the process remained healthy
+- the physical-device XCTest suite passed 30 tests with zero failures
+- the outgoing nine-commit range passed `gitleaks` with zero findings
+- changed Swift and Python source files remain at or below 400 lines
+
+Physical screen review remains the final human acceptance step for Top Shelf placement, native card tilt, Increase Contrast, Reduce Transparency, Siri Remote transport, and the TV or receiver volume route. CoreDevice screenshot capture returned error `25004`, so automated evidence does not include a television screenshot.
