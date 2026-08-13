@@ -38,6 +38,7 @@ struct PlayerControlStrip: View {
                 .frame(width: 68, height: 52)
                 .accessibilityLabel("Audio Output")
         }
+        .focusSection()
         .padding(.horizontal, 6)
         .padding(.vertical, 4)
         .nuvioAdaptiveSurface(RoundedRectangle(cornerRadius: 24, style: .continuous))

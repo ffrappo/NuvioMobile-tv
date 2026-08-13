@@ -16,21 +16,16 @@ final class MPVPlaybackSession: ObservableObject {
     @Published private(set) var subtitleFontSize = 52
     @Published private(set) var errorMessage: String?
     @Published private(set) var activeSourceName = ""
-    var onPress: ((UIPress.PressType) -> Void)?
+    var onPress: (() -> Void)?
 
     fileprivate weak var controller: MPVPlayerController?
-    private var lastToggleAt = Date.distantPast
 
-    /// The Siri Remote button, SwiftUI's play-pause command, and the remote
-    /// command center can all deliver the same physical press, and tvOS may
-    /// forward a single press through more than one path. Ignore toggles that
-    /// arrive within a short window so one press always means one toggle.
     func toggle() {
-        let now = Date()
-        guard now.timeIntervalSince(lastToggleAt) > 0.25 else { return }
-        lastToggleAt = now
         controller?.togglePlayback()
     }
+
+    func play() { controller?.setPaused(false) }
+    func pause() { controller?.setPaused(true) }
 
     func load(
         url: URL,
@@ -180,8 +175,7 @@ final class MPVPlayerController: UIViewController {
     }
 
     override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
-        guard let type = presses.first?.type else { return super.pressesBegan(presses, with: event) }
-        session.onPress?(type)
+        if !presses.isEmpty { session.onPress?() }
         super.pressesBegan(presses, with: event)
     }
 
@@ -220,7 +214,7 @@ final class MPVPlayerController: UIViewController {
         setPaused(!session.isPaused)
     }
 
-    private func setPaused(_ paused: Bool) {
+    func setPaused(_ paused: Bool) {
         guard let mpv else { return }
         var value: Int32 = paused ? 1 : 0
         mpv_set_property(mpv, "pause", MPV_FORMAT_FLAG, &value)

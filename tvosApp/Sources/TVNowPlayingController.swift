@@ -65,17 +65,11 @@ final class TVNowPlayingController {
         center.skipBackwardCommand.preferredIntervals = [10]
 
         add(center.playCommand) { [weak self] _ in
-            Task { @MainActor in
-                guard let session = self?.session, session.isPaused else { return }
-                session.toggle()
-            }
+            Task { @MainActor in self?.session?.play() }
             return .success
         }
         add(center.pauseCommand) { [weak self] _ in
-            Task { @MainActor in
-                guard let session = self?.session, !session.isPaused else { return }
-                session.toggle()
-            }
+            Task { @MainActor in self?.session?.pause() }
             return .success
         }
         add(center.togglePlayPauseCommand) { [weak self] _ in

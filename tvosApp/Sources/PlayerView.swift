@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 struct PlayerRoute: Identifiable {
     let id = UUID()
@@ -157,7 +156,7 @@ struct PlayerView: View {
         }
         .onChange(of: scenePhase) { _, phase in
             if phase != .active, !session.isPaused {
-                session.toggle()
+                session.pause()
                 saveProgress()
             }
         }
@@ -190,7 +189,7 @@ struct PlayerView: View {
         controls.registerInteraction()
     }
 
-    private func handleRemotePress(_ type: UIPress.PressType) {
+    private func handleRemotePress() {
         controls.registerInteraction(keepVisible: isControlPanelPresented)
     }
 
