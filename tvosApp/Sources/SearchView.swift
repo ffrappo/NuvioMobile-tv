@@ -19,7 +19,6 @@ struct SearchView: View {
             .padding(.horizontal, 80)
             .padding(.vertical, 48)
         }
-        .navigationTitle("Search")
         .searchable(text: $query, prompt: "Movies and series")
         .onSubmit(of: .search) { startSearch(immediately: true) }
         .onChange(of: query) { _, value in

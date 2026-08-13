@@ -50,7 +50,6 @@ struct SettingsView: View {
             }
             .padding(48)
         }
-        .navigationTitle("Settings")
         .defaultFocus($focus, auth.session == nil ? .account : .profile(profiles.activeProfileID))
         .confirmationDialog("Sign out of Nuvio?", isPresented: $showLogout, titleVisibility: .visible) {
             Button("Sign Out", role: .destructive) { Task { await signOut() } }

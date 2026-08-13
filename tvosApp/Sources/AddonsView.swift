@@ -23,7 +23,6 @@ struct AddonsView: View {
             }
             .padding(48)
         }
-        .navigationTitle("Addons")
         .defaultFocus($focus, store.addons.isEmpty ? .field : nil)
         .confirmationDialog(
             "Remove \(addonPendingRemoval?.name.tvSafe ?? "addon")?",

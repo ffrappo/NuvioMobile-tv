@@ -36,7 +36,6 @@ struct LibraryView: View {
             }
             .padding(48)
         }
-        .navigationTitle("Library")
         .defaultFocus($focusedID, library.items.first.map { "\($0.type):\($0.id)" })
     }
 }
