@@ -15,11 +15,11 @@ struct LibraryView: View {
                 )
 
                 if library.items.isEmpty {
-                NuvioUnavailableView(
-                    title: "Your Library Is Empty",
-                    symbol: "heart",
-                    message: "Open any title and add it to your library."
-                )
+                    NuvioUnavailableView(
+                        title: "Your Library Is Empty",
+                        symbol: "heart",
+                        message: "Open any title and add it to your library."
+                    )
                 } else {
                     LazyVGrid(
                         columns: [GridItem(.adaptive(minimum: 236, maximum: 270), spacing: 28)],
@@ -36,6 +36,7 @@ struct LibraryView: View {
             }
             .padding(48)
         }
+        .navigationTitle("Library")
         .defaultFocus($focusedID, library.items.first.map { "\($0.type):\($0.id)" })
     }
 }

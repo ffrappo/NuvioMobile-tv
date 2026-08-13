@@ -19,6 +19,7 @@ struct DiscoverView: View {
             .padding(.horizontal, 80)
             .padding(.vertical, 48)
         }
+        .navigationTitle("Discover")
         .task(id: catalogKey) { await store.configure(addons: addons.homeAddons) }
     }
 

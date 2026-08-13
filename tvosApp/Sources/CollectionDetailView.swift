@@ -24,6 +24,7 @@ struct CollectionDetailView: View {
             }
             .padding(48)
         }
+        .navigationTitle(collection.title.tvSafe)
         .task(id: selectedFolder?.id) { await loadSelectedFolder() }
     }
 

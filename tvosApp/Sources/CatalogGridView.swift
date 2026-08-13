@@ -20,6 +20,7 @@ struct CatalogGridView: View {
             .padding(.horizontal, 80)
             .padding(.vertical, 48)
         }
+        .navigationTitle(title.tvSafe)
     }
 
     @ViewBuilder
