@@ -88,7 +88,7 @@ Executed evidence:
 - Three XCUI remote-navigation tests passed on the same tvOS 27 simulator: native root-sidebar exposure, Home to details to Home Back/Menu round trip, and expanded-sidebar hero exclusion. Final result bundle: `/tmp/nuvio-ui-final.xcresult`.
 - Kept visual receipts: `Documentation/Screenshots/home-sidebar-expanded.png` and `Documentation/Screenshots/root-sidebar-items.png`.
 - All 10,234 Swift source and test lines remain in files at or below 400 lines. The largest is `MPVPlayerController.swift` at 400 lines.
-- `git diff --check` passed, and `graphify update` rebuilt a 14,314-node graph with 33,399 edges.
+- `git diff --check` passed, and `graphify update` rebuilt a 14,315-node graph with 33,402 edges.
 
 The installed SDK is tvOS 27.0. tvOS 26.6-specific availability was reviewed through Apple documentation, while compilation and simulator evidence in this pass comes from SDK 27.0 with a tvOS 18.0 deployment target. The player was installed on an Apple TV HD (`AppleTV5,3`) running tvOS 26.6 as bundle `com.nuvio.app.tvos.dev`, and a 1920 by 1080 screenshot was recorded at `/tmp/nuvio-audio-route-deployed.png`. The at-television tester confirmed directional and Select input reveal controls, subtitle and audio controls are reachable, Play/Pause responds to one physical press, and physical Volume Up and Volume Down control the selected tvOS audio route during playback. That receipt predates the catalog redesign. Directional focus across redesigned catalog routes, Back/Menu, VoiceOver, Larger Text, Reduce Motion, Reduce Transparency, cancellation under live navigation, and source switching still require a final television acceptance pass for this redesign.
 

@@ -116,7 +116,7 @@ Completed on 2026-08-13:
 - the physical-device XCTest suite passed 30 tests with zero failures
 - the outgoing nine-commit range passed `gitleaks` with zero findings
 - changed Swift, test, and Python source files remain at or below 400 lines
-- `graphify update` completed with 14,314 nodes, 33,399 edges, and 687 communities
+- `graphify update` completed with 14,315 nodes, 33,402 edges, and 708 communities
 - simulator XCUI receipts verify all six native root-sidebar labels, a Home to details to Home Back/Menu round trip, and expanded-sidebar hero exclusion
 - kept screenshots: `Documentation/Screenshots/home-sidebar-expanded.png` and `Documentation/Screenshots/root-sidebar-items.png`
 
