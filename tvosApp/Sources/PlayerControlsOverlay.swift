@@ -12,11 +12,10 @@ struct PlayerControlsOverlay: View {
     let onSelectEpisode: (PlayerEpisodeOption) -> Void
 
     @State private var scrubPosition = 0.0
-    @State private var showMoreControls = false
     @FocusState private var focus: Control?
     @Environment(\.nuvioTheme) private var theme
 
-    private enum Control: Hashable { case timeline, playPause, more, skip }
+    private enum Control: Hashable { case timeline, playPause, skip }
 
     var body: some View {
         ZStack {
@@ -66,27 +65,12 @@ struct PlayerControlsOverlay: View {
     }
 
     private var bottomControls: some View {
-        VStack(spacing: showMoreControls ? 20 : 16) {
+        VStack(spacing: 16) {
             timeline
             HStack(spacing: 28) {
                 transportButtons
                 Spacer()
-                Button {
-                    showMoreControls.toggle()
-                    onInteraction()
-                    focus = showMoreControls ? .more : .timeline
-                } label: {
-                    Label(showMoreControls ? "Fewer Controls" : "More Controls", systemImage: "ellipsis")
-                        .font(.callout.weight(.semibold))
-                        .lineLimit(1)
-                        .padding(.horizontal, 4)
-                        .frame(minHeight: 44)
-                }
-                .buttonStyle(.bordered)
-                .focused($focus, equals: .more)
-            }
-            if showMoreControls {
-                PlayerControlMenus(
+                PlayerControlStrip(
                     route: route,
                     session: session,
                     selectedSourceURL: selectedSourceURL,
@@ -95,7 +79,6 @@ struct PlayerControlsOverlay: View {
                     onSelectSource: onSelectSource,
                     onSelectEpisode: onSelectEpisode
                 )
-                .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
         }
         .padding(.horizontal, 26)
