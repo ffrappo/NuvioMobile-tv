@@ -314,6 +314,9 @@ final class MPVPlayerController: UIViewController {
         setOption(mpv, "gpu-api", "vulkan")
         setOption(mpv, "gpu-context", "moltenvk")
         setOption(mpv, "hwdec", "videotoolbox")
+        // MPV's tvOS AudioUnit backend otherwise adds mixWithOthers when the
+        // stream opens. Keep primary movie playback on the system media route.
+        setOption(mpv, "audio-exclusive", "yes")
         setOption(mpv, "ao", "audiounit")
         setOption(mpv, "audio-channels", "auto")
         setOption(mpv, "audio-fallback-to-null", "yes")
