@@ -95,6 +95,10 @@ struct StremioService {
                 AppLog.provider.error("Provider decode failed host=\(url.host ?? "unknown", privacy: .public) path=\(url.path, privacy: .public) type=\(String(describing: T.self), privacy: .public) detail=\(detail, privacy: .public) bytes=\(data.count)")
                 throw StremioServiceError.invalidPayload
             }
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch let urlError as URLError where urlError.code == .cancelled {
+            throw CancellationError()
         } catch let error as StremioServiceError {
             throw error
         } catch {

@@ -22,6 +22,7 @@ Reviewed: 2026-08-13
 - [Accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility)
 - [What’s new in SwiftUI, WWDC25 session 256](https://developer.apple.com/videos/play/wwdc2025/256/)
 - [Optimize SwiftUI performance with Instruments, WWDC25 session 306](https://developer.apple.com/videos/play/wwdc2025/306/)
+- [Use async/await with URLSession, WWDC21 session 10095](https://developer.apple.com/videos/play/wwdc2021/10095/)
 - [TV Services](https://developer.apple.com/documentation/tvservices)
 - [TVTopShelfContentProvider](https://developer.apple.com/documentation/tvservices/tvtopshelfcontentprovider)
 - [TVTopShelfSectionedContent](https://developer.apple.com/documentation/tvservices/tvtopshelfsectionedcontent)
@@ -59,7 +60,7 @@ Installed SDK headers were also reviewed in:
 - Keep `AVRoutePickerView` as system route-selection UI. Apple documents it as a receiver picker, and route selection is separate from app-owned gain.
 - Register custom MPV transport through `MPRemoteCommandCenter`. The current `UIPress.PressType` surface has no volume-up or volume-down case, so the app cannot consume Siri Remote volume events.
 - Use a dedicated Discover root for catalog browsing and preserve Search for explicit queries. Home rails and catalog grids share provider-aware descriptors so details continue through the addon that supplied the title.
-- Cap addon catalog and source fan-out at three, publish completed batches incrementally, and make every view-owned request cancellable. Repositories coalesce identical in-flight work and use bounded caches.
+- Cap addon catalog and source fan-out at three. Search publishes each completed catalog immediately instead of waiting for the other requests in its concurrency window. Voice transcript changes cancel their URLSession request path directly, while reusable browse pages retain request coalescing and bounded caches.
 - Preserve stable focus identity while async results arrive. Use lazy stacks and grids, `.card` for artwork, `.bordered` controls for secondary actions, and `focusSection` to keep remote movement predictable.
 - Reserve a 360-point leading exclusion zone for every root tab while the sidebar is expanded. A 1920 by 1080 simulator receipt confirmed that the hero title, description, CTA, and catalog rail remain outside the system sidebar.
 - Keep regular seasons in ascending order and place Specials last. Restore the last focused episode independently for each season.
@@ -70,12 +71,12 @@ Installed SDK headers were also reviewed in:
 
 The redesign uses four small actor-backed coordination points:
 
-- `CatalogRepository`: provider-aware pages, ten-minute cache, request coalescing, actual returned page sizes, deduplication, and repeated-page termination.
+- `CatalogRepository`: provider-aware pages, ten-minute cache, reusable-page request coalescing, direct cancellation for transient search queries, actual returned page sizes, deduplication, and repeated-page termination.
 - `DetailsRepository`: provider-aware metadata, fifteen-minute cache, and in-flight coalescing.
 - `StreamRepository`: ordered per-addon publication and duplicate request coalescing.
 - `ArtworkLoader`: duplicate fetch coalescing, ImageIO thumbnail decoding, and bounded memory cost.
 
-Home, Discover, Search, collections, and sources publish useful partial content before all providers finish. JSON response decoding executes in detached work rather than on UI-isolated tasks. These changes remove the previously confirmed structural freeze risks. A literal cooperative-pool deadlock was not reproduced and is not claimed. Final Time Profiler, SwiftUI body-update, network, and cancellation measurements remain part of physical-device acceptance.
+Home, Discover, Search, collections, and sources publish useful partial content before all providers finish. Search specifically publishes the first completed provider instead of waiting for its three-request concurrency window. Superseded voice transcripts cancel their URLSession async operations, which Apple documents as supporting Swift concurrency cancellation. JSON response decoding executes in detached work rather than on UI-isolated tasks. These changes remove the previously confirmed structural freeze risks. A literal cooperative-pool deadlock was not reproduced and is not claimed. Final Time Profiler, SwiftUI body-update, network, and cancellation measurements remain part of physical-device acceptance.
 
 ## Provider receipts
 

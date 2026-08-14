@@ -7,6 +7,123 @@ final class RepositoryConcurrencyTests: XCTestCase {
         super.tearDown()
     }
 
+    func testNonCoalescedSearchRequestCancelsPromptly() async throws {
+        TestURLProtocol.setHandler { _ in
+            .init(
+                statusCode: 200,
+                data: Data(#"{"metas":[{"id":"tt1","type":"movie","name":"One"}]}"#.utf8),
+                delay: .seconds(2)
+            )
+        }
+        let repository = CatalogRepository(
+            service: StremioService(session: TestURLProtocol.session()),
+            cacheLifetime: 600
+        )
+        let clock = ContinuousClock()
+        let start = clock.now
+        let request = Task {
+            try await repository.searchPage(
+                of: descriptor(),
+                query: "first transcript"
+            )
+        }
+        try await Task.sleep(for: .milliseconds(50))
+        request.cancel()
+        do {
+            _ = try await request.value
+            XCTFail("Canceled request unexpectedly completed")
+        } catch is CancellationError {
+        } catch {
+            XCTFail("Expected CancellationError, got \(error)")
+        }
+        XCTAssertLessThan(start.duration(to: clock.now), .seconds(1))
+    }
+
+    @MainActor
+    func testSearchStorePublishesEachProviderAsItArrives() async throws {
+        TestURLProtocol.setHandler { request in
+            let path = request.url?.path ?? ""
+            let delay: Duration
+            if path.contains("/fast/") { delay = .milliseconds(60) }
+            else if path.contains("/slow/") { delay = .milliseconds(700) }
+            else { delay = .milliseconds(110) }
+            return .init(
+                statusCode: 200,
+                data: Data(#"{"metas":[{"id":"tt1","type":"movie","name":"First"}]}"#.utf8),
+                delay: delay
+            )
+        }
+        let repository = CatalogRepository(
+            service: StremioService(session: TestURLProtocol.session()),
+            cacheLifetime: 0
+        )
+        let store = SearchStore(repository: repository)
+        let addons = [
+            searchAddon(id: "fast", catalogID: "fast", type: "movie"),
+            searchAddon(id: "slow", catalogID: "slow", type: "movie"),
+            searchAddon(id: "cinemeta", catalogID: "top", type: "movie")
+        ]
+        let clock = ContinuousClock()
+        let start = clock.now
+        async let search: Void = store.search("first provider", addons: addons)
+        var firstPublishedCount: Int?
+        while firstPublishedCount == nil, clock.now.duration(to: start) < .seconds(8) {
+            try await Task.sleep(for: .milliseconds(20))
+            if !store.items.isEmpty { firstPublishedCount = store.items.count }
+        }
+        await search
+        XCTAssertNotNil(firstPublishedCount, "Store never published partial results")
+        XCTAssertLessThan(
+            clock.now.duration(to: start),
+            .milliseconds(600),
+            "Store waited for all providers before publishing any result"
+        )
+    }
+
+    @MainActor
+    func testSearchStoreSupersededQueryStopsPromptly() async throws {
+        let counter = LockedCounter()
+        TestURLProtocol.setHandler { _ in
+            counter.increment()
+            return .init(
+                statusCode: 200,
+                data: Data(#"{"metas":[{"id":"tt1","type":"movie","name":"One"}]}"#.utf8),
+                delay: .milliseconds(900)
+            )
+        }
+        let repository = CatalogRepository(
+            service: StremioService(session: TestURLProtocol.session()),
+            cacheLifetime: 0
+        )
+        let store = SearchStore(repository: repository)
+        let addons = [
+            searchAddon(id: "one", catalogID: "search", type: "movie"),
+            searchAddon(id: "two", catalogID: "search", type: "series")
+        ]
+        let first = Task { await store.search("first transcript", addons: addons) }
+        try await Task.sleep(for: .milliseconds(60))
+        let clock = ContinuousClock()
+        let start = clock.now
+        let second = Task { await store.search("second transcript", addons: addons) }
+        _ = await (first.value, second.value)
+        XCTAssertLessThan(clock.now.duration(to: start), .seconds(2),
+                          "Superseded transcript did not release main actor promptly")
+        XCTAssertLessThanOrEqual(counter.value, 6,
+                                 "Superseded transcript stacked too many provider requests")
+    }
+
+    private func searchAddon(id: String, catalogID: String, type: String) -> HomeAddon {
+        let manifest = try! JSONDecoder().decode(
+            AddonManifest.self,
+            from: Data("""
+            {"id":"\(id)","name":"\(id)","catalogs":[
+              {"type":"\(type)","id":"\(catalogID)","name":"\(catalogID)","extra":[{"name":"search","isRequired":true}]}
+            ]}
+            """.utf8)
+        )
+        return HomeAddon(baseURL: "https://\(id).example", name: id, manifest: manifest)
+    }
+
     func testCatalogRepositoryCoalescesConcurrentPages() async throws {
         let count = LockedCounter()
         TestURLProtocol.setHandler { _ in

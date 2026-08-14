@@ -105,19 +105,19 @@ final class SearchStore: ObservableObject {
         defer { if requestID == currentRequest { isLoading = false } }
 
         let descriptors = CatalogDescriptors.search(from: addons)
-        let batches = AsyncBatcher.batches(descriptors, limit: 3) { [repository] descriptor in
+        let values = AsyncBatcher.values(descriptors, limit: 3) { [repository] descriptor in
             do {
-                return try await repository.firstPage(of: descriptor, query: query).items
+                return try await repository.searchPage(of: descriptor, query: query).items
             } catch is CancellationError {
                 return []
             } catch {
                 return []
             }
         }
-        for await batch in batches {
+        for await result in values {
             guard !Task.isCancelled, requestID == currentRequest else { return }
-            let additions = batch.flatMap(\.value)
-            items = Self.merged(items, additions)
+            items = Self.merged(items, result.value)
+            await Task.yield()
         }
         if requestID == currentRequest, items.isEmpty {
             message = "No results for ‘\(query)’."

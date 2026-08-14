@@ -17,6 +17,24 @@ final class AsyncBatcherTests: XCTestCase {
         XCTAssertLessThanOrEqual(maximum, 3)
     }
 
+    func testValuesPublishEachCompletionAndKeepConcurrencyFull() async {
+        let tracker = ConcurrencyTracker()
+        var output: [Int] = []
+        let stream = AsyncBatcher.values(Array(0..<5), limit: 2) { value in
+            await tracker.enter()
+            let delay = value == 0 ? 100 : 10
+            try? await Task.sleep(for: .milliseconds(delay))
+            await tracker.leave()
+            return value
+        }
+        for await result in stream { output.append(result.value) }
+        XCTAssertEqual(output.first, 1)
+        XCTAssertTrue(output.firstIndex(of: 2)! < output.firstIndex(of: 0)!)
+        XCTAssertEqual(Set(output), Set(0..<5))
+        let maximum = await tracker.maximum
+        XCTAssertEqual(maximum, 2)
+    }
+
     func testTerminationCancelsRemainingBatches() async {
         let count = AsyncCounter()
         var iterator: AsyncStream<[IndexedBatchValue<Int>]>.Iterator? = AsyncBatcher
