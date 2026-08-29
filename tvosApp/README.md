@@ -124,6 +124,8 @@ Run the unit and XCUI remote-navigation suites on an installed compatible tvOS s
 - `Tests/StremioServiceTests.swift`, `CatalogModelTests.swift`, `AsyncBatcherTests.swift`, `ArtworkLoaderTests.swift`, and `PlaybackCapabilityTests.swift` cover protocol decoding, provider-aware URL construction, catalog identity and pagination, coalescing, caching, bounded cancellation, playback capability gates, focus contracts, and progress persistence.
 - `UITests/NuvioTVNavigationUITests.swift` drives `XCUIRemote` through root sidebar, details, and Back/Menu flows, with kept screenshots in `Documentation/Screenshots`.
 
+See [ANDROID_TV_PARITY_SPEC.md](Documentation/ANDROID_TV_PARITY_SPEC.md) for the source-grounded plan to match the current Android TV product with native tvOS interaction ownership.
+
 See [PLAYER_PARITY.md](Documentation/PLAYER_PARITY.md) for the implemented playback matrix and intentional platform boundaries.
 
 ## Security and privacy
