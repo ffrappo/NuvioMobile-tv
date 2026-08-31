@@ -15,9 +15,16 @@ struct HomeCatalogDefinition: Hashable, Identifiable {
 
 struct HomeCatalogSection: Identifiable, Equatable {
     let definition: HomeCatalogDefinition
-    let items: [MetaSummary]
+    var items: [MetaSummary]
+    var nextSkip: Int?
     var id: String { definition.id }
     var title: String { definition.catalogName }
+
+    init(definition: HomeCatalogDefinition, items: [MetaSummary], nextSkip: Int? = nil) {
+        self.definition = definition
+        self.items = items
+        self.nextSkip = nextSkip
+    }
 }
 
 struct HomeCatalogPreference: Codable, Equatable {
@@ -67,6 +74,8 @@ struct HomeSnapshot: Equatable {
     var isLoading = false
     var message: String?
     var isOffline = false
+    var watchedContentKeys: Set<String> = []
+    var loadingSectionIDs: Set<String> = []
 
     var hasContent: Bool {
         !heroItems.isEmpty || !sections.isEmpty || !continueWatching.isEmpty ||

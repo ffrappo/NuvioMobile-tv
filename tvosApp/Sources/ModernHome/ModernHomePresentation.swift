@@ -24,7 +24,7 @@ struct ModernHomePresentation: Equatable {
         let rows = snapshot.sections.map { section in
             let title = preferences.preference(for: section.id)?.customTitle.trimmedNonEmpty
                 ?? section.title
-            let items = Array(section.items.prefix(18)).map { summary in
+            let items = section.items.map { summary in
                 let railID = railItemID(sectionID: section.id, summary: summary)
                 summariesByRailID[railID] = summary
                 return RailItem(
@@ -35,15 +35,20 @@ struct ModernHomePresentation: Equatable {
                     metadata: [section.definition.addonName, summary.type.capitalized],
                     posterArtwork: artworkSource(summary.poster),
                     backdropArtwork: artworkSource(summary.background ?? summary.poster),
-                    status: PosterCardStatus()
+                    status: PosterCardStatus(
+                        isWatched: snapshot.watchedContentKeys.contains(
+                            "\(summary.type.lowercased()):\(summary.id)"
+                        )
+                    )
                 )
             }
             return RailSection(
                 id: section.id,
                 title: title,
                 items: items,
-                hasMore: section.definition.supportsPagination,
-                isLoading: snapshot.isLoading && items.isEmpty
+                hasMore: section.nextSkip != nil,
+                isLoading: snapshot.loadingSectionIDs.contains(section.id)
+                    || (snapshot.isLoading && items.isEmpty)
             )
         }
         return ModernHomePresentation(

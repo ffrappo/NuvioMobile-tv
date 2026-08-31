@@ -43,7 +43,7 @@ final class ModernHomePresentationTests: XCTestCase {
         XCTAssertEqual(presentation.catalogRows.count, 1)
         XCTAssertEqual(presentation.catalogRows[0].title, "Featured Picks")
         XCTAssertEqual(presentation.catalogRows[0].items.count, 2)
-        XCTAssertTrue(presentation.catalogRows[0].hasMore)
+        XCTAssertFalse(presentation.catalogRows[0].hasMore, "Sections without a next page cursor must not offer more")
         XCTAssertEqual(presentation.summary(for: presentation.heroes[0]), first)
         XCTAssertEqual(presentation.summary(for: presentation.catalogRows[0].items[1]), second)
         XCTAssertEqual(presentation.heroPage(for: presentation.catalogRows[0].items[1])?.id, "series:tt2")
@@ -73,18 +73,22 @@ final class ModernHomePresentationTests: XCTestCase {
         XCTAssertEqual(presentation.summary(for: secondRailItem), item)
     }
 
-    func testBuildCapsEachCatalogAtEighteenItemsAndHeroPagesAtSeven() {
+    func testBuildPreservesPaginatedItemsAndCapsHeroPagesAtSeven() {
         let items = (0..<24).map {
             MetaSummary(id: "tt\($0)", type: "movie", name: "Movie \($0)")
         }
-        let snapshot = HomeSnapshot(sections: [section(id: "many", items: items)])
+        let snapshot = HomeSnapshot(
+            sections: [section(id: "many", items: items, nextSkip: 24)]
+        )
 
         let presentation = ModernHomePresentation.build(
             snapshot: snapshot,
             preferences: HomePreferences()
         )
 
-        XCTAssertEqual(presentation.catalogRows[0].items.count, 18)
+        XCTAssertEqual(presentation.catalogRows[0].items.count, 24)
+        XCTAssertTrue(presentation.catalogRows[0].hasMore)
+        XCTAssertFalse(presentation.catalogRows[0].isLoading)
         XCTAssertEqual(presentation.heroes.count, ModernHomePresentation.heroPageLimit)
         XCTAssertEqual(
             presentation.heroes.map(\.id),
@@ -95,6 +99,25 @@ final class ModernHomePresentationTests: XCTestCase {
             presentation.heroPage(for: presentation.catalogRows[0].items[10])?.id,
             "movie:tt10"
         )
+    }
+
+    func testBuildMarksWatchedItemsAndRailLoadingState() {
+        let watched = MetaSummary(id: "tt1", type: "movie", name: "Watched")
+        let unwatched = MetaSummary(id: "tt2", type: "movie", name: "Unwatched")
+        var snapshot = HomeSnapshot(
+            sections: [section(id: "one", items: [watched, unwatched])]
+        )
+        snapshot.watchedContentKeys = ["movie:tt1"]
+        snapshot.loadingSectionIDs = ["example:movie:one"]
+
+        let presentation = ModernHomePresentation.build(
+            snapshot: snapshot,
+            preferences: HomePreferences()
+        )
+
+        XCTAssertTrue(presentation.catalogRows[0].items[0].status.isWatched)
+        XCTAssertFalse(presentation.catalogRows[0].items[1].status.isWatched)
+        XCTAssertTrue(presentation.catalogRows[0].isLoading)
     }
 
     func testHeroPagesPreferArtworkAndBalanceAcrossSections() {
@@ -149,7 +172,8 @@ final class ModernHomePresentationTests: XCTestCase {
 
     private func section(
         id: String,
-        items: [MetaSummary]
+        items: [MetaSummary],
+        nextSkip: Int? = nil
     ) -> HomeCatalogSection {
         HomeCatalogSection(
             definition: HomeCatalogDefinition(
@@ -161,7 +185,8 @@ final class ModernHomePresentationTests: XCTestCase {
                 catalogName: id.capitalized,
                 supportsPagination: false
             ),
-            items: items
+            items: items,
+            nextSkip: nextSkip
         )
     }
 }

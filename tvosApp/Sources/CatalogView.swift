@@ -42,7 +42,10 @@ struct CatalogView: View {
             isOffline: home.snapshot.isOffline,
             onSelect: onSelect,
             onOpenCatalog: { onOpenCatalog(.from($0)) },
-            onOpenCollection: onOpenCollection
+            onOpenCollection: onOpenCollection,
+            onPrefetchCatalog: { sectionID in
+                Task { await home.loadMore(sectionID: sectionID) }
+            }
         )
     }
 
@@ -60,14 +63,7 @@ struct CatalogView: View {
     }
 
     private var loadingState: some View {
-        VStack(spacing: NuvioDesignTokens.Spacing.xl) {
-            ProgressView().controlSize(.large)
-            Text("Loading your Home").nuvioTextStyle(.sectionTitle)
-            Text("Synchronizing catalogs, progress, and collections")
-                .nuvioTextStyle(.body)
-                .foregroundStyle(NuvioDesignTokens.Colors.secondaryText)
-        }
-        .frame(maxWidth: .infinity, minHeight: 640)
+        ModernHomeShimmerView()
     }
 
     private var emptyState: some View {

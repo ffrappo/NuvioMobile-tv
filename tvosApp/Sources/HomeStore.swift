@@ -11,6 +11,9 @@ final class HomeStore: ObservableObject {
     private let progress: WatchProgressStore
     private let collections: CollectionStore
     private var cachedSections: [String: HomeCatalogSection] = [:]
+    private var activeOrder: [HomeCatalogDefinition] = []
+    private var lastFailures = 0
+    private var loadingSectionIDs: Set<String> = []
     private var generation = UUID()
 
     init(
@@ -51,6 +54,8 @@ final class HomeStore: ObservableObject {
         let definitions = buildDefinitions(addons: addons)
         preferences.reconcile(definitions: definitions, collections: collections.collections)
         let active = orderedDefinitions(definitions)
+        activeOrder = active
+        loadingSectionIDs = []
         let hideUnreleased = preferences.value.hideUnreleasedContent
         var sections = force ? [:] : cachedSections.filter { key, _ in
             active.contains { $0.id == key }
@@ -65,7 +70,7 @@ final class HomeStore: ObservableObject {
                     ignoringCache: force
                 )
                 let items = HomeReleaseFilter.releasedItems(page.items, enabled: hideUnreleased)
-                return HomeCatalogSection(definition: definition, items: items)
+                return HomeCatalogSection(definition: definition, items: items, nextSkip: page.nextSkip)
             } catch {
                 return nil
             }
@@ -82,8 +87,49 @@ final class HomeStore: ObservableObject {
             publish(sections: sections, active: active, failures: failures, loading: true)
         }
         guard requestGeneration == generation else { return }
+        lastFailures = failures
         cachedSections = sections
         publish(sections: sections, active: active, failures: failures, loading: false)
+    }
+
+    /// Android parity: rails request more catalog pages as focus approaches the
+    /// end of a row (loadMoreCatalogItems in HomeViewModel).
+    func loadMore(sectionID: String) async {
+        guard var section = cachedSections[sectionID], section.nextSkip != nil,
+              !loadingSectionIDs.contains(sectionID) else { return }
+        let requestGeneration = generation
+        loadingSectionIDs.insert(sectionID)
+        publish(
+            sections: cachedSections, active: activeOrder,
+            failures: lastFailures, loading: snapshot.isLoading
+        )
+        var listing = CatalogListing.from(section)
+        listing.nextSkip = section.nextSkip
+        do {
+            let page = try await repository.nextPage(of: listing)
+            guard !Task.isCancelled, requestGeneration == generation else { return }
+            if let page {
+                let hideUnreleased = preferences.value.hideUnreleasedContent
+                let newItems = HomeReleaseFilter.releasedItems(page.items, enabled: hideUnreleased)
+                var seen = Set(section.items.map { "\($0.type):\($0.id)" })
+                let appended = newItems.filter { seen.insert("\($0.type):\($0.id)").inserted }
+                section.items += appended
+                // A page with no new items means the catalog repeats or ended;
+                // stop paginating either way.
+                section.nextSkip = appended.isEmpty ? nil : page.nextSkip
+            } else {
+                section.nextSkip = nil
+            }
+        } catch {
+            section.nextSkip = nil
+        }
+        guard requestGeneration == generation else { return }
+        loadingSectionIDs.remove(sectionID)
+        cachedSections[sectionID] = section
+        publish(
+            sections: cachedSections, active: activeOrder,
+            failures: lastFailures, loading: snapshot.isLoading
+        )
     }
 
     func clearForLogout() {
@@ -111,6 +157,12 @@ final class HomeStore: ObservableObject {
             ? "Some Home sections could not be refreshed. Check the connection and retry."
             : collections.message
         snapshot.isOffline = failures > 0
+        snapshot.watchedContentKeys = Set(
+            progress.records
+                .filter(\.isCompleted)
+                .map { "\($0.contentType.lowercased()):\($0.contentID)" }
+        )
+        snapshot.loadingSectionIDs = loadingSectionIDs
         if !loading {
             let generation = generation
             Task { [weak self] in

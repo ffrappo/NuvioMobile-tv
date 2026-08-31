@@ -10,6 +10,7 @@ struct ModernHomeCatalogContent: View {
     let onSelect: (MetaSummary) -> Void
     let onOpenCatalog: (HomeCatalogSection) -> Void
     let onOpenCollection: (TVCollection) -> Void
+    let onPrefetchCatalog: (String) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var hero: HeroPresentation
@@ -25,7 +26,8 @@ struct ModernHomeCatalogContent: View {
         isOffline: Bool,
         onSelect: @escaping (MetaSummary) -> Void,
         onOpenCatalog: @escaping (HomeCatalogSection) -> Void,
-        onOpenCollection: @escaping (TVCollection) -> Void
+        onOpenCollection: @escaping (TVCollection) -> Void,
+        onPrefetchCatalog: @escaping (String) -> Void = { _ in }
     ) {
         self.presentation = presentation
         self.continueWatching = continueWatching
@@ -36,6 +38,7 @@ struct ModernHomeCatalogContent: View {
         self.onSelect = onSelect
         self.onOpenCatalog = onOpenCatalog
         self.onOpenCollection = onOpenCollection
+        self.onPrefetchCatalog = onPrefetchCatalog
         _hero = StateObject(wrappedValue: HeroPresentation(pages: presentation.heroes))
     }
 
@@ -69,7 +72,7 @@ struct ModernHomeCatalogContent: View {
 
     /// Android parity: the hero frame extends this far below the rows top
     /// (rowTitleHeight + 14dp in ModernHomeContent.kt).
-    private static let heroRailOverlap: CGFloat = 56
+    static let heroRailOverlap: CGFloat = 56
 
     private func heroScene(foregroundBottomInset: CGFloat) -> some View {
         HeroSceneView(
@@ -99,7 +102,8 @@ struct ModernHomeCatalogContent: View {
                         onOpen: {
                             guard let section = presentation.sectionsByID[row.id] else { return }
                             onOpenCatalog(section)
-                        }
+                        },
+                        onPrefetch: onPrefetchCatalog
                     )
                 }
             }
