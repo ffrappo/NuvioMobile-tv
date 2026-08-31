@@ -237,6 +237,9 @@ public enum NuvioDesignTokens {
         public static let compactSafeHorizontal: CGFloat = 32
         public static let compactSafeVertical: CGFloat = 16
         public static let sidebarContentOffset: CGFloat = 54
+        /// Keeps Home hero controls clear of the expanded native tvOS sidebar.
+        /// Artwork remains full bleed; only interactive foreground content uses this inset.
+        public static let nativeSidebarForegroundInset: CGFloat = 232
         public static let rowAnchor: CGFloat = 0.42
         public static let detailsHeroWidthFraction: CGFloat = 0.62
         public static let detailsHeroHeightFraction: CGFloat = 0.72

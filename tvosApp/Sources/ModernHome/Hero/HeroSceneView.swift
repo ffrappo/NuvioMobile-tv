@@ -22,14 +22,20 @@ public struct HeroAction: Identifiable {
 public struct HeroSceneView: View {
     @ObservedObject public var presentation: HeroPresentation
     public let actions: [HeroAction]
+    public let foregroundBottomInset: CGFloat
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.layoutDirection) private var layoutDirection
     @FocusState private var focusedActionID: String?
 
-    public init(presentation: HeroPresentation, actions: [HeroAction] = []) {
+    public init(
+        presentation: HeroPresentation,
+        actions: [HeroAction] = [],
+        foregroundBottomInset: CGFloat = NuvioDesignTokens.Layout.safeVertical
+    ) {
         self.presentation = presentation
         self.actions = Array(actions.prefix(2))
+        self.foregroundBottomInset = foregroundBottomInset
     }
 
     public var body: some View {
@@ -48,14 +54,22 @@ public struct HeroSceneView: View {
                     reduceMotion: reduceMotion,
                     substitute: .crossFade
                 ),
-                value: presentation.currentIndex
+                value: presentation.currentPage?.id
             )
         }
         .background(NuvioDesignTokens.Colors.canvasBlack)
-        .ignoresSafeArea()
+        .ignoresSafeArea(edges: .top)
         .onAppear {
             presentation.setReduceMotion(reduceMotion)
             presentation.startAutoAdvance()
+        }
+        .onChange(of: presentation.isActionFocused) { _, paused in
+            guard !presentation.reduceMotionEnabled else { return }
+            if paused {
+                presentation.stopAutoAdvance()
+            } else {
+                presentation.startAutoAdvance()
+            }
         }
         .onDisappear {
             presentation.stopAutoAdvance()
@@ -63,6 +77,11 @@ public struct HeroSceneView: View {
         }
         .onChange(of: reduceMotion) { _, enabled in
             presentation.setReduceMotion(enabled)
+            if enabled {
+                presentation.stopAutoAdvance()
+            } else if !presentation.isActionFocused {
+                presentation.startAutoAdvance()
+            }
         }
         .onChange(of: focusedActionID) { _, focusedID in
             presentation.setActionFocused(focusedID != nil)
@@ -80,7 +99,9 @@ public struct HeroSceneView: View {
             )
             directionalGradients
             content(item, in: size)
-            pageIndicator
+            if !presentation.isDisplayingOverride {
+                pageIndicator
+            }
         }
         .accessibilityElement(children: .contain)
     }
@@ -97,7 +118,7 @@ public struct HeroSceneView: View {
                 ],
                 startPoint: layoutDirection == .rightToLeft ? .trailing : .leading,
                 endPoint: UnitPoint(
-                    x: layoutDirection == .rightToLeft ? 0.55 : 0.45,
+                    x: layoutDirection == .rightToLeft ? 0.35 : 0.65,
                     y: 0.5
                 )
             )
@@ -137,8 +158,10 @@ public struct HeroSceneView: View {
             actionButtons(item)
         }
         .frame(maxWidth: min(size.width * 0.42, 760), alignment: .leading)
-        .padding(.horizontal, NuvioDesignTokens.Layout.safeHorizontal)
-        .padding(.vertical, NuvioDesignTokens.Layout.safeVertical)
+        .padding(.leading, NuvioDesignTokens.Layout.nativeSidebarForegroundInset)
+        .padding(.trailing, NuvioDesignTokens.Layout.safeHorizontal)
+        .padding(.top, NuvioDesignTokens.Layout.safeVertical)
+        .padding(.bottom, foregroundBottomInset)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
     }
 
@@ -209,6 +232,9 @@ public struct HeroSceneView: View {
                     )
                     .buttonStyle(HeroCapsuleButtonStyle())
                     .focused($focusedActionID, equals: action.id)
+                    .accessibilityLabel(
+                        action.id == "details" ? "\(item.title), featured" : action.title
+                    )
                     .accessibilityHint("Activates \(action.title)")
                 }
             }
@@ -229,7 +255,10 @@ public struct HeroSceneView: View {
             NuvioMotion.animation(for: .focus, reduceMotion: reduceMotion),
             value: presentation.currentIndex
         )
-        .padding(.bottom, NuvioDesignTokens.Layout.safeVertical)
+        // Docks level with the hero text block bottom, centered. Android has
+        // no dots in the rows-present Modern home; this placement keeps the
+        // bounded carousel indicator clear of the rail header band.
+        .padding(.bottom, foregroundBottomInset)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(pageIndicatorLabel)

@@ -48,6 +48,25 @@ final class ModernHeroTests: XCTestCase {
     }
 
     @MainActor
+    func testOverridePagePreviewsFocusedItemAndPausesRotation() {
+        let presentation = HeroPresentation(pages: makePages(3))
+        let override = HeroItem(id: "rail:99", title: "Focused Rail Item")
+
+        presentation.displayOverride(override)
+        XCTAssertEqual(presentation.currentPage?.id, "rail:99")
+        XCTAssertTrue(presentation.isDisplayingOverride)
+        XCTAssertTrue(presentation.isAutoAdvancePaused)
+
+        presentation.handleAutoAdvanceTick()
+        XCTAssertEqual(presentation.currentIndex, 0)
+
+        presentation.displayOverride(nil)
+        XCTAssertFalse(presentation.isDisplayingOverride)
+        XCTAssertEqual(presentation.currentPage?.id, "hero:0")
+        XCTAssertFalse(presentation.isAutoAdvancePaused)
+    }
+
+    @MainActor
     func testRotationWrapsAroundAndRetreatWrapsBackward() {
         let presentation = HeroPresentation(pages: makePages(3), currentIndex: 2)
 
@@ -77,6 +96,11 @@ final class ModernHeroTests: XCTestCase {
         )
 
         XCTAssertEqual(item.canonicalBadges, ["2026", "1h 59m", "PG-13", "4K"])
+    }
+
+    @MainActor
+    func testDefaultAutoAdvanceIntervalMatchesAndroidTenSeconds() {
+        XCTAssertEqual(HeroPresentation(pages: makePages(2)).autoAdvanceInterval, .seconds(10))
     }
 
     func testPageIndicatorCountAndIndexMath() {

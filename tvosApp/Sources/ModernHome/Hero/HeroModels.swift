@@ -138,6 +138,7 @@ public struct HeroRotationScheduler {
 public final class HeroPresentation: ObservableObject {
     @Published public private(set) var pages: [HeroItem]
     @Published public private(set) var currentIndex: Int
+    @Published public private(set) var overridePage: HeroItem?
     @Published public private(set) var isActionFocused = false
     @Published public private(set) var reduceMotionEnabled = false
 
@@ -150,7 +151,7 @@ public final class HeroPresentation: ObservableObject {
     public init(
         pages: [HeroItem],
         currentIndex: Int = 0,
-        autoAdvanceInterval: Duration = .seconds(8),
+        autoAdvanceInterval: Duration = .seconds(10),
         transitionDuration: TimeInterval = 0.45,
         scheduler: HeroRotationScheduler = .continuous
     ) {
@@ -169,7 +170,15 @@ public final class HeroPresentation: ObservableObject {
     }
 
     public var currentPage: HeroItem? {
-        pages.indices.contains(currentIndex) ? pages[currentIndex] : nil
+        if let overridePage { return overridePage }
+        return pages.indices.contains(currentIndex) ? pages[currentIndex] : nil
+    }
+
+    /// True while a focused rail item previews on the hero instead of the
+    /// rotating pages. Android's Modern home drives the hero the same way,
+    /// so the page indicator is hidden while an override is displayed.
+    public var isDisplayingOverride: Bool {
+        overridePage != nil
     }
 
     public var pageIndicator: HeroPageIndicatorState {
@@ -177,7 +186,7 @@ public final class HeroPresentation: ObservableObject {
     }
 
     public var isAutoAdvancePaused: Bool {
-        pages.count < 2 || isActionFocused || reduceMotionEnabled
+        pages.count < 2 || overridePage != nil || isActionFocused || reduceMotionEnabled
     }
 
     public func startAutoAdvance() {
@@ -223,6 +232,12 @@ public final class HeroPresentation: ObservableObject {
 
     public func setActionFocused(_ focused: Bool) {
         isActionFocused = focused
+    }
+
+    /// Displays a focused rail item on the hero without adding it to the
+    /// rotating page set. Pass nil to return to the rotating selection.
+    public func displayOverride(_ item: HeroItem?) {
+        overridePage = item
     }
 
     public func setReduceMotion(_ enabled: Bool) {

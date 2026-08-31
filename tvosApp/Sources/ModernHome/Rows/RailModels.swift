@@ -24,6 +24,8 @@ public enum ModernHomeRowTokens {
     public static let screenVerticalMargin = NuvioDesignTokens.Layout.safeVertical
     // ModernHomeRows.kt uses 52dp for this specific rail instead of the 48dp base token.
     public static let railLeadingMargin: CGFloat = 52
+    public static let homeForegroundLeadingMargin =
+        NuvioDesignTokens.Layout.nativeSidebarForegroundInset
     public static let itemGap = NuvioDesignTokens.Spacing.Rail.itemGap
     public static let rowGap = NuvioDesignTokens.Spacing.Rail.rowGap
     public static let progressHeight: CGFloat = 3
@@ -67,7 +69,11 @@ public enum PosterArtworkSource: Equatable, Sendable {
     case placeholder(systemName: String)
 }
 
-public typealias PosterArtworkProvider = (PosterArtworkSource) -> AnyView
+public typealias PosterArtworkProvider = (
+    _ source: PosterArtworkSource,
+    _ pixelSize: CGSize,
+    _ cornerRadius: CGFloat
+) -> AnyView
 
 public enum PosterBadge: Equatable, Sendable {
     case watched

@@ -168,7 +168,7 @@ public struct PosterCardView: View {
         cornerRadius: CGFloat
     ) -> some View {
         ZStack(alignment: .topTrailing) {
-            artworkProvider(source)
+            artworkProvider(source, CGSize(width: width, height: height), cornerRadius)
                 .frame(width: width, height: height)
                 .clipped()
 

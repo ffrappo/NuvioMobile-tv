@@ -20,7 +20,6 @@ struct AppShellView: View {
                         onOpenCatalog: showCatalog,
                         onOpenCollection: showCollection
                     )
-                    .sidebarContentInsets()
                 }
                 Tab("Discover", systemImage: "safari", value: .discover) {
                     DiscoverView(onSelect: showDetails)

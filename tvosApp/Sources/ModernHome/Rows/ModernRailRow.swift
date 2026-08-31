@@ -4,6 +4,8 @@ public struct ModernRailRow: View {
     public let section: RailSection
     public let artworkProvider: PosterArtworkProvider
     public let onSelect: (RailItem) -> Void
+    public let onFocus: (RailItem) -> Void
+    public let onOpen: (() -> Void)?
     public let onPrefetch: (String) -> Void
 
     @ObservedObject private var focusModel: RailFocusModel
@@ -15,12 +17,16 @@ public struct ModernRailRow: View {
         focusModel: RailFocusModel,
         artworkProvider: @escaping PosterArtworkProvider,
         onSelect: @escaping (RailItem) -> Void,
+        onFocus: @escaping (RailItem) -> Void = { _ in },
+        onOpen: (() -> Void)? = nil,
         onPrefetch: @escaping (String) -> Void = { _ in }
     ) {
         self.section = section
         self.focusModel = focusModel
         self.artworkProvider = artworkProvider
         self.onSelect = onSelect
+        self.onFocus = onFocus
+        self.onOpen = onOpen
         self.onPrefetch = onPrefetch
         _prefetchTrigger = StateObject(
             wrappedValue: RailPrefetchTrigger {
@@ -31,12 +37,19 @@ public struct ModernRailRow: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: ModernHomeRowTokens.rowGap) {
-            Text(section.title)
-                .nuvioTextStyle(.sectionTitle)
-                .foregroundStyle(.white)
-                .lineLimit(1)
-                .padding(.leading, ModernHomeRowTokens.railLeadingMargin)
-                .padding(.trailing, ModernHomeRowTokens.screenHorizontalMargin)
+            HStack(alignment: .firstTextBaseline, spacing: NuvioDesignTokens.Spacing.md) {
+                Text(section.title)
+                    .nuvioTextStyle(.sectionTitle)
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                Spacer()
+                if let onOpen {
+                    Button("See All", action: onOpen)
+                        .buttonStyle(.bordered)
+                }
+            }
+            .padding(.leading, ModernHomeRowTokens.homeForegroundLeadingMargin)
+            .padding(.trailing, ModernHomeRowTokens.screenHorizontalMargin)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(alignment: .top, spacing: ModernHomeRowTokens.itemGap) {
@@ -54,7 +67,7 @@ public struct ModernRailRow: View {
                             .accessibilityLabel("Loading more \(section.title)")
                     }
                 }
-                .padding(.leading, ModernHomeRowTokens.railLeadingMargin)
+                .padding(.leading, ModernHomeRowTokens.homeForegroundLeadingMargin)
                 .padding(.trailing, ModernHomeRowTokens.screenHorizontalMargin)
                 .padding(.vertical, ModernHomeRowTokens.softBlur)
             }
@@ -75,6 +88,9 @@ public struct ModernRailRow: View {
             if let newItemID,
                let index = section.items.firstIndex(where: { $0.id == newItemID }) {
                 focusModel.focus(focusID(for: newItemID))
+                if let item = section.items.first(where: { $0.id == newItemID }) {
+                    onFocus(item)
+                }
                 observePrefetch(at: index)
             }
         }
