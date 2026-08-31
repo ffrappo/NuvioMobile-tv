@@ -197,6 +197,21 @@ The current view-owned stores need a shared presentation contract before screen 
 - Use Instruments 26 SwiftUI body-update and hitch analysis for every milestone.
 - Preserve cancellation for changing profile, query, route, or focused hero.
 
+## Implementation status
+
+### 2026-08-31: Wave 1 foundation recovered
+
+The first Hammersmith round produced four isolated candidates that were preserved after the worker sandbox blocked Xcode and external report writes. The candidates were integrated and validated outside that sandbox:
+
+- Android design, typography, motion, focus, layout, shape, media, effect, and component tokens now have native Swift sources.
+- Inter, DM Sans, and Open Sans are bundled byte-for-byte from Android and registered through CoreText.
+- Artwork loading supports requested-size downsampling, size-aware cache keys, coalescing, and stale-while-revalidate delivery.
+- Reusable poster, backdrop, title-logo, shimmer, Modern hero, and Modern rail components are present.
+- Hero and rail components use the shared token and artwork sources rather than isolated duplicate constants.
+- 83 unit tests and 3 navigation XCUI tests pass. The generic unsigned tvOS Debug build succeeds.
+
+These components are intentionally not connected to the current Home screen yet. The next milestone wires them to `HomeStore`, establishes one Modern Home presentation adapter, and replaces the existing Home composition before screenshot parity work.
+
 ## Implementation waves
 
 ### Wave 1: visual foundation and Modern Home
