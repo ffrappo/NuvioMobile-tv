@@ -212,6 +212,21 @@ The first Hammersmith round produced four isolated candidates that were preserve
 
 These components are intentionally not connected to the current Home screen yet. The next milestone wires them to `HomeStore`, establishes one Modern Home presentation adapter, and replaces the existing Home composition before screenshot parity work.
 
+### 2026-09-01: Modern Home presentation integrated
+
+Commit `af4eeeb6` connects the Wave 1 components to `HomeStore` through a presentation-only adapter. It preserves repository loading, refresh, Continue Watching, Upcoming, collections, detail routes, catalog routes, and the native sidebar while replacing the Home composition with the full-bleed hero and dense poster rails.
+
+The hero now follows the Android Modern Home state model:
+
+- rotation is bounded to seven pages, matching `HomeViewModelCatalogPipeline.slotShuffled`;
+- dedicated hero items are preferred, then artwork-backed rail items are balanced across sections;
+- rail focus displays that item's hero preview, pauses rotation, and hides the page indicator;
+- the default rotation interval is ten seconds;
+- the hero text bottom anchor matches Android's full-screen `rowsViewportHeight + spacing.lg` calculation;
+- the centered seven-capsule indicator remains clear of the rail header.
+
+This fixes the full-width dashed artifact caused by rendering an indicator capsule for every unique catalog item. Direct 1920 by 1080 framebuffer inspection measured the final metadata bottom at y 519, indicator at y 530 to 535, and rail header beginning at y 573. Validation passed 89 unit tests, 3 XCUI navigation tests, and a generic unsigned tvOS Debug build with no compiler warnings.
+
 ## Implementation waves
 
 ### Wave 1: visual foundation and Modern Home
