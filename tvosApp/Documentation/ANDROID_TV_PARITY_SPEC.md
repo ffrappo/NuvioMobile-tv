@@ -239,6 +239,14 @@ Commits `5b288292` and `b44f55e0` close the remaining Wave 1 items.
 
 Validation: 96 unit tests, 4 XCUI navigation tests, and the warning-free generic tvOS build. Live Cinemeta verification confirmed logo, runtime, and absent-rating behavior. Physical Apple TV validation remains pending on hardware.
 
+### 2026-09-01: Waves 2 and 3 landed
+
+Wave 2 (commits `5271e94d`, `9e37e4f8`): the details, library, collections, and search/discover parity modules from the second Hammersmith round are integrated into the live screens. Details renders the parity hero, episode seasons with watched projection, sources, cast, and more-like-this. Library uses Saved and Cloud modes, type/provider/watched filters, local free-text search, sort focus restoration, and watched markers. Search presents progressive provider rails with persisted recent searches. Discover uses parity filters and pagination. Collection detail uses follow-layout folder tiles.
+
+Wave 3 (commits `80cc77ba`, `11b1bdf8`): the stream source panel, player chrome state machine, subtitle panels, and post-play system from the third round are integrated into playback. Natural EOF reveals the post-play overlay with same-genre recommendations (Trakt/TMDB sources pending), replay and return actions, and deep-link routing for Play. Skip-intro renders as the persistent Android button. The subtitle panel gains the timing dialog with the 100 ms delay stepper.
+
+Validation across both waves: 227 unit tests, 4 XCUI navigation tests, warning-free generic tvOS builds. Recovery pattern for interrupted rounds: lane worktrees carry complete implementations even when the verifier fails on environment issues; the integrator validates candidates in the main worktree against the Android source, correcting test expectations that contradict the reference (six such corrections in Wave 3).
+
 ## Implementation waves
 
 ### Wave 1: visual foundation and Modern Home
