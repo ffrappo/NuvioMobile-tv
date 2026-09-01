@@ -172,6 +172,7 @@ struct MetaDetail: Decodable, Identifiable, Sendable, Equatable {
     let name: String
     let poster: String?
     let background: String?
+    let logo: String?
     let description: String?
     let releaseInfo: String?
     let released: String?
@@ -186,7 +187,7 @@ struct MetaDetail: Decodable, Identifiable, Sendable, Equatable {
     let videos: [StremioVideo]
 
     private enum CodingKeys: String, CodingKey {
-        case id, type, name, poster, background, description, releaseInfo
+        case id, type, name, poster, background, logo, description, releaseInfo
         case released, runtime, imdbRating, genres, genre, videos
         case director, writer, cast, country, language
     }
@@ -198,6 +199,7 @@ struct MetaDetail: Decodable, Identifiable, Sendable, Equatable {
         name = try container.decodeRequiredFlexibleString(forKey: .name)
         poster = container.decodeFlexibleString(forKey: .poster)
         background = container.decodeFlexibleString(forKey: .background)
+        logo = container.decodeFlexibleString(forKey: .logo)
         description = container.decodeFlexibleString(forKey: .description)
         releaseInfo = container.decodeFlexibleString(forKey: .releaseInfo)
         released = container.decodeFlexibleString(forKey: .released)

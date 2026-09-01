@@ -40,6 +40,31 @@ final class NuvioTVNavigationUITests: XCTestCase {
         attachScreenshot(name: "home-expanded-sidebar")
     }
 
+    func testHomeRestoresFocusAfterDetailsRoundTrip() throws {
+        let app = launchGuestApp()
+        let heroButton = featuredButton(in: app)
+        XCTAssertTrue(heroButton.waitForExistence(timeout: 20))
+        remote.press(.down)
+        remote.press(.down)
+        sleep(1)
+        let focusedBefore = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "hasFocus == YES")).firstMatch
+        XCTAssertTrue(focusedBefore.waitForExistence(timeout: 5))
+        let labelBefore = focusedBefore.label
+        remote.press(.select)
+        XCTAssertTrue(app.buttons.matching(NSPredicate(
+            format: "label CONTAINS[c] %@ OR label CONTAINS[c] %@",
+            "Library", "Remove"
+        )).firstMatch.waitForExistence(timeout: 15))
+        remote.press(.menu)
+        XCTAssertTrue(app.staticTexts["Home"].waitForExistence(timeout: 10))
+        sleep(1)
+        let focusedAfter = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "hasFocus == YES")).firstMatch
+        XCTAssertTrue(focusedAfter.waitForExistence(timeout: 5))
+        XCTAssertEqual(focusedAfter.label, labelBefore)
+    }
+
     private func featuredButton(in app: XCUIApplication) -> XCUIElement {
         app.buttons.matching(NSPredicate(format: "label ENDSWITH[c] %@", "featured")).firstMatch
     }

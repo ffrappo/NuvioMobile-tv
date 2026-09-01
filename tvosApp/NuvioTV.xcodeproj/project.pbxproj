@@ -62,6 +62,7 @@
 		824E002FC5327DD5BD5167F7 /* TVAudioSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2FC4480363CC0C65536C9A8 /* TVAudioSessionCoordinator.swift */; };
 		86B8B63E6CA2972A9246424B /* ModernHomePresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0646A0D10108D586BF3E8F4 /* ModernHomePresentation.swift */; };
 		874897F84646EFFA1B8F32FF /* PlayerSelectionPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112EB72F7608816A19421933 /* PlayerSelectionPanel.swift */; };
+		8D2F7A14AE77624A2B3C61E5 /* HeroEnrichmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFCD33CA98BAF90D03239FD4 /* HeroEnrichmentTests.swift */; };
 		8D8E9277531A1C12CA7894BB /* opensans_variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 52400688A0338EC38606C072 /* opensans_variable.ttf */; };
 		8FA2E75DF748C5B380FE0664 /* TVPlaybackCapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 794DC63C098524D2EFC80493 /* TVPlaybackCapabilities.swift */; };
 		90D0B1FEC30BBA24F7685436 /* NuvioArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C5C70B833140F20FB54E9BE /* NuvioArtworkView.swift */; };
@@ -82,6 +83,7 @@
 		AB8903DA6B406A79E2C44C34 /* NuvioAccountLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBDD5DC9525EBCC8643B70D /* NuvioAccountLibraryService.swift */; };
 		AB8E9399D2DA1CD2506313C7 /* NuvioDesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = D06703E4D0760EDB7A7F1C3E /* NuvioDesignTokens.swift */; };
 		ABB53549A923F9D74484E51B /* TVNowPlayingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CA8D158F406C206AD751836 /* TVNowPlayingController.swift */; };
+		AC4577A5428718E54A3D0FAD /* HeroEnrichment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F23883936A72B8F0222D685 /* HeroEnrichment.swift */; };
 		ACF172595458C29AEF489369 /* ModernHomePresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 261EC99720AA8050CA4F67CD /* ModernHomePresentationTests.swift */; };
 		AED6026EFE342B8EEA89392D /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33449435FC3BF87503CD4A8F /* SearchView.swift */; };
 		B08120C4F269B799CFC54713 /* MPVPlayerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 302544E09DAD6A87C91FB11C /* MPVPlayerController.swift */; };
@@ -220,6 +222,7 @@
 		786FC58A58F4DEFF56C9B9BF /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
 		794DC63C098524D2EFC80493 /* TVPlaybackCapabilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TVPlaybackCapabilities.swift; sourceTree = "<group>"; };
 		7A2A96630D9EAD2F618E992E /* DesignTokenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokenTests.swift; sourceTree = "<group>"; };
+		7F23883936A72B8F0222D685 /* HeroEnrichment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroEnrichment.swift; sourceTree = "<group>"; };
 		8114FE8958B0BEE9C07AF7F6 /* NuvioTVTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NuvioTVTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		82956D899696970A117196B1 /* NuvioDeepLinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NuvioDeepLinkTests.swift; sourceTree = "<group>"; };
 		86D1F9E7082FD4205EE938F4 /* HeroSceneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroSceneView.swift; sourceTree = "<group>"; };
@@ -281,6 +284,7 @@
 		F927A2D709889D55514CB41C /* NuvioTVUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NuvioTVUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FCD191E61EBE513E96B6E2A9 /* ArtworkCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkCache.swift; sourceTree = "<group>"; };
 		FD27016DD0E674D8332CF7F4 /* DiscoveryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryStore.swift; sourceTree = "<group>"; };
+		FFCD33CA98BAF90D03239FD4 /* HeroEnrichmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroEnrichmentTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -404,6 +408,7 @@
 				C425062F50824010361F8D05 /* AsyncBatcherTests.swift */,
 				2B26CB1691AF39F127797C79 /* CatalogModelTests.swift */,
 				7A2A96630D9EAD2F618E992E /* DesignTokenTests.swift */,
+				FFCD33CA98BAF90D03239FD4 /* HeroEnrichmentTests.swift */,
 				C10F91D1ABC9D4965DAD653B /* HomeStorePaginationTests.swift */,
 				3846B742926FB7D75A3FA7CF /* ModernHeroTests.swift */,
 				261EC99720AA8050CA4F67CD /* ModernHomePresentationTests.swift */,
@@ -459,6 +464,7 @@
 		A6C969C0F661D362ABF0F09E /* Hero */ = {
 			isa = PBXGroup;
 			children = (
+				7F23883936A72B8F0222D685 /* HeroEnrichment.swift */,
 				425D652E7475BA4B531E4B7F /* HeroModels.swift */,
 				86D1F9E7082FD4205EE938F4 /* HeroSceneView.swift */,
 			);
@@ -695,6 +701,7 @@
 				47E3EBC0763BA0985BE8E921 /* DetailsView.swift in Sources */,
 				0DE3CA12024E2A2AE334744C /* DiscoverView.swift in Sources */,
 				594EC92E3129DE177FCA3832 /* DiscoveryStore.swift in Sources */,
+				AC4577A5428718E54A3D0FAD /* HeroEnrichment.swift in Sources */,
 				6502905E9F8395255D21479D /* HeroModels.swift in Sources */,
 				F8A51AA8B25A39FF7F40124B /* HeroSceneView.swift in Sources */,
 				578A37659AF71DB6B82A4818 /* HomeCatalogViews.swift in Sources */,
@@ -771,6 +778,7 @@
 				2038D4D793A4FF4E6FCD4708 /* AsyncBatcherTests.swift in Sources */,
 				264FD2FF58FCD8ABB9197BB5 /* CatalogModelTests.swift in Sources */,
 				3E8AFD60F5E0EF7ABDEE4412 /* DesignTokenTests.swift in Sources */,
+				8D2F7A14AE77624A2B3C61E5 /* HeroEnrichmentTests.swift in Sources */,
 				1DC8C4C81BFF09971D79E390 /* HomeStorePaginationTests.swift in Sources */,
 				326B3FDA75C3B5355C9D5C6B /* ModernHeroTests.swift in Sources */,
 				ACF172595458C29AEF489369 /* ModernHomePresentationTests.swift in Sources */,

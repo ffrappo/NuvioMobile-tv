@@ -191,7 +191,7 @@ public struct HeroSceneView: View {
     @ViewBuilder
     private func metadata(_ item: HeroItem) -> some View {
         let badges = item.canonicalBadges
-        if !badges.isEmpty {
+        if !badges.isEmpty || item.imdbRating != nil {
             HStack(spacing: NuvioDesignTokens.Spacing.Rail.itemGap) {
                 ForEach(Array(badges.enumerated()), id: \.offset) { _, badge in
                     Text(badge)
@@ -205,9 +205,25 @@ public struct HeroSceneView: View {
                         )
                         .overlay(Capsule().stroke(.white.opacity(0.42), lineWidth: 1))
                 }
+                if let imdb = item.imdbRating, !imdb.isEmpty {
+                    Label("IMDb \(imdb)", systemImage: "star.fill")
+                        .nuvioTextStyle(.metadata)
+                        .foregroundStyle(NuvioDesignTokens.Colors.primaryText)
+                        .labelStyle(TitleAndIconLabelStyle())
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(
+                            NuvioDesignTokens.Colors.elevated.opacity(0.82),
+                            in: Capsule()
+                        )
+                        .overlay(Capsule().stroke(.white.opacity(0.42), lineWidth: 1))
+                }
             }
             .accessibilityElement(children: .combine)
-            .accessibilityLabel(badges.joined(separator: ", "))
+            .accessibilityLabel(
+                (badges + [item.imdbRating.map { "IMDb \($0)" }].compactMap { $0 })
+                    .joined(separator: ", ")
+            )
         }
     }
 

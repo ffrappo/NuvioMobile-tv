@@ -15,6 +15,7 @@ struct ModernHomeCatalogContent: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var hero: HeroPresentation
     @StateObject private var focusModel = RailFocusModel()
+    @StateObject private var enrichment = HeroEnrichmentStore()
     @State private var catalogFocusOwnsHero = false
 
     init(
@@ -64,8 +65,18 @@ struct ModernHomeCatalogContent: View {
         .background(NuvioDesignTokens.Colors.canvasBlack)
         .onChange(of: presentation.heroes) { _, pages in
             hero.replacePages(pages)
+            enrichCurrentHero()
         }
-        .onAppear { resolveMotionAndFocus() }
+        .onChange(of: hero.currentPage?.id) { _, _ in
+            enrichCurrentHero()
+        }
+        .onChange(of: enrichment.cache) { _, _ in
+            applyEnrichment()
+        }
+        .onAppear {
+            resolveMotionAndFocus()
+            enrichCurrentHero()
+        }
         .onChange(of: reduceMotion) { _, _ in resolveMotionAndFocus() }
         .onChange(of: catalogFocusOwnsHero) { _, _ in resolveMotionAndFocus() }
     }
@@ -154,6 +165,27 @@ struct ModernHomeCatalogContent: View {
         // Android parity: the hero previews the focused rail item directly,
         // including items outside the bounded rotating page set.
         hero.displayOverride(presentation.heroPage(for: item))
+        if let summary = presentation.summary(for: item) {
+            enrichment.enrich(summary)
+        }
+    }
+
+    /// Android parity: the displayed hero enriches with metadata details
+    /// (logo, IMDb rating, runtime) fetched from the metadata addon.
+    private func enrichCurrentHero() {
+        guard let page = hero.currentPage,
+              let summary = presentation.summariesByHeroID[page.id]
+        else { return }
+        enrichment.enrich(summary)
+    }
+
+    private func applyEnrichment() {
+        guard !enrichment.cache.isEmpty else { return }
+        if let override = hero.overridePage {
+            hero.displayOverride(enrichment.heroItem(byMerging: override))
+        } else {
+            hero.replacePages(hero.pages.map(enrichment.heroItem(byMerging:)))
+        }
     }
 
     private func resolveMotionAndFocus() {

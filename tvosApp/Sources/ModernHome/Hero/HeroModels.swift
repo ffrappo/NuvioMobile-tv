@@ -11,6 +11,7 @@ public struct HeroItem: Identifiable, Equatable, Hashable, Sendable {
     public let runtimeMinutes: Int?
     public let genres: [String]
     public let classification: String?
+    public let imdbRating: String?
     public let badges: [String]
 
     public init(
@@ -23,6 +24,7 @@ public struct HeroItem: Identifiable, Equatable, Hashable, Sendable {
         runtimeMinutes: Int? = nil,
         genres: [String] = [],
         classification: String? = nil,
+        imdbRating: String? = nil,
         badges: [String] = []
     ) {
         self.id = id
@@ -34,6 +36,7 @@ public struct HeroItem: Identifiable, Equatable, Hashable, Sendable {
         self.runtimeMinutes = runtimeMinutes
         self.genres = genres
         self.classification = classification
+        self.imdbRating = imdbRating
         self.badges = badges
     }
 
