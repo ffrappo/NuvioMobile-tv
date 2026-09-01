@@ -227,6 +227,18 @@ The hero now follows the Android Modern Home state model:
 
 This fixes the full-width dashed artifact caused by rendering an indicator capsule for every unique catalog item. Direct 1920 by 1080 framebuffer inspection measured the final metadata bottom at y 519, indicator at y 530 to 535, and rail header beginning at y 573. Validation passed 89 unit tests, 3 XCUI navigation tests, and a generic unsigned tvOS Debug build with no compiler warnings.
 
+### 2026-09-01: Wave 1 completed on simulator
+
+Commits `5b288292` and `b44f55e0` close the remaining Wave 1 items.
+
+- Rails prefetch further catalog pages as focus approaches the row end; HomeStore tracks nextSkip cursors, coalesces concurrent prefetches, deduplicates appended items, and stops when a page adds nothing new.
+- Completed watch progress marks rail cards with the watched marker.
+- Initial Home loading renders shimmering hero and rail skeletons in place of a spinner.
+- Hero previews enrich from metadata details: title logos replace title text, runtime badges fill in, and IMDb rating chips appear when the addon provides a rating. Failed lookups stay uncached for retry.
+- Native focus restoration is proven by XCUI: the focused rail item regains focus after a details round trip.
+
+Validation: 96 unit tests, 4 XCUI navigation tests, and the warning-free generic tvOS build. Live Cinemeta verification confirmed logo, runtime, and absent-rating behavior. Physical Apple TV validation remains pending on hardware.
+
 ## Implementation waves
 
 ### Wave 1: visual foundation and Modern Home
