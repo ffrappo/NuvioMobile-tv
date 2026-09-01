@@ -247,6 +247,16 @@ Wave 3 (commits `80cc77ba`, `11b1bdf8`): the stream source panel, player chrome 
 
 Validation across both waves: 227 unit tests, 4 XCUI navigation tests, warning-free generic tvOS builds. Recovery pattern for interrupted rounds: lane worktrees carry complete implementations even when the verifier fails on environment issues; the integrator validates candidates in the main worktree against the Android source, correcting test expectations that contradict the reference (six such corrections in Wave 3).
 
+### 2026-09-01: Wave 4 landed
+
+Modules (commit `40ca70e2`, recovered from the fourth Hammersmith round): the profile gateway with PIN challenge, attempt tracking, lockout, and transactional switching; the full settings tree (layout, playback, audio, subtitles, autoplay, buffer/network, diagnostics, about) with the parity design system; the addon manager with enable toggles, protected rows, credential badges, catalog order, and addon detail; and the Classic and Grid home layouts consuming the existing HomeSnapshot.
+
+Integration (commit `08c3e0f9`): CatalogView renders through HomeLayoutSwitch so the persisted layout key selects Modern, Classic, or Grid; the parity settings tree renders under the native account sections with NuvioSettingsStore persisting every change and mirroring the layout picker to the live layout key; the parity AddonManagerView replaces the native addon list with AddonStore-backed enable/disable and priority reorder feeding `enabledAddons` to the stream pipeline; the profile gateway covers the shell at launch when the account has multiple profiles, with PIN verification mapped to the unlocked schema fallback until server-side PINs exist.
+
+Validation: 316 unit tests (312 plus 4 bridge tests), 4 XCUI navigation tests, warning-free generic tvOS build. Pixel-diff verification on the simulator confirmed three distinct layouts render for the three persisted modes (58 to 67 percent of pixels differ pairwise); the settings-to-layout bridge is covered by SettingsParityBridgeTests, including relaunch persistence and clamp propagation. Physical Apple TV validation remains pending on hardware.
+
+Deferred from Wave 4 parity: server-side profile PINs (schema mapping unlocks today), profile editor integration into the settings surface, addon detail navigation from the manager rows, theme selection driving the live palette (the app theme remains accessibility-driven), and the playback/subtitle/audio settings consuming the persisted state in the player pipeline.
+
 ## Implementation waves
 
 ### Wave 1: visual foundation and Modern Home
