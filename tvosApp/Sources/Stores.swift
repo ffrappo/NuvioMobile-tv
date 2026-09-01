@@ -79,6 +79,7 @@ final class LibraryStore: ObservableObject {
 final class AddonStore: ObservableObject {
     @Published private(set) var addons: [AddonEndpoint] = []
     @Published private(set) var homeAddons: [HomeAddon] = []
+    @Published private(set) var disabledBases: Set<String> = []
     @Published private(set) var isRefreshing = false
     @Published private(set) var syncMessage: String?
 
@@ -86,6 +87,7 @@ final class AddonStore: ObservableObject {
     private let service: StremioService
     private let accountService: NuvioAccountService
     private let key = "nuvio.tv.addonBases.v1"
+    private let disabledKey = "nuvio.tv.addonDisabled.v2"
     private var storedBases: [String]
     private var accountContext: (auth: AuthStore, profileID: Int)?
 
@@ -98,6 +100,7 @@ final class AddonStore: ObservableObject {
         self.service = service
         self.accountService = accountService
         storedBases = defaults.stringArray(forKey: key) ?? []
+        disabledBases = Set(defaults.stringArray(forKey: disabledKey) ?? [])
         addons = storedBases.map {
             AddonEndpoint(baseURL: $0, name: URL(string: $0)?.host ?? "Saved addon", detail: nil, providesStreams: true)
         }
@@ -169,9 +172,39 @@ final class AddonStore: ObservableObject {
         await pushToAccount()
     }
 
+    /// Addons the catalog, stream, and details pipelines query: installed
+    /// addons minus locally disabled ones, in display order.
+    var enabledAddons: [AddonEndpoint] {
+        addons.filter { !disabledBases.contains($0.baseURL) }
+    }
+
+    func setEnabled(_ base: String, _ isEnabled: Bool) {
+        if isEnabled {
+            disabledBases.remove(base)
+        } else {
+            disabledBases.insert(base)
+        }
+        defaults.set(Array(disabledBases), forKey: disabledKey)
+    }
+
+    /// Reorders an addon by the given offset, matching the Android
+    /// up/down list controls; order drives catalog query priority.
+    func move(_ base: String, offset: Int) {
+        guard let index = addons.firstIndex(where: { $0.baseURL == base }) else { return }
+        let target = index + offset
+        let clamped = min(max(target, 0), addons.count - 1)
+        guard clamped != index else { return }
+        let addon = addons.remove(at: index)
+        addons.insert(addon, at: clamped)
+        storedBases = addons.map(\.baseURL)
+        persist()
+    }
+
     func remove(_ addon: AddonEndpoint) async {
         addons.removeAll { $0.baseURL == addon.baseURL }
         homeAddons.removeAll { $0.baseURL == addon.baseURL }
+        disabledBases.remove(addon.baseURL)
+        defaults.set(Array(disabledBases), forKey: disabledKey)
         storedBases = addons.map(\.baseURL)
         persist()
         await pushToAccount()

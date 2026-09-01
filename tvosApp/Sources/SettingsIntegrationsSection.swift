@@ -32,7 +32,7 @@ struct SettingsIntegrationsSection: View {
                     title: "Stremio Addons",
                     detail: "Catalogs, metadata, streams, and source headers",
                     symbol: "puzzlepiece.extension.fill",
-                    status: "\(addons.addons.count) enabled"
+                    status: "\(addons.enabledAddons.count) enabled"
                 )
                 Toggle("Show skip controls during playback", isOn: Binding(
                     get: { integrations.settings.skipIntroEnabled },

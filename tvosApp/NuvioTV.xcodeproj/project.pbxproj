@@ -66,6 +66,7 @@
 		3E5C13C1C6F3DFDD6884062B /* MPVPlayerNetworking.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD0750902F3BA140EC65E3B /* MPVPlayerNetworking.swift */; };
 		3E8AFD60F5E0EF7ABDEE4412 /* DesignTokenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2A96630D9EAD2F618E992E /* DesignTokenTests.swift */; };
 		3EBFD0724C253356062E55B4 /* SettingsDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 460AE0E810F798E2FC2C9813 /* SettingsDiagnostics.swift */; };
+		3F1DA6D66841C5E6317466FC /* SettingsParityBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53BA2F31F7B6F7A0D89C215 /* SettingsParityBridge.swift */; };
 		3F4B6950113090D001FB9A73 /* IntegrationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE240C1E5873B2E908D10D36 /* IntegrationStore.swift */; };
 		4194DD6A8869E19775A3EAD8 /* PlayerPanelComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918B901233E485D443137402 /* PlayerPanelComponents.swift */; };
 		41EDEC0FD1E0EA9846D553D7 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958FD18C6EA14520C046C529 /* SignInView.swift */; };
@@ -488,6 +489,7 @@
 		F18FD64ECA02F81C05D32427 /* PlayerControlStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerControlStrip.swift; sourceTree = "<group>"; };
 		F1C38F74A5B5620AADFE4362 /* HomePersonalViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePersonalViews.swift; sourceTree = "<group>"; };
 		F390CE2E7E9E939C677723C8 /* ArtworkLoadingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkLoadingTests.swift; sourceTree = "<group>"; };
+		F53BA2F31F7B6F7A0D89C215 /* SettingsParityBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsParityBridge.swift; sourceTree = "<group>"; };
 		F54FBB08253630F1FB51FF1F /* DetailsMoreLikeThisSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsMoreLikeThisSection.swift; sourceTree = "<group>"; };
 		F638CC75CEFCD647F05692CC /* PlayerStreamInfoOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerStreamInfoOverlayView.swift; sourceTree = "<group>"; };
 		F6A37C88476BCF90A05336D5 /* MediaPosterButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPosterButton.swift; sourceTree = "<group>"; };
@@ -690,6 +692,7 @@
 				42F73CED80851168AB86895F /* SettingsModels.swift */,
 				FF903A0E560FA08D1DF8E26D /* SettingsNetworkTree.swift */,
 				842F07A8FA06F55FC57B884D /* SettingsOptionPicker.swift */,
+				F53BA2F31F7B6F7A0D89C215 /* SettingsParityBridge.swift */,
 				7BACC5443AD8F95E7A4BB26D /* SettingsPlaybackTree.swift */,
 				AEFF91121F336E51BFA6342B /* SettingsScreens.swift */,
 				A800B4E3E479AF436DBA8005 /* SettingsState.swift */,
@@ -1243,6 +1246,7 @@
 				6DF649BAF5B9284B644C68EC /* SettingsModels.swift in Sources */,
 				FEF4F21B85BA68DD234A93AC /* SettingsNetworkTree.swift in Sources */,
 				C61EBBAA7CB1892FF03FD6BD /* SettingsOptionPicker.swift in Sources */,
+				3F1DA6D66841C5E6317466FC /* SettingsParityBridge.swift in Sources */,
 				71AA53ED9A84DC0F32E7787D /* SettingsPlaybackTree.swift in Sources */,
 				B8B6C02249B652F18C23A669 /* SettingsScreens.swift in Sources */,
 				EAF8F9FE1CB73024B3778D93 /* SettingsState.swift in Sources */,

@@ -10,6 +10,7 @@ struct AppShellView: View {
     @Environment(\.nuvioTheme) private var theme
     @State private var selection: AppSection = .home
     @State private var path: [AppRoute] = []
+    @State private var showProfileGateway = false
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -54,6 +55,9 @@ struct AppShellView: View {
                     CollectionDetailView(collection: collection, onSelect: showDetails)
                 }
             }
+        }
+        .fullScreenCover(isPresented: $showProfileGateway) {
+            profileGatewayCover
         }
         .task(id: authStore.signedInEmail) { await synchronizeAccount() }
         .task(id: deepLinkStore.pending) {
@@ -103,6 +107,28 @@ struct AppShellView: View {
         async let integrations: Void = integrationStore.syncFromAccount(auth: authStore)
         async let library: Void = libraryStore.syncFromAccount(auth: authStore, profileID: profileID)
         _ = await (addons, integrations, library)
+        if profileStore.profiles.count > 1 {
+            showProfileGateway = true
+        }
+    }
+
+    /// The parity profile gateway (Android `ProfileSelectionScreen.kt`),
+    /// shown over the shell until a profile is confirmed.
+    private var profileGatewayCover: some View {
+        ProfileGatewayView(
+            profiles: profileStore.profiles.map { GatewayProfile(tvProfile: $0) },
+            activeProfileID: profileStore.activeProfileID,
+            verifyPIN: { _, _, completion in
+                // tvOS profiles carry no server-side PIN today; every
+                // protected profile unlocks immediately, matching the
+                // unlocked fallback of the Android schema mapping.
+                completion(.success)
+            },
+            onSelection: { outcome in
+                profileStore.select(outcome.profile.id)
+                showProfileGateway = false
+            }
+        )
     }
 }
 

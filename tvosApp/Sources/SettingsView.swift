@@ -11,6 +11,7 @@ struct SettingsView: View {
     @EnvironmentObject private var watchProgress: WatchProgressStore
     @EnvironmentObject private var collections: CollectionStore
     @EnvironmentObject private var home: HomeStore
+    @StateObject private var paritySettings = NuvioSettingsStore()
     @State private var cacheMessage: String?
     @State private var showLogout = false
     @FocusState private var focus: Action?
@@ -40,6 +41,7 @@ struct SettingsView: View {
                     preferences: homePreferences,
                     focus: $focus
                 )
+                paritySections
                 SettingsIntegrationsSection(
                     auth: auth,
                     addons: addons,
@@ -56,6 +58,22 @@ struct SettingsView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Account data and synchronized addons will be removed from this Apple TV.")
+        }
+    }
+
+    /// The parity settings tree (Android settings screens). Integrations
+    /// stay in the native section above; the remaining categories render
+    /// with the parity section cards.
+    private var paritySections: some View {
+        ForEach(
+            [NuvioSettingsCategory.layout, .playback, .network, .diagnostics, .about],
+            id: \.self
+        ) { category in
+            ForEach(NuvioSettingsTree.sections(in: category, state: paritySettings.state)) { section in
+                SettingsSectionListView(section: section) { change in
+                    paritySettings.handle(change)
+                }
+            }
         }
     }
 

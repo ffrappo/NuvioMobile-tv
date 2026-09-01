@@ -29,25 +29,30 @@ struct CatalogView: View {
     }
 
     private var homeContent: some View {
-        let presentation = ModernHomePresentation.build(
+        HomeLayoutSwitch.content(
+            mode: layoutMode,
             snapshot: home.snapshot,
-            preferences: preferences.value
-        )
-        return ModernHomeCatalogContent(
-            presentation: presentation,
-            continueWatching: home.snapshot.continueWatching,
-            upcoming: home.snapshot.upcoming,
-            collections: home.snapshot.collections,
-            message: home.snapshot.message,
-            isOffline: home.snapshot.isOffline,
-            onSelect: onSelect,
-            onOpenCatalog: { onOpenCatalog(.from($0)) },
-            onOpenCollection: onOpenCollection,
-            onPrefetchCatalog: { sectionID in
-                Task { await home.loadMore(sectionID: sectionID) }
-            }
+            preferences: preferences.value,
+            handlers: HomeLayoutHandlers(
+                onSelect: onSelect,
+                onOpenCatalog: { onOpenCatalog(.from($0)) },
+                onOpenCollection: onOpenCollection,
+                onPrefetchCatalog: { sectionID in
+                    Task { await home.loadMore(sectionID: sectionID) }
+                }
+            )
         )
     }
+
+    /// The persisted home layout preference; Modern is the default parity
+    /// target, with Classic and Grid available as compatibility modes.
+    private var layoutMode: HomeLayoutMode {
+        HomeLayoutSwitch.mode(
+            forSetting: UserDefaults.standard.string(forKey: Self.layoutKey)
+        )
+    }
+
+    private static let layoutKey = "nuvio.tv.home.layout.v1"
 
     private var reloadKey: String {
         "\(profiles.activeProfileID):\(addons.homeAddons.map(\.baseURL).joined(separator: "|"))"

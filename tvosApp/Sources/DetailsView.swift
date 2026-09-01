@@ -83,7 +83,7 @@ struct DetailsView: View {
                                     episodeNumber: video.episode
                                 )
                             },
-                            addons: addonStore.addons,
+                            addons: addonStore.enabledAddons,
                             onSelectEpisode: { episode in
                                 playerRoute = nil
                                 selectedVideo = detail.videos.first { $0.id == episode.id }
