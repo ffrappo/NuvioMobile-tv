@@ -19,37 +19,17 @@ struct CollectionDetailView: View {
                     title: collection.title,
                     subtitle: "Choose a folder, then browse each source"
                 )
-                folderSelector
+                CollectionFolderRail(
+                    folders: collection.folders.map(CollectionFolderDraft.init)
+                ) { folder in
+                    store.selectFolderID(folder.id)
+                }
                 content
             }
             .padding(48)
         }
         .navigationTitle(collection.title.tvSafe)
         .task(id: selectedFolder?.id) { await loadSelectedFolder() }
-    }
-
-    private var folderSelector: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(spacing: 22) {
-                ForEach(collection.folders) { folder in
-                    Button { store.selectFolderID(folder.id) } label: {
-                        VStack(alignment: .leading, spacing: 10) {
-                            RemoteArtwork(urlString: folder.coverImageUrl, systemPlaceholder: "folder.fill")
-                                .frame(width: 230, height: folder.tileShape.lowercased() == "landscape" ? 145 : 230)
-                                .clipShape(RoundedRectangle(cornerRadius: 18))
-                            if !folder.hideTitle {
-                                Text(folder.title.tvSafe).font(.headline).lineLimit(1)
-                            }
-                        }
-                        .frame(width: 230, alignment: .leading)
-                    }
-                    .buttonStyle(.card)
-                    .accessibilityLabel(folder.title.tvSafe)
-                }
-            }
-            .padding(.vertical, 18)
-        }
-        .focusSection()
     }
 
     @ViewBuilder
@@ -79,5 +59,35 @@ struct CollectionDetailView: View {
             collections.descriptors(for: $0, addons: addons.homeAddons)
         } ?? []
         await store.select(folder: selectedFolder, descriptors: descriptors)
+    }
+}
+
+extension CollectionFolderDraft {
+    /// Maps the synced folder wire model onto the editor draft used by the
+    /// parity folder tiles.
+    init(_ folder: TVCollectionFolder) {
+        self.init(
+            id: folder.id,
+            title: folder.title,
+            coverImageUrl: folder.coverImageUrl,
+            tileShape: CollectionTileShape(raw: folder.tileShape),
+            hideTitle: folder.hideTitle,
+            sources: folder.sources.map { source in
+                CollectionSourceDraft(
+                    provider: source.provider,
+                    addonId: source.addonId,
+                    type: source.type,
+                    catalogId: source.catalogId,
+                    genre: source.genre,
+                    title: source.title,
+                    tmdbSourceType: source.tmdbSourceType,
+                    tmdbId: source.tmdbId,
+                    traktListId: source.traktListId,
+                    mediaType: source.mediaType,
+                    sortBy: source.sortBy,
+                    sortHow: source.sortHow
+                )
+            }
+        )
     }
 }

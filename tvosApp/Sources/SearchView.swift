@@ -4,28 +4,45 @@ struct SearchView: View {
     @EnvironmentObject private var addons: AddonStore
     @StateObject private var store = SearchStore()
     @State private var query = ""
+    @State private var submittedQuery = ""
     @State private var searchTask: Task<Void, Never>?
+    @State private var recentSearches = RecentSearchHistory()
     let onSelect: (MetaSummary) -> Void
 
+    private let recentSearchesKey = "nuvio.tv.recentSearches.v1"
+
     var body: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 28) {
-                NuvioPageHeader(
-                    title: "Search",
-                    subtitle: "Find movies and series across your installed addons"
-                )
-                searchContent
-            }
-            .padding(.horizontal, 80)
-            .padding(.vertical, 48)
-        }
-        .searchable(text: $query, prompt: "Movies and series")
-        .onSubmit(of: .search) { startSearch(immediately: true) }
+        SearchParityView(
+            query: $query,
+            presentation: SearchParityView.presentation(
+                query: query,
+                submittedQuery: submittedQuery,
+                isSearching: store.isLoading,
+                errorMessage: store.message,
+                providerResults: store.providerResults,
+                recentSearches: recentSearches.items,
+                discoverLocation: .inSearch
+            ),
+            onSubmitQuery: { startSearch(immediately: true) },
+            onSelectItem: { item in selectPosterItem(item) },
+            onSelectRecentSearch: { value in
+                query = value
+                startSearch(immediately: true)
+            },
+            onClearRecentSearches: {
+                recentSearches.clear()
+                persistRecentSearches()
+            },
+            onRetry: { startSearch(immediately: true) }
+        )
+        .sidebarContentInsets()
+        .onAppear { loadRecentSearches() }
         .onChange(of: query) { _, value in
             searchTask?.cancel()
             let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
             if trimmed.isEmpty {
                 store.clear()
+                submittedQuery = ""
             } else if trimmed.count < 2 {
                 store.clear(message: "Enter at least two characters.")
             } else {
@@ -33,6 +50,22 @@ struct SearchView: View {
             }
         }
         .onDisappear { searchTask?.cancel() }
+    }
+
+    private func selectPosterItem(_ item: SearchPosterItem) {
+        guard let summary = store.items.first(where: {
+            "\($0.type):\($0.id)" == item.id
+        }) else { return }
+        onSelect(summary)
+    }
+
+    private func loadRecentSearches() {
+        let encoded = UserDefaults.standard.string(forKey: recentSearchesKey) ?? ""
+        recentSearches = RecentSearchHistory(encoded: encoded)
+    }
+
+    private func persistRecentSearches() {
+        UserDefaults.standard.set(recentSearches.encoded, forKey: recentSearchesKey)
     }
 
     private func startSearch(immediately: Bool) {
@@ -44,29 +77,16 @@ struct SearchView: View {
                 try? await Task.sleep(for: .milliseconds(350))
             }
             guard !Task.isCancelled else { return }
-            await store.search(value, addons: availableAddons)
-        }
-    }
-
-    @ViewBuilder
-    private var searchContent: some View {
-        if store.isLoading && store.items.isEmpty {
-            CatalogPlaceholderGrid()
-        } else if store.items.isEmpty {
-            NuvioUnavailableView(
-                title: store.message ?? "Search Nuvio",
-                symbol: "magnifyingglass",
-                message: "Use the Search tab to enter a title. Catalog browsing lives in Discover."
-            )
-        } else {
-            LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: 236, maximum: 270), spacing: 28)],
-                spacing: 34
-            ) {
-                ForEach(store.items) { item in
-                    MediaPosterButton(item: item, onSelect: onSelect)
+            if immediately {
+                await MainActor.run {
+                    submittedQuery = value.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if submittedQuery.count >= 2 {
+                        recentSearches.save(submittedQuery)
+                        persistRecentSearches()
+                    }
                 }
             }
+            await store.search(value, addons: availableAddons)
         }
     }
 }
@@ -84,9 +104,12 @@ final class SearchStore: ObservableObject {
         self.repository = repository
     }
 
+    @Published private(set) var providerResults: [SearchProviderResult] = []
+
     func clear(message nextMessage: String? = nil) {
         requestID = UUID()
         items = []
+        providerResults = []
         isLoading = false
         message = nextMessage
     }
@@ -105,6 +128,18 @@ final class SearchStore: ObservableObject {
         defer { if requestID == currentRequest { isLoading = false } }
 
         let descriptors = CatalogDescriptors.search(from: addons)
+        providerResults = descriptors.map { descriptor in
+            SearchProviderResult(
+                addonID: descriptor.addonID,
+                addonName: descriptor.addonName,
+                addonBaseURL: descriptor.baseURL,
+                catalogID: descriptor.catalogID,
+                catalogName: descriptor.catalogName,
+                type: descriptor.type,
+                items: [],
+                state: .loading
+            )
+        }
         let values = AsyncBatcher.values(descriptors, limit: 3) { [repository] descriptor in
             do {
                 return try await repository.searchPage(of: descriptor, query: query).items
@@ -116,12 +151,28 @@ final class SearchStore: ObservableObject {
         }
         for await result in values {
             guard !Task.isCancelled, requestID == currentRequest else { return }
+            publishProviderResult(at: result.index, items: result.value)
             items = Self.merged(items, result.value)
             await Task.yield()
         }
         if requestID == currentRequest, items.isEmpty {
             message = "No results for ‘\(query)’."
         }
+    }
+
+    private func publishProviderResult(at index: Int, items incoming: [MetaSummary]) {
+        guard providerResults.indices.contains(index) else { return }
+        let base = providerResults[index]
+        providerResults[index] = SearchProviderResult(
+            addonID: base.addonID,
+            addonName: base.addonName,
+            addonBaseURL: base.addonBaseURL,
+            catalogID: base.catalogID,
+            catalogName: base.catalogName,
+            type: base.type,
+            items: incoming,
+            state: incoming.isEmpty ? .failed(message: nil) : .loaded
+        )
     }
 
     private static func merged(_ existing: [MetaSummary], _ incoming: [MetaSummary]) -> [MetaSummary] {

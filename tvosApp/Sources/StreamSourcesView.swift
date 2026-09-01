@@ -26,7 +26,7 @@ struct StreamSourcesView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack {
-                DetailSectionHeader(title: "Sources", symbol: "antenna.radiowaves.left.and.right")
+                DetailsSectionHeaderView(title: "Sources", symbol: "antenna.radiowaves.left.and.right")
                 Spacer()
                 if !report.sources.isEmpty {
                     Text(sourceCountLabel)

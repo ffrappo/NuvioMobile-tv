@@ -1,41 +1,31 @@
 import SwiftUI
 
+/// Wave 2 integration: the Android-parity Library composition wired to the
+/// existing LibraryStore and WatchProgressStore. Cloud mode stays a
+/// placeholder surface until the account library sync ships.
 struct LibraryView: View {
     let onSelect: (MetaSummary) -> Void
 
     @EnvironmentObject private var library: LibraryStore
-    @FocusState private var focusedID: String?
+    @EnvironmentObject private var watchProgress: WatchProgressStore
+    @State private var presentation = LibraryPresentation()
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 30) {
-                NuvioPageHeader(
-                    title: "Library",
-                    subtitle: "Titles saved to your active profile"
-                )
+        LibraryParityView(presentation: $presentation, onSelect: onSelect)
+            .sidebarContentInsets()
+            .onAppear { syncPresentation() }
+            .onChange(of: library.items) { _, _ in syncPresentation() }
+            .onChange(of: watchProgress.records) { _, _ in syncPresentation() }
+    }
 
-                if library.items.isEmpty {
-                    NuvioUnavailableView(
-                        title: "Your Library Is Empty",
-                        symbol: "heart",
-                        message: "Open any title and add it to your library."
-                    )
-                } else {
-                    LazyVGrid(
-                        columns: [GridItem(.adaptive(minimum: 236, maximum: 270), spacing: 28)],
-                        spacing: 34
-                    ) {
-                        ForEach(library.items) { item in
-                            MediaPosterButton(item: item, onSelect: onSelect)
-                                .focused($focusedID, equals: "\(item.type):\(item.id)")
-                        }
-                    }
-                    .padding(.vertical, 18)
-                    .focusSection()
-                }
-            }
-            .padding(48)
-        }
-        .defaultFocus($focusedID, library.items.first.map { "\($0.type):\($0.id)" })
+    /// Rebuilds the pure presentation inputs from the stores while keeping
+    /// the user's active filter, sort, and query selections.
+    private func syncPresentation() {
+        presentation.items = library.items
+        presentation.watchedKeys = Set(
+            watchProgress.records
+                .filter(\.isCompleted)
+                .map { "\($0.contentType.lowercased()):\($0.contentID)" }
+        )
     }
 }
