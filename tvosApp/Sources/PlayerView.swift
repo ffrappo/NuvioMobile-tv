@@ -54,6 +54,7 @@ struct PlayerView: View {
 
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var integrations: IntegrationStore
+    @EnvironmentObject private var deepLinkStore: NuvioDeepLinkStore
     @EnvironmentObject private var syncedProgress: WatchProgressStore
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var session = MPVPlaybackSession()
@@ -67,6 +68,11 @@ struct PlayerView: View {
     @State private var skipIntervals: [SkipInterval] = []
     @State private var dismissedSkipIntervalIDs: Set<String> = []
     @State private var isControlPanelPresented = false
+    @StateObject private var postPlay = PostPlayController(
+        fetchRecommendations: { _ in [] },
+        autoPlayTrailerEnabled: false
+    )
+    @State private var postPlayRecommendations: [PostPlayRecommendation] = []
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let progressStore = PlaybackProgressStore()
@@ -77,6 +83,16 @@ struct PlayerView: View {
             Color.black.ignoresSafeArea()
             MPVPlayerView(session: session).ignoresSafeArea()
                 .onAppear { session.onControlPress = handleControlPress }
+            SkipIntroButtonView(
+                interval: activeSkipInterval,
+                dismissed: false,
+                controlsVisible: controls.isVisible,
+                onSkip: {
+                    if let interval = activeSkipInterval {
+                        skip(interval)
+                    }
+                }
+            )
             if controls.isVisible {
                 PlayerControlsOverlay(
                     route: route,
@@ -93,6 +109,33 @@ struct PlayerView: View {
             }
             if let error = session.errorMessage {
                 PlayerErrorView(message: error) { dismiss() }
+            }
+            if postPlay.state.isVisible {
+                PostPlayOverlayView(
+                    state: postPlay.state,
+                    currentTitle: route.episodeTitle ?? route.title,
+                    actions: PostPlayOverlayActions(
+                        onPlay: { recommendation in
+                            playRecommendation(recommendation)
+                        },
+                        onOpenDetails: { _ in },
+                        onPlayTrailer: {},
+                        onReplay: {
+                            postPlay.stop()
+                            session.clearEnded()
+                            session.seek(to: 0)
+                            session.play()
+                        },
+                        onReturnToPlayer: {
+                            postPlay.returnToPlayer()
+                            session.clearEnded()
+                        },
+                        onPreviousRecommendation: { postPlay.showPreviousRecommendation() },
+                        onNextRecommendation: { postPlay.showNextRecommendation() }
+                    ),
+                    trailerPlaybackEnabled: false
+                )
+                .transition(.opacity)
             }
         }
         .onAppear {
@@ -129,6 +172,11 @@ struct PlayerView: View {
             guard abs(position - lastSavedPosition) >= 10 else { return }
             saveProgress()
             lastSavedPosition = position
+        }
+        .onChange(of: session.isEnded) { _, ended in
+            guard ended else { return }
+            saveProgress()
+            beginPostPlay()
         }
         .onChange(of: session.isPaused) { _, paused in
             if isControlPanelPresented {
@@ -231,6 +279,70 @@ struct PlayerView: View {
             isPaused: paused,
             speed: session.speed
         )
+    }
+
+    // MARK: - Post-play
+
+    /// Loads similar titles for the ended item and reveals the Android-style
+    /// post-play overlay.
+    private func beginPostPlay() {
+        let identity = PostPlayPlaybackIdentity(
+            contentType: route.summary.type,
+            contentID: route.summary.id,
+            videoID: route.videoID,
+            season: route.seasonNumber,
+            episode: route.episodeNumber
+        )
+        postPlay.begin(identity: identity)
+        Task { await loadPostPlayRecommendations(identity: identity) }
+    }
+
+    private func loadPostPlayRecommendations(identity: PostPlayPlaybackIdentity) async {
+        // Same-genre Cinemeta catalog stands in for the Android Trakt/TMDB
+        // more-like-this source until those integrations ship.
+        let service = StremioService()
+        let genre = route.summary.genres.first ?? ""
+        do {
+            let items = try await service.catalog(
+                type: route.summary.type,
+                id: "top",
+                genre: genre.isEmpty ? nil : genre
+            )
+            let recommendations = items
+                .filter { $0.id != route.summary.id }
+                .prefix(6)
+                .map { summary in
+                    PostPlayRecommendation(
+                        id: summary.id,
+                        contentType: summary.type,
+                        title: summary.name,
+                        poster: summary.poster,
+                        backdrop: summary.background,
+                        description: summary.description,
+                        releaseInfo: summary.releaseInfo,
+                        genres: Array(summary.genres.prefix(3))
+                    )
+                }
+            postPlayRecommendations = recommendations
+            postPlay.begin(recommendations: recommendations, identity: identity)
+        } catch {
+            postPlay.begin(recommendations: [], identity: identity)
+        }
+    }
+
+    private func playRecommendation(_ recommendation: PostPlayRecommendation) {
+        postPlay.stop()
+        session.clearEnded()
+        saveProgress()
+        session.stop()
+        dismiss()
+        // Route through details so the stream pipeline resolves fresh sources.
+        if let url = NuvioDeepLink.detailsURL(
+            type: recommendation.contentType,
+            id: recommendation.id
+        ) {
+            deepLinkStore.receive(url)
+        }
     }
 
     private func saveProgress() {

@@ -16,6 +16,7 @@ final class MPVPlaybackSession: ObservableObject {
     @Published private(set) var subtitleFontSize = 52
     @Published private(set) var errorMessage: String?
     @Published private(set) var activeSourceName = ""
+    @Published private(set) var isEnded = false
     var onControlPress: (() -> Void)?
 
     fileprivate weak var controller: MPVPlayerController?
@@ -70,6 +71,16 @@ final class MPVPlaybackSession: ObservableObject {
         if let paused, paused != isPaused { isPaused = paused }
         if let loading, loading != isLoading { isLoading = loading }
         if let error, error != errorMessage { errorMessage = error }
+    }
+
+    /// Playback reached EOF: post-play takes over from the controls.
+    func markEnded() {
+        isEnded = true
+    }
+
+    /// Replay flows clear the ended flag.
+    func clearEnded() {
+        isEnded = false
     }
 
     func update(position: Double, duration: Double) {
@@ -364,6 +375,9 @@ final class MPVPlayerController: UIViewController {
                         if end.reason == MPV_END_FILE_REASON_ERROR {
                             let text = String(cString: mpv_error_string(end.error))
                             Task { @MainActor in self.session.update(loading: false, error: text) }
+                        } else if end.reason == MPV_END_FILE_REASON_EOF {
+                            // Natural end: post-play decisions observe this.
+                            Task { @MainActor in self.session.markEnded() }
                         }
                     }
                 default: break

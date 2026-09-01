@@ -10,6 +10,8 @@ struct PlayerSelectionPanel: View {
 
     @Environment(\.dismiss) private var dismiss
     @State private var showsSubtitleAppearance = false
+    @State private var showsTimingDialog = false
+    @State private var timingState = SubtitleTimingDialogState()
 
     var body: some View {
         NavigationStack {
@@ -20,6 +22,24 @@ struct PlayerSelectionPanel: View {
             .navigationTitle(panel.title)
             .navigationDestination(isPresented: $showsSubtitleAppearance) {
                 SubtitleAppearanceView(session: session)
+            }
+            .sheet(isPresented: $showsTimingDialog) {
+                SubtitleTimingDialog(
+                    state: timingState,
+                    onAdjustDelay: { delta in
+                        session.setSubtitleDelay(
+                            milliseconds: session.subtitleDelayMilliseconds + delta
+                        )
+                        timingState.adjustDelay(byMilliseconds: delta)
+                    },
+                    onResetDelay: {
+                        session.setSubtitleDelay(milliseconds: 0)
+                        timingState.resetDelay()
+                    },
+                    onClose: { showsTimingDialog = false }
+                )
+                .frame(maxWidth: 620)
+                .padding(40)
             }
         }
     }
@@ -38,8 +58,18 @@ struct PlayerSelectionPanel: View {
                     dismiss()
                 }
             }
-            row("Appearance and Timing", symbol: "textformat", selected: false) {
+            row("Appearance", symbol: "textformat", selected: false) {
                 showsSubtitleAppearance = true
+            }
+            row(
+                "Timing, Delay \(session.subtitleDelayMilliseconds) ms",
+                symbol: "timer",
+                selected: false
+            ) {
+                timingState = SubtitleTimingDialogState(
+                    delayMilliseconds: session.subtitleDelayMilliseconds
+                )
+                showsTimingDialog = true
             }
         case .audio:
             ForEach(session.audioTracks) { track in
