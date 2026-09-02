@@ -27,6 +27,7 @@ public final class PostPlayController: ObservableObject {
     private let fetchRecommendations: RecommendationFetch
     private let countdownTickInterval: TimeInterval
     private let transitionDuration: TimeInterval
+    private let prefetchThreshold: Double
     private let initialAutoPlayTrailerEnabled: Bool
 
     private var identity: PostPlayPlaybackIdentity?
@@ -41,13 +42,15 @@ public final class PostPlayController: ObservableObject {
         fetchRecommendations: @escaping RecommendationFetch,
         autoPlayTrailerEnabled: Bool = true,
         countdownTickInterval: TimeInterval = 1.0,
-        transitionDuration: TimeInterval = PostPlayTiming.transitionDuration
+        transitionDuration: TimeInterval = PostPlayTiming.transitionDuration,
+        prefetchThreshold: Double = PostPlayTiming.prefetchProgress
     ) {
         self.fetchRecommendations = fetchRecommendations
         self.initialAutoPlayTrailerEnabled = autoPlayTrailerEnabled
         self.autoPlayTrailerEnabled = autoPlayTrailerEnabled
         self.countdownTickInterval = countdownTickInterval
         self.transitionDuration = transitionDuration
+        self.prefetchThreshold = prefetchThreshold
     }
 
     // MARK: - Lifecycle
@@ -78,11 +81,12 @@ public final class PostPlayController: ObservableObject {
     }
 
     /// One-shot prefetch trigger tied to playback progress
-    /// (`handlePrefetch(progressFraction)`). Crosses at
-    /// `POST_PLAY_RECOMMENDATION_PREFETCH_PROGRESS = 0.9`.
+    /// (`handlePrefetch(progressFraction)`). Crosses at the configured
+    /// threshold (`POST_PLAY_RECOMMENDATION_PREFETCH_PROGRESS` default 0.9;
+    /// the parity settings store supplies the user's movie threshold).
     public func handlePrefetch(progressFraction: Double) {
         guard !loadAttempted,
-              progressFraction >= PostPlayTiming.prefetchProgress
+              progressFraction >= prefetchThreshold
         else { return }
         loadRecommendations()
     }

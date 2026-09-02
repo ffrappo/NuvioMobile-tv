@@ -76,7 +76,7 @@ public struct ProfileGatewayView: View {
         .onAppear {
             if focusedProfileID == nil { focusedProfileID = initialFocusID }
         }
-        .onChange(of: controller.state) { _ in deliverSelectionIfComplete() }
+        .onChange(of: controller.state) { _, _ in deliverSelectionIfComplete() }
     }
 
     // MARK: Selection delivery
@@ -253,7 +253,7 @@ public struct ProfileGatewayView: View {
         }
         .padding(.horizontal, Layout.screenPaddingHorizontal)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onChange(of: challenge.lastError) { error in
+        .onChange(of: challenge.lastError) { _, error in
             if error != nil { shakeTrigger += 1 }
         }
         .onExitCommand { controller.cancelPINEntry() }
@@ -303,7 +303,7 @@ private struct FocusChangedSink: View {
     var body: some View {
         Color.clear
             .frame(width: 0, height: 0)
-            .onChange(of: isFocused) { focused in action(focused) }
+            .onChange(of: isFocused) { _, focused in action(focused) }
     }
 }
 

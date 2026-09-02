@@ -127,7 +127,7 @@ public struct AddonSelectionMachine: Equatable, Sendable {
         case let (_, .requestRemoval(addonID)):
             state = .confirmingRemoval(addonID: addonID)
             return true
-        case let (.confirmingRemoval(addonID), .confirmRemoval):
+        case (.confirmingRemoval, .confirmRemoval):
             state = .idle
             return true
         case let (.confirmingRemoval(addonID), .cancelRemoval):

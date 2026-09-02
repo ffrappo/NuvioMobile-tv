@@ -13,6 +13,8 @@ struct PlayerRoute: Identifiable {
     let episodeNumber: Int?
     let episodeTitle: String?
     let availableSources: [PlayerSourceOption]
+    /// The unflattened stream sources feeding the parity side panel.
+    var streamSources: [StreamSource] = []
     let episodes: [PlayerEpisodeOption]
     let onSelectEpisode: (PlayerEpisodeOption) -> Void
 
@@ -70,7 +72,8 @@ struct PlayerView: View {
     @State private var isControlPanelPresented = false
     @StateObject private var postPlay = PostPlayController(
         fetchRecommendations: { _ in [] },
-        autoPlayTrailerEnabled: false
+        autoPlayTrailerEnabled: false,
+        prefetchThreshold: PostPlayTiming.userMovieThreshold()
     )
     @State private var postPlayRecommendations: [PostPlayRecommendation] = []
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -84,7 +87,7 @@ struct PlayerView: View {
             MPVPlayerView(session: session).ignoresSafeArea()
                 .onAppear { session.onControlPress = handleControlPress }
             SkipIntroButtonView(
-                interval: activeSkipInterval,
+                interval: integrations.settings.skipIntroEnabled ? activeSkipInterval : nil,
                 dismissed: false,
                 controlsVisible: controls.isVisible,
                 onSkip: {

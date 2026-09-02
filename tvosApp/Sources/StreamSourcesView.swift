@@ -274,6 +274,7 @@ struct StreamSourcesView: View {
             episodeNumber: episodeNumber,
             episodeTitle: episodeTitle,
             availableSources: orderedSources.compactMap(PlayerSourceOption.init),
+            streamSources: orderedSources,
             episodes: episodes,
             onSelectEpisode: onSelectEpisode
         ))

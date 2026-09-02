@@ -5,6 +5,19 @@ import Foundation
 public enum PostPlayTiming {
     /// `POST_PLAY_RECOMMENDATION_PREFETCH_PROGRESS = 0.9f`
     public static let prefetchProgress: Double = 0.9
+
+    /// The user's post-play movie threshold from the parity settings store
+    /// (`postPlayMovieThresholdPercent`, Android default 90), read at
+    /// playback start; falls back to the Android default when unset.
+    public static func userMovieThreshold(
+        defaults: UserDefaults = .standard,
+        key: String = "nuvio.tv.settings.v2.playback.postPlayMovieThreshold"
+    ) -> Double {
+        // NuvioSettingsStore persists numbers as "n:<value>" strings.
+        let raw = defaults.string(forKey: key) ?? ""
+        let percent = raw.hasPrefix("n:") ? Int(raw.dropFirst(2)) ?? 90 : 90
+        return min(max(Double(percent), 0), 100) / 100
+    }
     /// `POST_PLAY_RECOMMENDATION_PREFETCH_REMAINING_MS = 10 * 60_000L`
     public static let prefetchRemainingSeconds: Double = 10 * 60
     /// `POST_PLAY_RECOMMENDATION_TRAILER_COUNTDOWN_SECONDS = 5`

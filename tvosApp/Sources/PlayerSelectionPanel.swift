@@ -9,19 +9,38 @@ struct PlayerSelectionPanel: View {
     let onSelectEpisode: (PlayerEpisodeOption) -> Void
 
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var styleStore = SubtitleStyleSettingsStore()
+    @State private var sourceAddonFilter: String?
+    @State private var sourceSort: StreamSortOption = .original
     @State private var showsSubtitleAppearance = false
     @State private var showsTimingDialog = false
     @State private var timingState = SubtitleTimingDialogState()
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVStack(spacing: 12) { panelRows }
-                    .padding(36)
+            Group {
+                if panel == .subtitles {
+                    subtitleSelectionPanel
+                } else if panel == .sources && !route.streamSources.isEmpty {
+                    sourceSidePanel
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 12) { panelRows }
+                            .padding(36)
+                    }
+                }
             }
             .navigationTitle(panel.title)
             .navigationDestination(isPresented: $showsSubtitleAppearance) {
-                SubtitleAppearanceView(session: session)
+                SubtitleStylePanel(
+                    style: styleStore.options,
+                    onChange: { updated in
+                        styleStore.update(to: updated)
+                        session.applySubtitleStyle(updated)
+                    },
+                    onClose: { showsSubtitleAppearance = false }
+                )
+                .padding(36)
             }
             .sheet(isPresented: $showsTimingDialog) {
                 SubtitleTimingDialog(
@@ -48,29 +67,7 @@ struct PlayerSelectionPanel: View {
     private var panelRows: some View {
         switch panel {
         case .subtitles:
-            row("Off", symbol: "captions.bubble", selected: !session.subtitleTracks.contains(where: \.isSelected)) {
-                session.selectSubtitle(id: nil)
-                dismiss()
-            }
-            ForEach(session.subtitleTracks) { track in
-                row(track.displayName, symbol: "captions.bubble.fill", selected: track.isSelected) {
-                    session.selectSubtitle(id: track.id)
-                    dismiss()
-                }
-            }
-            row("Appearance", symbol: "textformat", selected: false) {
-                showsSubtitleAppearance = true
-            }
-            row(
-                "Timing, Delay \(session.subtitleDelayMilliseconds) ms",
-                symbol: "timer",
-                selected: false
-            ) {
-                timingState = SubtitleTimingDialogState(
-                    delayMilliseconds: session.subtitleDelayMilliseconds
-                )
-                showsTimingDialog = true
-            }
+            EmptyView()
         case .audio:
             ForEach(session.audioTracks) { track in
                 row(track.displayName, symbol: "waveform", selected: track.isSelected) {
@@ -102,6 +99,79 @@ struct PlayerSelectionPanel: View {
                 }
             }
         }
+    }
+
+    /// The parity subtitle side panel (Android `SubtitleSelectionOverlay.kt`):
+    /// embedded tracks, off state, timing with the dialog, the SDH filter,
+    /// and the appearance entry routing to the parity style panel.
+    private var subtitleSelectionPanel: some View {
+        SubtitleSelectionPanel(
+            embeddedTracks: session.subtitleTracks.map { track in
+                SubtitleEmbeddedTrack(
+                    index: Int(track.id),
+                    name: track.displayName,
+                    language: track.language,
+                    trackID: String(track.id),
+                    codec: nil,
+                    isForced: false,
+                    isSelected: track.isSelected
+                )
+            },
+            externalTracks: [],
+            styleOptions: styleStore.options,
+            delayMilliseconds: session.subtitleDelayMilliseconds,
+            onSelectEmbedded: { embedded in
+                session.selectSubtitle(id: Int64(embedded.index))
+            },
+            onDisableSubtitles: {
+                session.selectSubtitle(id: nil)
+            },
+            onAdjustDelay: { delta in
+                session.setSubtitleDelay(
+                    milliseconds: session.subtitleDelayMilliseconds + delta
+                )
+                timingState.adjustDelay(byMilliseconds: delta)
+            },
+            onOpenTimingDialog: {
+                timingState = SubtitleTimingDialogState(
+                    delayMilliseconds: session.subtitleDelayMilliseconds
+                )
+                showsTimingDialog = true
+            },
+            onToggleSdhFilter: { styleStore.toggleSdhFilter($0) },
+            onShowAppearance: { showsSubtitleAppearance = true },
+            onClose: { dismiss() }
+        )
+        .frame(maxWidth: 640)
+    }
+
+    /// The parity source side panel (Android `StreamSourcesSidePanel.kt`):
+    /// addon chips, sorting, quality/size badges, and compatibility dimming,
+    /// fed by the unflattened stream sources carried on the route.
+    private var sourceSidePanel: some View {
+        StreamSidePanelView(
+            snapshot: StreamPanelPresentation.snapshot(for: StreamPanelInput(
+                sources: route.streamSources,
+                selectedAddon: sourceAddonFilter,
+                sortOption: sourceSort,
+                playing: StreamPlayingReference(
+                    url: selectedSourceURL.absoluteString,
+                    addonName: nil,
+                    streamName: nil
+                )
+            )),
+            contentInfo: route.title,
+            onClose: { dismiss() },
+            onReload: {},
+            onSelectAddon: { sourceAddonFilter = $0 },
+            onSelectSort: { sourceSort = $0 },
+            onSelectStream: { row in
+                guard let option = PlayerSourceOption(row.source) else { return }
+                onSelectSource(option)
+                dismiss()
+            }
+        )
+        .frame(maxWidth: 760)
     }
 
     private func row(

@@ -7,6 +7,7 @@ struct AddonsView: View {
     @State private var statusIsSuccess = false
     @State private var isAdding = false
     @FocusState private var focus: AddonFocus?
+    @State private var detailAddon: AddonEndpoint?
 
     private enum AddonFocus: Hashable { case field, add }
 
@@ -74,11 +75,44 @@ struct AddonsView: View {
                 if let addon = store.addons.first(where: { $0.baseURL == base }) {
                     Task { await store.remove(addon) }
                 }
+            },
+            onSelectAddon: { base in
+                detailAddon = store.addons.first { $0.baseURL == base }
             }
         )
+        .sheet(item: $detailAddon) { addon in
+            NavigationStack { addonDetailPage(addon) }
+        }
         if let syncMessage = store.syncMessage {
             NuvioStatusMessage(message: syncMessage, symbol: "arrow.triangle.2.circlepath")
         }
+    }
+
+    private func addonDetailPage(_ addon: AddonEndpoint) -> some View {
+        let manifest = addon.manifest
+        let snapshot = AddonSnapshot(
+            baseURL: addon.baseURL,
+            manifestID: manifest?.id ?? "",
+            name: addon.name,
+            customName: nil,
+            version: manifest?.version ?? "",
+            description: addon.detail,
+            logoURL: manifest?.logoURL,
+            types: manifest?.types ?? [],
+            catalogs: (manifest?.catalogs ?? []).map(AddonCatalogSnapshot.init),
+            providesStreams: addon.providesStreams,
+            configurationRequired: false,
+            isEnabled: !store.disabledBases.contains(addon.baseURL),
+            isProtected: false
+        )
+        return AddonDetailView(
+            detail: AddonDetailModel(snapshot: snapshot, isInstalled: true),
+            onInstall: {},
+            onRemove: {
+                detailAddon = nil
+                Task { await store.remove(addon) }
+            }
+        )
     }
 
     private func addonListEntry(_ addon: AddonEndpoint) -> AddonListEntry {
