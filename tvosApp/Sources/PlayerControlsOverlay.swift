@@ -10,6 +10,7 @@ struct PlayerControlsOverlay: View {
     let onSkip: (SkipInterval) -> Void
     let onSelectSource: (PlayerSourceOption) -> Void
     let onSelectEpisode: (PlayerEpisodeOption) -> Void
+    var onToggleStreamInfo: () -> Void = {}
 
     @State private var scrubPosition = 0.0
     @FocusState private var focus: Control?
@@ -77,7 +78,8 @@ struct PlayerControlsOverlay: View {
                     onInteraction: onInteraction,
                     onModalPresentationChanged: onModalPresentationChanged,
                     onSelectSource: onSelectSource,
-                    onSelectEpisode: onSelectEpisode
+                    onSelectEpisode: onSelectEpisode,
+                    onToggleStreamInfo: onToggleStreamInfo
                 )
             }
         }

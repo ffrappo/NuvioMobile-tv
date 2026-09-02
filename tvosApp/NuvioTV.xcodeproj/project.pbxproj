@@ -111,6 +111,7 @@
 		71AA53ED9A84DC0F32E7787D /* SettingsPlaybackTree.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BACC5443AD8F95E7A4BB26D /* SettingsPlaybackTree.swift */; };
 		725C944403EE2A28D024D8BE /* CatalogOrderModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E459B3BAC1098792C1CB08 /* CatalogOrderModels.swift */; };
 		7297BEDD6446CA10E50F6503 /* ModernHomeCatalogContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05746F239A77B72A1019D824 /* ModernHomeCatalogContent.swift */; };
+		7328F3E30EE585B19763ADFA /* PlayerStreamParameters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AD05A8FFA6209489607DCE9 /* PlayerStreamParameters.swift */; };
 		735E71DE6BDF098559CEB269 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BC5DAEE5C7D57F67EB0F0CB /* Models.swift */; };
 		73897B6A226A349EB2600189 /* LibraryParityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC38E58292B0090C967F9896 /* LibraryParityTests.swift */; };
 		73C0CF3A09A7AD4F6437EB9C /* SubtitleSelectionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B56E984C2BEEB1372039730C /* SubtitleSelectionModels.swift */; };
@@ -364,6 +365,7 @@
 		58E0E9A7BAF0F570B47EDEF5 /* StreamRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamRepository.swift; sourceTree = "<group>"; };
 		5A277BBFF073DD7073DF013D /* ProfileSwitchTransaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSwitchTransaction.swift; sourceTree = "<group>"; };
 		5AB86F7C7B323D69CAFDD9D7 /* AddonManagerParityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddonManagerParityTests.swift; sourceTree = "<group>"; };
+		5AD05A8FFA6209489607DCE9 /* PlayerStreamParameters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerStreamParameters.swift; sourceTree = "<group>"; };
 		5B2F39605F4A9170E5CEB898 /* ClassicHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassicHomeView.swift; sourceTree = "<group>"; };
 		60802B55B6DEBCDD1B2297A4 /* DiscoverParityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverParityView.swift; sourceTree = "<group>"; };
 		60FD5664E979436B49C41ADA /* HomeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeModels.swift; sourceTree = "<group>"; };
@@ -844,6 +846,7 @@
 				F0EA194F9230B55507717ABF /* PlayerOverlayLayers.swift */,
 				6BFB2FFB050829BA4190D9FE /* PlayerStreamInfoData.swift */,
 				F638CC75CEFCD647F05692CC /* PlayerStreamInfoOverlayView.swift */,
+				5AD05A8FFA6209489607DCE9 /* PlayerStreamParameters.swift */,
 				B7095FBB6734995814757148 /* SkipIntroButtonView.swift */,
 				5460DBDF6C5C3949FA971CEA /* SkipIntroVisibilityRules.swift */,
 			);
@@ -1213,6 +1216,7 @@
 				874897F84646EFFA1B8F32FF /* PlayerSelectionPanel.swift in Sources */,
 				381E475EAD08398945212FF1 /* PlayerStreamInfoData.swift in Sources */,
 				26E0BF9F706929974EC5A3FA /* PlayerStreamInfoOverlayView.swift in Sources */,
+				7328F3E30EE585B19763ADFA /* PlayerStreamParameters.swift in Sources */,
 				706E70B6FAC13B7501F295A0 /* PlayerView.swift in Sources */,
 				F989C8607A9D383AA7433A25 /* PostPlayController.swift in Sources */,
 				6C0A015967A809CCBB66865E /* PostPlayModels.swift in Sources */,

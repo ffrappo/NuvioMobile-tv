@@ -65,8 +65,10 @@ extension MPVPlayerController {
                 switch event.pointee.event_id {
                 case MPV_EVENT_FILE_LOADED, MPV_EVENT_PLAYBACK_RESTART:
                     self.applyPendingStartPosition()
+                    let parameters = PlayerStreamParameters.read(from: mpv)
                     Task { @MainActor in
                         self.session.update(paused: false, loading: false)
+                        self.session.updateStreamParameters(parameters)
                         self.publishPlaybackOptions()
                     }
                 case MPV_EVENT_END_FILE:

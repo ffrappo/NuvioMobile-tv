@@ -76,6 +76,7 @@ struct PlayerView: View {
         prefetchThreshold: PostPlayTiming.userMovieThreshold()
     )
     @State private var postPlayRecommendations: [PostPlayRecommendation] = []
+    @State private var showsStreamInfo = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let progressStore = PlaybackProgressStore()
@@ -96,7 +97,8 @@ struct PlayerView: View {
                     }
                 }
             )
-            if controls.isVisible {
+            playerOverlayLayers
+            if chrome.isControlsVisible {
                 PlayerControlsOverlay(
                     route: route,
                     session: session,
@@ -106,7 +108,8 @@ struct PlayerView: View {
                     onModalPresentationChanged: setControlPanelPresented,
                     onSkip: skip,
                     onSelectSource: switchSource,
-                    onSelectEpisode: selectEpisode
+                    onSelectEpisode: selectEpisode,
+                    onToggleStreamInfo: { showsStreamInfo.toggle() }
                 )
                 .transition(.opacity)
             }
@@ -197,7 +200,9 @@ struct PlayerView: View {
             controls.registerInteraction()
         }
         .onExitCommand {
-            if controls.isVisible {
+            if showsStreamInfo {
+                showsStreamInfo = false
+            } else if controls.isVisible {
                 controls.hide()
             } else {
                 saveProgress()
@@ -218,6 +223,53 @@ struct PlayerView: View {
         skipIntervals.first {
             $0.contains(session.position) && !dismissedSkipIntervalIDs.contains($0.id)
         }
+    }
+
+    /// The parity overlay stack (Android PlayerScreen z-order): stream info
+    /// above the pause overlay above the controls, resolved by
+    /// PlayerChromeState from the boolean flags.
+    private var chrome: PlayerChromeState {
+        PlayerChromeState(flags: PlayerChromeFlags(
+            showControls: controls.isVisible,
+            showPauseOverlay: session.isPaused && !controls.isVisible && !session.isEnded,
+            showStreamInfoOverlay: showsStreamInfo,
+            hasError: session.errorMessage != nil
+        ))
+    }
+
+    private var playerOverlayLayers: some View {
+        PlayerOverlayLayers(
+            chrome: chrome,
+            pauseContent: pauseOverlayContent,
+            streamInfo: streamInfoData,
+            onDismissPauseOverlay: {},
+            onDismissStreamInfoOverlay: { showsStreamInfo = false }
+        )
+    }
+
+    private var pauseOverlayContent: PlayerPauseOverlayContent {
+        var content = PlayerPauseOverlayContent()
+        content.title = route.title
+        content.episodeTitle = route.episodeTitle
+        content.season = route.seasonNumber
+        content.episode = route.episodeNumber
+        content.year = route.summary.releaseInfo
+        content.type = route.summary.type
+        content.description = route.summary.description
+        return content
+    }
+
+    private var streamInfoData: PlayerStreamInfoData? {
+        var data = PlayerStreamInfoData()
+        data.streamName = route.sourceName
+        let parameters = session.streamParameters
+        data.videoCodec = parameters.videoCodec
+        data.videoWidth = parameters.videoWidth
+        data.videoHeight = parameters.videoHeight
+        data.videoFrameRate = parameters.videoFrameRate
+        data.audioCodec = parameters.audioCodec
+        data.audioChannels = parameters.audioChannels
+        return data
     }
 
     private func loadSkipIntervals() {

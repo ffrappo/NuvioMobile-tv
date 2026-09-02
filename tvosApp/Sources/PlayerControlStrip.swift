@@ -8,6 +8,7 @@ struct PlayerControlStrip: View {
     let onModalPresentationChanged: (Bool) -> Void
     let onSelectSource: (PlayerSourceOption) -> Void
     let onSelectEpisode: (PlayerEpisodeOption) -> Void
+    var onToggleStreamInfo: () -> Void = {}
 
     @State private var presentedPanel: Panel?
 
@@ -24,6 +25,7 @@ struct PlayerControlStrip: View {
             actionButton(speedTitle, symbol: "speedometer") {
                 session.setSpeed(session.speed.nextPlaybackSpeed)
             }
+            actionButton("Info", symbol: "info.circle") { onToggleStreamInfo() }
             actionButton("Subtitles", symbol: "captions.bubble") { presentedPanel = .subtitles }
             if !session.audioTracks.isEmpty {
                 actionButton("Audio", symbol: "waveform") { presentedPanel = .audio }

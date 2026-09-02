@@ -16,6 +16,11 @@ final class MPVPlaybackSession: ObservableObject {
     @Published private(set) var subtitleFontSize = 52
     @Published private(set) var errorMessage: String?
     @Published private(set) var activeSourceName = ""
+    @Published private(set) var streamParameters = PlayerStreamParameters()
+
+    func updateStreamParameters(_ parameters: PlayerStreamParameters) {
+        streamParameters = parameters
+    }
     @Published private(set) var isEnded = false
     var onControlPress: (() -> Void)?
 
