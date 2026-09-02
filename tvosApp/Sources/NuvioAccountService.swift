@@ -33,7 +33,7 @@ struct NuvioAccountService {
         return components.url!
     }
 
-    private func endpointURL(path: String) -> URL {
+    func endpointURL(path: String) -> URL {
         Self.baseURL.appending(path: path)
     }
 
@@ -261,7 +261,7 @@ struct NuvioAccountService {
         AppLog.account.debug("POST \(path, privacy: .public) completed status=\(http.statusCode)")
     }
 
-    private func request<T: Decodable, B: Encodable>(
+    func request<T: Decodable, B: Encodable>(
         url: URL,
         body: B,
         accessToken: String? = nil
@@ -273,7 +273,7 @@ struct NuvioAccountService {
         return try await execute(request)
     }
 
-    private func addHeaders(to request: inout URLRequest, accessToken: String? = nil) {
+    func addHeaders(to request: inout URLRequest, accessToken: String? = nil) {
         request.setValue(Self.anonKey, forHTTPHeaderField: "apikey")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -282,7 +282,7 @@ struct NuvioAccountService {
         }
     }
 
-    private func execute<T: Decodable>(_ request: URLRequest) async throws -> T {
+    func execute<T: Decodable>(_ request: URLRequest) async throws -> T {
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw AccountServiceError.invalidResponse }
         let endpoint = request.url?.path ?? "unknown endpoint"
@@ -362,7 +362,7 @@ private extension SyncWatchProgressRecord {
     }
 }
 
-private struct EmptyAccountPayload: Encodable {}
+struct EmptyAccountPayload: Encodable {}
 
 private struct ProfilePayload: Encodable {
     let pProfileID: Int

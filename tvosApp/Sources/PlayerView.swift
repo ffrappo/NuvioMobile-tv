@@ -53,9 +53,12 @@ struct MPVPlayerView: UIViewControllerRepresentable {
 
 struct PlayerView: View {
     let route: PlayerRoute
+    /// Next-episode autoplay replaces the presented route in place.
+    var onReplaceRoute: ((PlayerRoute) -> Void)?
 
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var integrations: IntegrationStore
+    @EnvironmentObject var addonStore: AddonStore
     @EnvironmentObject private var deepLinkStore: NuvioDeepLinkStore
     @EnvironmentObject private var syncedProgress: WatchProgressStore
     @Environment(\.scenePhase) private var scenePhase
@@ -77,6 +80,8 @@ struct PlayerView: View {
     )
     @State private var postPlayRecommendations: [PostPlayRecommendation] = []
     @State var showsStreamInfo = false
+    @State var nextEpisodeAutoplay: NextEpisodeAutoplayState?
+    @State var autoplaySearchTask: Task<Void, Never>?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let progressStore = PlaybackProgressStore()
@@ -115,6 +120,12 @@ struct PlayerView: View {
             }
             if let error = session.errorMessage {
                 PlayerErrorView(message: error) { dismiss() }
+            }
+            if let autoplay = nextEpisodeAutoplay {
+                NextEpisodeCountdownView(
+                    state: autoplay,
+                    onCancel: { cancelNextEpisodeAutoplay() }
+                )
             }
             if postPlay.state.isVisible {
                 PostPlayOverlayView(
@@ -161,6 +172,7 @@ struct PlayerView: View {
             let controller = TVNowPlayingController(session: session)
             controller.updateMetadata(title: route.title, subtitle: route.sourceName)
             nowPlaying = controller
+            session.controllerApplySubtitleStyle(persistedSubtitleStyle)
             loadSkipIntervals()
             controls.registerInteraction()
         }
@@ -183,6 +195,7 @@ struct PlayerView: View {
             guard ended else { return }
             saveProgress()
             beginPostPlay()
+            beginNextEpisodeAutoplayIfArmed()
         }
         .onChange(of: session.isPaused) { _, paused in
             if isControlPanelPresented {
@@ -200,7 +213,9 @@ struct PlayerView: View {
             controls.registerInteraction()
         }
         .onExitCommand {
-            if showsStreamInfo {
+            if nextEpisodeAutoplay != nil {
+                cancelNextEpisodeAutoplay()
+            } else if showsStreamInfo {
                 showsStreamInfo = false
             } else if controls.isVisible {
                 controls.hide()
@@ -223,6 +238,17 @@ struct PlayerView: View {
         skipIntervals.first {
             $0.contains(session.position) && !dismissedSkipIntervalIDs.contains($0.id)
         }
+    }
+
+    /// The persisted subtitle style applied at playback start.
+    private var persistedSubtitleStyle: SubtitleStyleOptions {
+        let defaults = UserDefaults.standard
+        let values = SubtitleStylePersistenceKey.allCases.reduce(into: [String: Any]()) { dict, key in
+            if let value = defaults.object(forKey: key.rawValue) {
+                dict[key.rawValue] = value
+            }
+        }
+        return SubtitleStylePersistence.load(from: values)
     }
 
     private func loadSkipIntervals() {
@@ -353,7 +379,7 @@ struct PlayerView: View {
         }
     }
 
-    private func saveProgress() {
+    func saveProgress() {
         progressStore.save(
             contentID: route.contentID,
             position: session.position,

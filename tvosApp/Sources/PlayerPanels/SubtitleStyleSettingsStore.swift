@@ -38,12 +38,9 @@ final class SubtitleStyleSettingsStore: ObservableObject {
 }
 
 extension MPVPlaybackSession {
-    /// Applies a subtitle style to playback: the size percent maps onto the
-    /// MPV point scale (50 percent to 24 pt, 200 percent to 96 pt).
+    /// Applies the full subtitle style to playback through MPV sub-*
+    /// properties (see MPVPlayerController.applySubtitleStyle).
     func applySubtitleStyle(_ options: SubtitleStyleOptions) {
-        let fraction = Double(options.sizePercent - SubtitleStyleOptions.sizeRange.lowerBound)
-            / Double(SubtitleStyleOptions.sizeRange.upperBound - SubtitleStyleOptions.sizeRange.lowerBound)
-        let fontSize = Int((24 + fraction * (96 - 24)).rounded())
-        setSubtitleFontSize(fontSize)
+        controllerApplySubtitleStyle(options)
     }
 }

@@ -169,21 +169,20 @@ public struct GatewayProfile: Equatable, Codable, Identifiable, Sendable {
 }
 
 extension GatewayProfile {
-    /// Schema mapping from the existing tvOS profile type. `TVProfile` has no
-    /// avatar id, background, plugin inheritance, or PIN fields; those gaps
-    /// fall back to schema defaults and are recorded in the report.
+    /// Schema mapping from the tvOS profile type; PIN presentation state
+    /// arrives separately via `sync_pull_profile_locks`.
     init(tvProfile: TVProfile, lock: ProfileLockState = .unlocked) {
         self.init(
             id: tvProfile.profileIndex,
             serverID: tvProfile.id.isEmpty ? nil : tvProfile.id,
             name: tvProfile.name,
             avatarColorHex: tvProfile.avatarColorHex,
-            avatarID: nil,
+            avatarID: tvProfile.avatarID,
             avatarURL: tvProfile.avatarURL,
-            profileBackgroundID: nil,
-            profileBackgroundURL: nil,
+            profileBackgroundID: tvProfile.profileBackgroundID,
+            profileBackgroundURL: tvProfile.profileBackgroundURL,
             usesPrimaryAddons: tvProfile.usesPrimaryAddons,
-            usesPrimaryPlugins: false,
+            usesPrimaryPlugins: tvProfile.usesPrimaryPlugins,
             lock: lock
         )
     }

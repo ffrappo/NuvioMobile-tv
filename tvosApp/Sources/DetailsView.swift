@@ -38,7 +38,7 @@ struct DetailsView: View {
         .background(theme.background)
         .task { await loadDetail() }
         .fullScreenCover(item: $playerRoute) { route in
-            PlayerView(route: route)
+            PlayerView(route: route, onReplaceRoute: { playerRoute = $0 })
         }
     }
 

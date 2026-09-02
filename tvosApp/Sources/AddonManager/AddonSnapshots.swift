@@ -38,6 +38,28 @@ public struct AddonCatalogSnapshot: Equatable, Hashable, Sendable {
     }
 }
 
+extension AddonSnapshot {
+    /// Maps the app's decoded addon endpoint onto the parity snapshot.
+    init(endpoint: AddonEndpoint, isEnabled: Bool) {
+        let manifest = endpoint.manifest
+        self.init(
+            baseURL: endpoint.baseURL,
+            manifestID: manifest?.id ?? "",
+            name: endpoint.name,
+            customName: nil,
+            version: manifest?.version ?? "",
+            description: endpoint.detail,
+            logoURL: manifest?.logoURL,
+            types: manifest?.types ?? [],
+            catalogs: (manifest?.catalogs ?? []).map(AddonCatalogSnapshot.init),
+            providesStreams: endpoint.providesStreams,
+            configurationRequired: false,
+            isEnabled: isEnabled,
+            isProtected: false
+        )
+    }
+}
+
 extension AddonCatalogSnapshot {
     /// Convenience over the app's decoded manifest catalog type
     /// (`AddonCatalog` is internal to the module).

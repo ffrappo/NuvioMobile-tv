@@ -36,6 +36,11 @@ extension MPVPlayerController {
         // amplification as a competing volume layer.
         setOption(mpv, "volume", "100")
         setOption(mpv, "volume-max", "100")
+        // Buffer configuration from the parity buffer/network settings.
+        let buffer = PersistedPlaybackSetting.bufferConfiguration()
+        setOption(mpv, "cache", "yes")
+        setOption(mpv, "demuxer-readahead-secs", String(buffer.readaheadSeconds))
+        setOption(mpv, "demuxer-max-bytes", String(buffer.maxBytes))
         setOption(mpv, "vulkan-swap-mode", "fifo")
         setOption(mpv, "vulkan-queue-count", "1")
         setOption(mpv, "vulkan-async-compute", "no")

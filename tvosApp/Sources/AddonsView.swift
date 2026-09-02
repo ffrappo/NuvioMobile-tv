@@ -8,6 +8,7 @@ struct AddonsView: View {
     @State private var isAdding = false
     @FocusState private var focus: AddonFocus?
     @State private var detailAddon: AddonEndpoint?
+    @State private var showsCatalogOrder = false
 
     private enum AddonFocus: Hashable { case field, add }
 
@@ -20,10 +21,21 @@ struct AddonsView: View {
                 )
                 addForm
                 enabledAddons
+                catalogOrderEntry
             }
             .padding(48)
         }
         .defaultFocus($focus, store.addons.isEmpty ? .field : nil)
+    }
+
+    /// Catalog order entry (Android settings routes to the same screen).
+    private var catalogOrderEntry: some View {
+        NuvioButton(
+            title: "Catalog Order",
+            symbol: "list.number",
+            action: { showsCatalogOrder = true }
+        )
+        .frame(width: 320)
     }
 
     private var addForm: some View {
@@ -83,27 +95,18 @@ struct AddonsView: View {
         .sheet(item: $detailAddon) { addon in
             NavigationStack { addonDetailPage(addon) }
         }
+        .sheet(isPresented: $showsCatalogOrder) {
+            CatalogOrderSheet()
+        }
         if let syncMessage = store.syncMessage {
             NuvioStatusMessage(message: syncMessage, symbol: "arrow.triangle.2.circlepath")
         }
     }
 
     private func addonDetailPage(_ addon: AddonEndpoint) -> some View {
-        let manifest = addon.manifest
         let snapshot = AddonSnapshot(
-            baseURL: addon.baseURL,
-            manifestID: manifest?.id ?? "",
-            name: addon.name,
-            customName: nil,
-            version: manifest?.version ?? "",
-            description: addon.detail,
-            logoURL: manifest?.logoURL,
-            types: manifest?.types ?? [],
-            catalogs: (manifest?.catalogs ?? []).map(AddonCatalogSnapshot.init),
-            providesStreams: addon.providesStreams,
-            configurationRequired: false,
-            isEnabled: !store.disabledBases.contains(addon.baseURL),
-            isProtected: false
+            endpoint: addon,
+            isEnabled: !store.disabledBases.contains(addon.baseURL)
         )
         return AddonDetailView(
             detail: AddonDetailModel(snapshot: snapshot, isInstalled: true),

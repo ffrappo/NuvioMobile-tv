@@ -4,6 +4,8 @@ import Foundation
 final class TVProfileStore: ObservableObject {
     @Published private(set) var profiles: [TVProfile] = []
     @Published private(set) var activeProfileID: Int
+    /// Per-profile server lock records (`sync_pull_profile_locks`).
+    @Published private(set) var lockRecords: [Int: ProfileLockRecord] = [:]
 
     private let defaults: UserDefaults
     private let key = "nuvio.tv.activeProfile.v1"
@@ -30,6 +32,7 @@ final class TVProfileStore: ObservableObject {
             let detail = AppLog.safeDescription(error)
             AppLog.sync.error("Profile sync failed detail=\(detail, privacy: .public)")
         }
+        await syncLockStates(auth: auth, service: service)
     }
 
     func select(_ profileID: Int) {
@@ -38,9 +41,24 @@ final class TVProfileStore: ObservableObject {
         defaults.set(profileID, forKey: key)
     }
 
+    /// Adopts pulled lock records (TVProfileSync).
+    func applyLockRecords(_ records: [Int: ProfileLockRecord]) {
+        lockRecords = records
+    }
+
+    /// Adopts a freshly pushed profile list (mutation paths in
+    /// TVProfileSync).
+    func applyPushedProfiles(_ pushed: [TVProfile]) {
+        profiles = pushed.sorted { $0.profileIndex < $1.profileIndex }
+        if !profiles.contains(where: { $0.profileIndex == activeProfileID }), let first = profiles.first {
+            select(first.profileIndex)
+        }
+    }
+
     func clear() {
         profiles = []
         activeProfileID = 1
+        lockRecords = [:]
         defaults.removeObject(forKey: key)
     }
 }

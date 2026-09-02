@@ -6,6 +6,8 @@ struct SettingsAccountSection: View {
     @ObservedObject var profiles: TVProfileStore
     var focus: FocusState<SettingsView.Action?>.Binding
     let onSignOut: () -> Void
+    @State private var editingProfile: TVProfile?
+    @State private var showsAddProfile = false
 
     var body: some View {
         NuvioPanel {
@@ -17,6 +19,22 @@ struct SettingsAccountSection: View {
                 profileRow
             }
         }
+        .sheet(item: $editingProfile) { profile in
+            ProfileEditingSheet(profile: profile, isNew: false)
+        }
+        .sheet(isPresented: $showsAddProfile) {
+            ProfileEditingSheet(
+                profile: TVProfile(
+                    profileIndex: nextProfileIndex,
+                    name: "New Profile"
+                ),
+                isNew: true
+            )
+        }
+    }
+
+    private var nextProfileIndex: Int {
+        (profiles.profiles.map(\.profileIndex).max() ?? 0) + 1
     }
 
     @ViewBuilder
@@ -83,6 +101,20 @@ struct SettingsAccountSection: View {
                             }
                         }
                         .focused(focus, equals: .profile(profile.profileIndex))
+                        NuvioButton(
+                            title: "Edit",
+                            symbol: "pencil.circle",
+                            action: { editingProfile = profile }
+                        )
+                        .frame(width: 150)
+                    }
+                    if auth.session != nil, profiles.profiles.count < TVProfile.maxProfiles {
+                        NuvioButton(
+                            title: "Add Profile",
+                            symbol: "plus.circle",
+                            action: { showsAddProfile = true }
+                        )
+                        .frame(width: 200)
                     }
                 }
             }

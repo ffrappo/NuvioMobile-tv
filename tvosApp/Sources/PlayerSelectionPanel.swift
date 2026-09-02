@@ -9,8 +9,11 @@ struct PlayerSelectionPanel: View {
     let onSelectEpisode: (PlayerEpisodeOption) -> Void
 
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var addonStore: AddonStore
     @StateObject private var styleStore = SubtitleStyleSettingsStore()
     @State private var sourceAddonFilter: String?
+    @State private var externalSubtitleTracks: [SubtitleExternalTrack] = []
+    @State private var isLoadingExternalSubtitles = false
     @State private var sourceSort: StreamSortOption = .original
     @State private var showsSubtitleAppearance = false
     @State private var showsTimingDialog = false
@@ -117,11 +120,20 @@ struct PlayerSelectionPanel: View {
                     isSelected: track.isSelected
                 )
             },
-            externalTracks: [],
+            externalTracks: externalSubtitleTracks,
             styleOptions: styleStore.options,
             delayMilliseconds: session.subtitleDelayMilliseconds,
+            isLoadingExternalTracks: isLoadingExternalSubtitles,
             onSelectEmbedded: { embedded in
                 session.selectSubtitle(id: Int64(embedded.index))
+            },
+            onSelectExternal: { external in
+                session.addExternalSubtitle(
+                    url: external.url,
+                    title: external.id,
+                    language: external.language
+                )
+                dismiss()
             },
             onDisableSubtitles: {
                 session.selectSubtitle(id: nil)
@@ -143,6 +155,19 @@ struct PlayerSelectionPanel: View {
             onClose: { dismiss() }
         )
         .frame(maxWidth: 640)
+        .task(id: route.videoID) {
+            guard externalSubtitleTracks.isEmpty, !isLoadingExternalSubtitles else { return }
+            isLoadingExternalSubtitles = true
+            let repository = AddonSubtitleRepository()
+            let tracks = await repository.externalTracks(
+                type: route.summary.type,
+                id: route.summary.id,
+                videoID: route.videoID,
+                addons: addonStore.enabledAddons
+            )
+            externalSubtitleTracks = tracks
+            isLoadingExternalSubtitles = false
+        }
     }
 
     /// The parity source side panel (Android `StreamSourcesSidePanel.kt`):

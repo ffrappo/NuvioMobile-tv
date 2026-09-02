@@ -55,7 +55,7 @@ struct CatalogView: View {
     private static let layoutKey = "nuvio.tv.home.layout.v1"
 
     private var reloadKey: String {
-        "\(profiles.activeProfileID):\(addons.homeAddons.map(\.baseURL).joined(separator: "|"))"
+        "\(profiles.activeProfileID):\(addons.homeAddons.map(\.baseURL).joined(separator: "|")):\(preferences.revision)"
     }
 
     private func reload(force: Bool = false) async {

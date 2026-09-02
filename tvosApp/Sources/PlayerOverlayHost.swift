@@ -35,6 +35,7 @@ extension PlayerView {
         content.year = route.summary.releaseInfo
         content.type = route.summary.type
         content.description = route.summary.description
+        content.showClock = PersistedPlaybackSetting.toggle("playback.osdClock", default: true)
         return content
     }
 

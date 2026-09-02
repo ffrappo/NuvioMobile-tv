@@ -3,6 +3,8 @@ import Foundation
 @MainActor
 final class HomePreferencesStore: ObservableObject {
     @Published private(set) var value: HomePreferences
+    /// Bumped on every local mutation; Home includes it in its reload key.
+    @Published private(set) var revision = 0
 
     private let defaults: UserDefaults
     private let key = "nuvio.tv.home.preferences.v2"
@@ -71,6 +73,28 @@ final class HomePreferencesStore: ObservableObject {
         save()
     }
 
+    /// Bulk-applies a catalog order (definition keys, first to last) and a
+    /// disabled set, renumbering sequentially. Driven by the parity catalog
+    /// order screen.
+    func applyCatalogOrder(orderKeys: [String], disabledKeys: Set<String>) {
+        var byKey = Dictionary(uniqueKeysWithValues: value.items.map { ($0.key, $0) })
+        for (offset, key) in orderKeys.enumerated() {
+            if byKey[key] != nil {
+                byKey[key]?.order = offset
+                byKey[key]?.enabled = !disabledKeys.contains(key)
+            } else {
+                byKey[key] = HomeCatalogPreference(
+                    key: key,
+                    enabled: !disabledKeys.contains(key),
+                    order: offset,
+                    customTitle: ""
+                )
+            }
+        }
+        value.items = byKey.values.sorted { $0.order < $1.order }
+        save()
+    }
+
     func applyRemote(_ preferences: HomePreferences) {
         let localHeroEnabled = value.heroEnabled
         value = preferences
@@ -108,6 +132,7 @@ final class HomePreferencesStore: ObservableObject {
     }
 
     private func save() {
+        revision += 1
         defaults.set(try? JSONEncoder().encode(value), forKey: key)
         objectWillChange.send()
     }

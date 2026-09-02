@@ -56,6 +56,19 @@ final class MPVPlaybackSession: ObservableObject {
         controller?.setSubtitleDelay(milliseconds: milliseconds)
     }
     func setSubtitleFontSize(_ size: Int) { controller?.setSubtitleFontSize(size) }
+
+    /// Adds an external subtitle (addon-provided) and selects it
+    /// (Android `selectExternalSubtitle`, MPV `sub-add <url> select`).
+    func addExternalSubtitle(url: String, title: String, language: String) {
+        controller?.addExternalSubtitle(url: url, title: title, language: language)
+    }
+
+    /// Applies the parity subtitle style (Android `SubtitleStyleOptions`)
+    /// through the controller; named distinctly to avoid colliding with the
+    /// session facade below.
+    func controllerApplySubtitleStyle(_ style: SubtitleStyleOptions) {
+        controller?.applySubtitleStyle(style)
+    }
     func updateActiveSourceName(_ name: String) { activeSourceName = name }
     func switchSource(url: URL) { controller?.load(url: url) }
     func stop() { controller?.stop() }
@@ -295,12 +308,52 @@ final class MPVPlayerController: UIViewController {
         }
     }
 
+    func addExternalSubtitle(url: String, title: String, language: String) {
+        command("sub-add", url, "select", title, language)
+    }
+
     func setSubtitleFontSize(_ size: Int) {
         guard let mpv else { return }
         let clamped = min(max(size, 24), 96)
         var value = Double(clamped)
         mpv_set_property(mpv, "sub-font-size", MPV_FORMAT_DOUBLE, &value)
         Task { @MainActor in session.updateSubtitle(fontSize: clamped) }
+    }
+
+    /// ARGB packed color -> MPV "#AARRGGBB" string.
+    private static func mpvColor(_ argb: UInt32) -> String {
+        String(format: "#%08X", argb)
+    }
+
+    func applySubtitleStyle(_ style: SubtitleStyleOptions) {
+        guard let mpv else { return }
+        setSubtitleFontSize(Self.mpvFontSize(forPercent: style.sizePercent))
+        // Android -20...50 maps onto MPV's 0...100 bottom-anchored sub-pos.
+        let offsetRange = SubtitleStyleOptions.verticalOffsetRange
+        let normalized = Double(style.verticalOffset - offsetRange.lowerBound)
+            / Double(offsetRange.upperBound - offsetRange.lowerBound)
+        var position = 100.0 - normalized * 25.0
+        position = min(max(position, 70), 100)
+        var posValue = position
+        mpv_set_property(mpv, "sub-pos", MPV_FORMAT_DOUBLE, &posValue)
+        mpv_set_property_string(mpv, "sub-bold", style.bold ? "yes" : "no")
+        mpv_set_property_string(mpv, "sub-color", Self.mpvColor(style.textColorARGB))
+        mpv_set_property_string(mpv, "sub-back-color", Self.mpvColor(style.backgroundColorARGB))
+        if style.outlineEnabled {
+            mpv_set_property_string(mpv, "sub-border-size", String(style.outlineWidth))
+            mpv_set_property_string(mpv, "sub-border-color", Self.mpvColor(style.outlineColorARGB))
+        } else {
+            mpv_set_property_string(mpv, "sub-border-size", "0")
+        }
+    }
+
+    /// Size percent (50...200) onto the 24...96 pt scale.
+    static func mpvFontSize(forPercent percent: Int) -> Int {
+        let range = SubtitleStyleOptions.sizeRange
+        let clamped = min(max(percent, range.lowerBound), range.upperBound)
+        let fraction = Double(clamped - range.lowerBound)
+            / Double(range.upperBound - range.lowerBound)
+        return Int((24 + fraction * (96 - 24)).rounded())
     }
 
     func stop() {

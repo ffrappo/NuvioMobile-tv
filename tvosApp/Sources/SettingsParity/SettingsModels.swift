@@ -40,6 +40,14 @@ public enum NuvioAppTheme: String, CaseIterable, Hashable, Sendable {
     case rose = "ROSE"
     case white = "WHITE"
 
+    /// Parses the settings-store persistence form ("o:GOLD") or the raw
+    /// value; nil when unrecognized so callers keep their default.
+    public init?(parsedSetting raw: String) {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        let payload = trimmed.hasPrefix("o:") ? String(trimmed.dropFirst(2)) : trimmed
+        self.init(rawValue: payload.uppercased())
+    }
+
     public var displayName: String {
         switch self {
         case .gold: return "Gold"

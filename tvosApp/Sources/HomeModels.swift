@@ -193,20 +193,33 @@ private extension KeyedDecodingContainer {
     }
 }
 
+/// Full profile schema (`SupabaseProfile`): fields beyond the original
+/// tvOS subset fall back to the Android data-class defaults.
 struct TVProfile: Decodable, Equatable, Identifiable {
+    static let maxProfiles = 6
+    static let primaryProfileID = 1
+
     let id: String
     let profileIndex: Int
-    let name: String
-    let avatarColorHex: String
-    let avatarURL: String?
-    let usesPrimaryAddons: Bool
+    var name: String
+    var avatarColorHex: String
+    var avatarID: String?
+    var avatarURL: String?
+    var profileBackgroundID: String?
+    var profileBackgroundURL: String?
+    var usesPrimaryAddons: Bool
+    var usesPrimaryPlugins: Bool
 
     enum CodingKeys: String, CodingKey {
         case id, name
         case profileIndex = "profile_index"
         case avatarColorHex = "avatar_color_hex"
+        case avatarID = "avatar_id"
         case avatarURL = "avatar_url"
+        case profileBackgroundID = "profile_background_id"
+        case profileBackgroundURL = "profile_background_url"
         case usesPrimaryAddons = "uses_primary_addons"
+        case usesPrimaryPlugins = "uses_primary_plugins"
     }
 
     init(from decoder: Decoder) throws {
@@ -215,7 +228,37 @@ struct TVProfile: Decodable, Equatable, Identifiable {
         profileIndex = try values.decodeIfPresent(Int.self, forKey: .profileIndex) ?? 1
         name = try values.decodeIfPresent(String.self, forKey: .name) ?? "Profile"
         avatarColorHex = try values.decodeIfPresent(String.self, forKey: .avatarColorHex) ?? "#1E88E5"
+        avatarID = try values.decodeIfPresent(String.self, forKey: .avatarID)
         avatarURL = try values.decodeIfPresent(String.self, forKey: .avatarURL)
+        profileBackgroundID = try values.decodeIfPresent(String.self, forKey: .profileBackgroundID)
+        profileBackgroundURL = try values.decodeIfPresent(String.self, forKey: .profileBackgroundURL)
         usesPrimaryAddons = try values.decodeIfPresent(Bool.self, forKey: .usesPrimaryAddons) ?? false
+        usesPrimaryPlugins = try values.decodeIfPresent(Bool.self, forKey: .usesPrimaryPlugins) ?? false
     }
+
+    init(
+        id: String = "",
+        profileIndex: Int,
+        name: String,
+        avatarColorHex: String = "#1E88E5",
+        avatarID: String? = nil,
+        avatarURL: String? = nil,
+        profileBackgroundID: String? = nil,
+        profileBackgroundURL: String? = nil,
+        usesPrimaryAddons: Bool = false,
+        usesPrimaryPlugins: Bool = false
+    ) {
+        self.id = id
+        self.profileIndex = profileIndex
+        self.name = name
+        self.avatarColorHex = avatarColorHex
+        self.avatarID = avatarID
+        self.avatarURL = avatarURL
+        self.profileBackgroundID = profileBackgroundID
+        self.profileBackgroundURL = profileBackgroundURL
+        self.usesPrimaryAddons = usesPrimaryAddons
+        self.usesPrimaryPlugins = usesPrimaryPlugins
+    }
+
+    var isPrimary: Bool { profileIndex == Self.primaryProfileID }
 }

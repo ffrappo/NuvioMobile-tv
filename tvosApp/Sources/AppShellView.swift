@@ -113,22 +113,34 @@ struct AppShellView: View {
     }
 
     /// The parity profile gateway (Android `ProfileSelectionScreen.kt`),
-    /// shown over the shell until a profile is confirmed.
+    /// shown over the shell until a profile is confirmed. PIN verification
+    /// hits the server `verify_profile_pin` RPC, honoring its lockout
+    /// window on failure.
     private var profileGatewayCover: some View {
         ProfileGatewayView(
-            profiles: profileStore.profiles.map { GatewayProfile(tvProfile: $0) },
+            profiles: profileStore.profiles.map { profile in
+                GatewayProfile(tvProfile: profile, lock: gatewayLock(for: profile))
+            },
             activeProfileID: profileStore.activeProfileID,
-            verifyPIN: { _, _, completion in
-                // tvOS profiles carry no server-side PIN today; every
-                // protected profile unlocks immediately, matching the
-                // unlocked fallback of the Android schema mapping.
-                completion(.success)
+            verifyPIN: { profile, pin, completion in
+                Task { @MainActor in
+                    let result = await profileStore.verifyPin(profile.id, pin: pin, auth: authStore)
+                    if result.unlocked {
+                        completion(.success)
+                    } else {
+                        completion(.failure(retryAfterSeconds: result.retryAfterSeconds))
+                    }
+                }
             },
             onSelection: { outcome in
                 profileStore.select(outcome.profile.id)
                 showProfileGateway = false
             }
         )
+    }
+
+    private func gatewayLock(for profile: TVProfile) -> ProfileLockState {
+        profileStore.isPinEnabled(profile.profileIndex) ? .pinLocked : .unlocked
     }
 }
 
