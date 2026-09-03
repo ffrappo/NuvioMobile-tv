@@ -165,7 +165,14 @@ struct ProfileEditingSheet: View {
             performSave(updated: updated, newPin: newPin, currentPin: verifiedPin)
         case .removePin(let updated):
             Task { @MainActor in
-                await profileStore.clearPin(updated.id, currentPin: verifiedPin, auth: auth)
+                let result = await profileStore.clearPin(
+                    updated.id, currentPin: verifiedPin, auth: auth
+                )
+                if case .failure(let error) = result {
+                    isSaving = false
+                    saveMessage = "Could not remove the PIN: \(AppLog.safeDescription(error))"
+                    return
+                }
                 performSave(updated: updated, newPin: nil, currentPin: nil)
             }
         case .deleteLocked:

@@ -41,6 +41,7 @@ struct DetailsView: View {
         .task { await loadDetail() }
         .fullScreenCover(item: $playerRoute) { route in
             PlayerView(route: route, onReplaceRoute: { playerRoute = $0 })
+                .id(route.id)
         }
     }
 

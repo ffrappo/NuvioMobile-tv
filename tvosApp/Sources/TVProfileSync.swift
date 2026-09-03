@@ -62,20 +62,24 @@ extension TVProfileStore {
         }
     }
 
-    /// Clears a profile PIN, then refreshes lock states.
+    /// Clears a profile PIN, then refreshes lock states. Failures propagate
+    /// so callers can keep the editor open with an error.
+    @discardableResult
     func clearPin(
         _ profileID: Int,
         currentPin: String?,
         auth: AuthStore,
         service: NuvioAccountService = NuvioAccountService()
-    ) async {
+    ) async -> Result<Void, Error> {
         do {
             let token = try await auth.validAccessToken()
             try await service.clearProfilePin(profileID: profileID, currentPin: currentPin, accessToken: token)
             await syncLockStates(auth: auth, service: service)
+            return .success(())
         } catch {
             let detail = AppLog.safeDescription(error)
             AppLog.sync.error("Profile PIN clear failed detail=\(detail, privacy: .public)")
+            return .failure(error)
         }
     }
 

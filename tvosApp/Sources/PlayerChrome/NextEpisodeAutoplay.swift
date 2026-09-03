@@ -73,8 +73,8 @@ enum NextEpisodeAutoplaySettings {
     }
 }
 
-/// The countdown banner. Cancel keeps the user on the ended player with the
-/// post-play recommendations visible.
+/// The countdown banner. Cancel dismisses the banner and leaves the ended
+/// player (with the post-play overlay when recommendations apply).
 struct NextEpisodeCountdownView: View {
     let state: NextEpisodeAutoplayState
     let onCancel: () -> Void

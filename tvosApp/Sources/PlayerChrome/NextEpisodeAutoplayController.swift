@@ -76,7 +76,7 @@ extension PlayerView {
         let ordered = TVPlaybackCapabilities.current.ordered(sources)
         guard let source = ordered.first(where: { $0.stream.directURL != nil }),
               let url = source.stream.directURL else {
-            // Nothing playable: leave the post-play recommendations visible.
+            // Nothing playable: drop the banner; the ended player stays.
             nextEpisodeAutoplay = nil
             return
         }

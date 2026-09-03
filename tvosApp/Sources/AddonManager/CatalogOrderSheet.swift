@@ -81,8 +81,18 @@ struct CatalogOrderSheet: View {
     /// `addonID_type_catalogID` (model) -> `addonID:type:catalogID` (the
     /// HomeCatalogDefinition key Home preferences persist and consume).
     private var modelKeyToDefinitionKey: [String: String] {
+        Self.definitionKeysByModelKey(
+            for: CatalogDescriptors.browse(from: addonStore.homeAddons)
+        )
+    }
+
+    /// The write-direction mapping as a pure function so the regression
+    /// test covers the exact path that persisted pipe keys once.
+    static func definitionKeysByModelKey(
+        for descriptors: [CatalogDescriptor]
+    ) -> [String: String] {
         var mapping: [String: String] = [:]
-        for definition in CatalogDescriptors.browse(from: addonStore.homeAddons) {
+        for definition in descriptors {
             mapping[AddonCatalogKeys.homeCatalogKey(
                 addonID: definition.addonID,
                 type: definition.type,

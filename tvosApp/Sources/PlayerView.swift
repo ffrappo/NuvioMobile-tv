@@ -78,7 +78,6 @@ struct PlayerView: View {
         autoPlayTrailerEnabled: false,
         prefetchThreshold: PostPlayTiming.userMovieThreshold()
     )
-    @State var postPlayRecommendations: [PostPlayRecommendation] = []
     @State var showsStreamInfo = false
     @State var nextEpisodeAutoplay: NextEpisodeAutoplayState?
     @State var autoplaySearchTask: Task<Void, Never>?
@@ -293,6 +292,7 @@ struct PlayerView: View {
 
     private func switchSource(_ source: PlayerSourceOption) {
         saveProgress()
+        session.clearEnded()
         selectedSourceURL = source.url
         session.updateActiveSourceName(source.name)
         nowPlaying?.updateMetadata(title: route.title, subtitle: source.name)
@@ -305,6 +305,7 @@ struct PlayerView: View {
     }
 
     private func selectEpisode(_ episode: PlayerEpisodeOption) {
+        cancelNextEpisodeAutoplay()
         saveProgress()
         session.stop()
         dismiss()

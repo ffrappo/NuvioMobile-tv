@@ -79,6 +79,36 @@ final class SettingsParityBridgeTests: XCTestCase {
         _ = store
     }
 
+    /// Guards the write direction of the catalog-order sheet: model keys
+    /// must map onto colon-format definition keys, never pipe-format ids.
+    func testCatalogOrderWriteMappingProducesColonKeys() {
+        let descriptors = [
+            CatalogDescriptor(
+                baseURL: "https://cinemeta.example/manifest.json",
+                addonID: "com.linvo.cinemeta",
+                addonName: "Cinemeta",
+                type: "movie",
+                catalogID: "top",
+                catalogName: "Top",
+                genre: nil,
+                genres: [],
+                supportsPagination: true
+            ),
+        ]
+        let mapping = CatalogOrderSheet.definitionKeysByModelKey(for: descriptors)
+        XCTAssertEqual(
+            mapping["com.linvo.cinemeta_movie_top"],
+            "com.linvo.cinemeta:movie:top",
+            "the persisted key must be the colon format HomePreferencesStore reads"
+        )
+        for key in mapping.values {
+            XCTAssertFalse(
+                key.contains("|"),
+                "pipe-format keys must never reach the preference store"
+            )
+        }
+    }
+
     func testClampedValuesPersistClamped() {
         let store = NuvioSettingsStore(defaults: defaults)
         // The Android clamp caps subtitle size at 200 percent.

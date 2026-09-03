@@ -53,7 +53,6 @@ extension PlayerView {
                         genres: Array(summary.genres.prefix(3))
                     )
                 }
-            postPlayRecommendations = recommendations
             postPlay.begin(recommendations: recommendations, identity: identity)
         } catch {
             postPlay.begin(recommendations: [], identity: identity)

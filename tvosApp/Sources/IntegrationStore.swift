@@ -17,6 +17,10 @@ final class IntegrationStore: ObservableObject {
     private let defaults: UserDefaults
     private let accountService: NuvioAccountService
     private let key = "nuvio.tv.integrations.v1"
+    /// True once the user toggles skip intro locally; the local choice then
+    /// wins over the server-synced mobile value (the tvOS client cannot
+    /// safely write the full mobile settings blob back).
+    private let overrideKey = "nuvio.tv.skipIntro.localOverride.v1"
 
     init(
         defaults: UserDefaults = .standard,
@@ -35,6 +39,12 @@ final class IntegrationStore: ObservableObject {
             let token = try await auth.validAccessToken()
             if let remote = try await accountService.profileSettings(accessToken: token) {
                 settings = remote
+                if defaults.bool(forKey: overrideKey) {
+                    // The user set skip intro on this device; keep it.
+                    settings.skipIntroEnabled = Self.load(
+                        defaults: defaults, key: key
+                    ).skipIntroEnabled
+                }
                 persist()
                 syncMessage = "Mobile playback integrations are synchronized."
             } else {
@@ -49,6 +59,7 @@ final class IntegrationStore: ObservableObject {
 
     func setSkipIntroEnabled(_ enabled: Bool) {
         settings.skipIntroEnabled = enabled
+        defaults.set(true, forKey: overrideKey)
         persist()
     }
 
@@ -56,6 +67,7 @@ final class IntegrationStore: ObservableObject {
         settings = TVIntegrationSettings()
         syncMessage = nil
         defaults.removeObject(forKey: key)
+        defaults.removeObject(forKey: overrideKey)
     }
 
     private func persist() {
