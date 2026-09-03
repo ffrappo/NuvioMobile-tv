@@ -16,6 +16,7 @@ public struct ProfileEditorView: View {
 
     public let profile: GatewayProfile
     public var backgroundChoices: [ProfileBackgroundChoice] = []
+    public var avatarChoices: [ProfileAvatarCatalog.Choice] = []
     public var hasBackgroundAccess: Bool = true
     public var isSaving: Bool = false
     public var onSave: (GatewayProfile, String?) -> Void
@@ -32,6 +33,7 @@ public struct ProfileEditorView: View {
     public init(
         profile: GatewayProfile,
         backgroundChoices: [ProfileBackgroundChoice] = [],
+        avatarChoices: [ProfileAvatarCatalog.Choice] = [],
         hasBackgroundAccess: Bool = true,
         isSaving: Bool = false,
         onSave: @escaping (GatewayProfile, String?) -> Void,
@@ -40,6 +42,7 @@ public struct ProfileEditorView: View {
     ) {
         self.profile = profile
         self.backgroundChoices = backgroundChoices
+        self.avatarChoices = avatarChoices
         self.hasBackgroundAccess = hasBackgroundAccess
         self.isSaving = isSaving
         self.onSave = onSave
@@ -202,29 +205,11 @@ public struct ProfileEditorView: View {
     }
 
     private var avatarPicker: some View {
-        VStack(spacing: 14) {
-            sectionTitle("Choose avatar color")
-            HStack(spacing: 14) {
-                ForEach(ProfileAvatarPalette.colors, id: \.self) { hex in
-                    Button {
-                        draft.avatarColorHex = hex
-                    } label: {
-                        Circle()
-                            .fill(ProfileColorParsing.color(hex: hex))
-                            .frame(width: 52, height: 52)
-                            .overlay(Circle().strokeBorder(
-                                draft.avatarColorHex == hex
-                                    ? NuvioDesignTokens.Colors.primaryText
-                                    : NuvioDesignTokens.Colors.neutral600,
-                                lineWidth: draft.avatarColorHex == hex ? 3 : 1
-                            ))
-                    }
-                    .buttonStyle(SwatchButtonStyle())
-                    .accessibilityLabel("Avatar color \(hex)")
-                }
-            }
-            .frame(maxWidth: .infinity)
-        }
+        ProfileAvatarPickerSection(
+            avatarID: $draft.avatarID,
+            colorHex: $draft.avatarColorHex,
+            choices: avatarChoices
+        )
     }
 
     private var backgroundPicker: some View {

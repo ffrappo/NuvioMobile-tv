@@ -150,7 +150,10 @@ struct PlayerSelectionPanel: View {
                 )
                 showsTimingDialog = true
             },
-            onToggleSdhFilter: { styleStore.toggleSdhFilter($0) },
+            onToggleSdhFilter: { enabled in
+                styleStore.toggleSdhFilter(enabled)
+                session.controllerApplySubtitleStyle(styleStore.options)
+            },
             onShowAppearance: { showsSubtitleAppearance = true },
             onClose: { dismiss() }
         )
@@ -159,11 +162,18 @@ struct PlayerSelectionPanel: View {
             guard externalSubtitleTracks.isEmpty, !isLoadingExternalSubtitles else { return }
             isLoadingExternalSubtitles = true
             let repository = AddonSubtitleRepository()
+            // Forward the playing stream's filename and size for
+            // hash/size-based subtitle addons (Android buildExtraParams).
+            let playingStream = route.streamSources.first {
+                $0.stream.url == selectedSourceURL.absoluteString
+            }?.stream ?? route.streamSources.first?.stream
             let tracks = await repository.externalTracks(
                 type: route.summary.type,
                 id: route.summary.id,
                 videoID: route.videoID,
-                addons: addonStore.enabledAddons
+                addons: addonStore.enabledAddons,
+                filename: playingStream?.filename,
+                videoSize: playingStream?.videoSize
             )
             externalSubtitleTracks = tracks
             isLoadingExternalSubtitles = false

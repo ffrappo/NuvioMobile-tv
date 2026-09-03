@@ -330,6 +330,7 @@ public struct CollectionFolderEditorSection: View {
 
     private func brandColor(for kind: CollectionSourceProviderKind) -> Color {
         switch kind {
+        case .addon: return NuvioDesignTokens.Colors.brand
         case .trakt: return NuvioDesignTokens.Colors.trakt
         case .tmdb: return NuvioDesignTokens.Colors.tmdb
         }

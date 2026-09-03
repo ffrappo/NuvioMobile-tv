@@ -45,6 +45,29 @@ final class CollectionStore: ObservableObject {
         message = nil
     }
 
+    /// Pushes the full collection list (`sync_push_collections`) and
+    /// adopts it locally, keeping the pull's ordering.
+    func save(
+        _ updated: [TVCollection],
+        auth: AuthStore,
+        profileID: Int
+    ) async {
+        guard auth.session != nil else { return }
+        do {
+            let token = try await auth.validAccessToken()
+            try await accountService.pushCollections(updated, profileID: profileID, accessToken: token)
+            collections = updated.sorted {
+                if $0.pinToTop != $1.pinToTop { return $0.pinToTop }
+                return $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
+            }
+            message = nil
+        } catch {
+            let detail = AppLog.safeDescription(error)
+            AppLog.sync.error("Collection push failed profile=\(profileID) detail=\(detail, privacy: .public)")
+            message = "Collections could not be saved. \(detail)"
+        }
+    }
+
     func items(for folder: TVCollectionFolder, addons: [HomeAddon]) async -> [MetaSummary] {
         let descriptors = folder.sources.compactMap { descriptor(for: $0, addons: addons) }
         let batches = AsyncBatcher.batches(descriptors, limit: 3) { [repository] descriptor in

@@ -6,7 +6,9 @@ struct DetailsView: View {
     @EnvironmentObject private var library: LibraryStore
     @EnvironmentObject private var addonStore: AddonStore
     @EnvironmentObject private var watchProgress: WatchProgressStore
+    @EnvironmentObject private var deepLinkStore: NuvioDeepLinkStore
     @Environment(\.nuvioTheme) private var theme
+    @State private var similarItems: [MetaSummary] = []
     @State private var detail: MetaDetail?
     @State private var isLoading = true
     @State private var errorMessage: String?
@@ -28,7 +30,7 @@ struct DetailsView: View {
                         ErrorPanel(message: errorMessage, retry: reload)
                     } else if let detail {
                         paritySections(detail)
-                        paritySections(detail)                    }
+                    }
                 }
                 .padding(.horizontal, 72)
                 .padding(.top, 64)
@@ -134,13 +136,9 @@ struct DetailsView: View {
             meta: detail,
             watchedEpisodeIDs: Set(records.filter(\.isCompleted).map(\.videoID)),
             completedEpisodeIDs: Set(records.filter(\.isCompleted).map(\.videoID)),
-            progressByEpisodeID: progressByEpisode
+            progressByEpisodeID: progressByEpisode,
+            similar: similarItems
         )
-    }
-
-    private func selectPosterItem(_ item: DetailsPosterItemModel) {
-        // More-like-this navigation reuses the detail route once the
-        // recommendation pipeline supplies full summaries.
     }
 
     private func reload() {
@@ -166,9 +164,33 @@ struct DetailsView: View {
                 }
             } ?? loaded.videos.first
             selectedSeason = selectedVideo?.season
+            await loadSimilarItems()
         } catch {
             errorMessage = error.userMessage
         }
         isLoading = false
+    }
+
+    /// Android sources More-Like-This from Trakt/TMDB enrichment; tvOS uses
+    /// the same-genre catalog stand-in the post-play system uses until those
+    /// integrations ship.
+    private func loadSimilarItems() async {
+        let service = StremioService()
+        let genre = (detail?.genres.first ?? summary.genres.first) ?? ""
+        guard let items = try? await service.catalog(
+            type: summary.type,
+            id: "top",
+            genre: genre.isEmpty ? nil : genre
+        ) else { return }
+        similarItems = items
+            .filter { $0.id != summary.id && $0.type == summary.type }
+            .prefix(18)
+            .map { $0 }
+    }
+
+    private func selectPosterItem(_ item: DetailsPosterItemModel) {
+        guard let target = similarItems.first(where: { $0.id == item.id }),
+              let url = NuvioDeepLink.detailsURL(type: target.type, id: target.id) else { return }
+        deepLinkStore.receive(url)
     }
 }

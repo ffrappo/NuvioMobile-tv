@@ -97,6 +97,8 @@ struct NuvioThemePalette {
         case .roseGold: return color(0x100C0F)
         case .arcticBlue: return color(0x0B0E14)
         case .graphite: return color(0x0C0D0F)
+        case .gold: return color(0x0F0E0B)
+        case .jade: return color(0x0B0F0D)
         default: return nil
         }
     }

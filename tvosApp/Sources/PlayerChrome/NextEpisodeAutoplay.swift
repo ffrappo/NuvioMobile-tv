@@ -24,23 +24,22 @@ struct NextEpisodeAutoplayState: Equatable {
 /// Reads the persisted autoplay settings (NuvioSettingsStore format).
 enum NextEpisodeAutoplaySettings {
     static func isEnabled(defaults: UserDefaults = .standard) -> Bool {
-        readToggle("playback.streamAutoPlayNextEpisode", defaults: defaults)
+        // Tree id: `playback.nextEpisode` (streamAutoPlayNextEpisodeEnabled).
+        readToggle("playback.nextEpisode", defaults: defaults)
     }
 
-    static func timeoutSeconds(defaults: UserDefaults = .standard) -> Int {
-        guard case .number(let value)? = readValue(
-            "playback.streamAutoPlayTimeoutSeconds", defaults: defaults
-        ) else { return 3 }
-        return Int(value)
-    }
+    /// The visible countdown is Android's hardcoded `3 downTo 1`
+    /// (`PlayerRuntimeControllerStreams.kt`); the `autoPlayTimeout` setting
+    /// bounds the stream search, not this countdown.
+    static var countdownSeconds: Int { 3 }
 
     /// The end-of-episode trigger fraction from the threshold mode/percent
     /// settings (Android `nextEpisodeThresholdMode` PERCENTAGE default 99).
     static func triggerFraction(defaults: UserDefaults = .standard) -> Double {
         let mode = readValue("playback.nextEpisodeThresholdMode", defaults: defaults)
-        // Time-before-end mode needs the duration at call time; the ended
-        // player always satisfies it, so the fraction collapses to 0.
-        if case .option("TIME_BEFORE_END")? = mode {
+        // Minutes-before-end mode is satisfied at natural end, where this
+        // setting is read; the fraction collapses to 0.
+        if case .option("MINUTES_BEFORE_END")? = mode {
             return 0.0
         }
         guard case .number(let percent)? = readValue(

@@ -54,6 +54,31 @@ final class SettingsParityBridgeTests: XCTestCase {
         XCTAssertEqual(reloaded.state.subtitleSizePercent, 150)
     }
 
+    func testCatalogOrderRoundTripThroughPreferenceKeys() {
+        let store = NuvioSettingsStore(defaults: defaults)
+        let preferences = HomePreferencesStore(defaults: defaults)
+
+        // The catalog-order sheet persists colon-format definition keys.
+        let orderKeys = ["com.example:movie:top", "com.other:series:year"]
+        preferences.applyCatalogOrder(
+            orderKeys: orderKeys,
+            disabledKeys: ["com.other:series:year"]
+        )
+
+        let item = preferences.value.preference(for: "com.other:series:year")
+        XCTAssertNotNil(item, "the colon-format key the Home store reads must resolve")
+        XCTAssertEqual(item?.enabled, false)
+        XCTAssertEqual(item?.order, 1)
+        XCTAssertEqual(preferences.value.preference(for: "com.example:movie:top")?.order, 0)
+        XCTAssertNil(preferences.value.preference(for: "com.example|movie|top|"), "pipe-format keys must not appear")
+
+        // Relaunch keeps the order and disable state.
+        let reloaded = HomePreferencesStore(defaults: defaults)
+        XCTAssertEqual(reloaded.value.preference(for: "com.other:series:year")?.enabled, false)
+        XCTAssertEqual(reloaded.value.preference(for: "com.example:movie:top")?.order, 0)
+        _ = store
+    }
+
     func testClampedValuesPersistClamped() {
         let store = NuvioSettingsStore(defaults: defaults)
         // The Android clamp caps subtitle size at 200 percent.

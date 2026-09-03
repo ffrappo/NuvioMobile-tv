@@ -119,7 +119,15 @@ struct AppShellView: View {
     private var profileGatewayCover: some View {
         ProfileGatewayView(
             profiles: profileStore.profiles.map { profile in
-                GatewayProfile(tvProfile: profile, lock: gatewayLock(for: profile))
+                var gateway = GatewayProfile(tvProfile: profile, lock: gatewayLock(for: profile))
+                // Resolve the catalog avatar image like the Android card.
+                if let resolved = ProfileAvatarCatalog.shared.displayURL(
+                    avatarID: gateway.avatarID,
+                    customURL: gateway.avatarURL
+                ) {
+                    gateway.avatarURL = resolved.absoluteString
+                }
+                return gateway
             },
             activeProfileID: profileStore.activeProfileID,
             verifyPIN: { profile, pin, completion in

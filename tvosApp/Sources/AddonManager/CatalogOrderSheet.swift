@@ -7,6 +7,8 @@ import SwiftUI
 struct CatalogOrderSheet: View {
     @EnvironmentObject private var addonStore: AddonStore
     @EnvironmentObject private var homePreferences: HomePreferencesStore
+    @EnvironmentObject private var auth: AuthStore
+    @EnvironmentObject private var profiles: TVProfileStore
     @Environment(\.dismiss) private var dismiss
     @State private var model = CatalogOrderModel(addons: [])
 
@@ -65,15 +67,19 @@ struct CatalogOrderSheet: View {
         )
     }
 
-    /// Writes the model's order and disable state back into Home preferences.
+    /// Writes the model's order and disable state back into Home
+    /// preferences using the store's `addonID:type:catalogID` keys, then
+    /// schedules the account sync push.
     private func persist() {
         let definitionKeyByModelKey = modelKeyToDefinitionKey
         let orderKeys = model.orderKeys.compactMap { definitionKeyByModelKey[$0] }
         let disabledKeys = Set(model.disabledKeys.compactMap { definitionKeyByModelKey[$0] })
         homePreferences.applyCatalogOrder(orderKeys: orderKeys, disabledKeys: disabledKeys)
+        homePreferences.schedulePush(auth: auth, profileID: profiles.activeProfileID)
     }
 
-    /// `addonID_type_catalogID` (model) -> `addonID:type:catalogID` (Home).
+    /// `addonID_type_catalogID` (model) -> `addonID:type:catalogID` (the
+    /// HomeCatalogDefinition key Home preferences persist and consume).
     private var modelKeyToDefinitionKey: [String: String] {
         var mapping: [String: String] = [:]
         for definition in CatalogDescriptors.browse(from: addonStore.homeAddons) {
@@ -81,7 +87,7 @@ struct CatalogOrderSheet: View {
                 addonID: definition.addonID,
                 type: definition.type,
                 catalogID: definition.catalogID
-            )] = definition.id
+            )] = [definition.addonID, definition.type, definition.catalogID].joined(separator: ":")
         }
         return mapping
     }

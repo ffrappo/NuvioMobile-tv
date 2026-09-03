@@ -309,7 +309,9 @@ final class MPVPlayerController: UIViewController {
     }
 
     func addExternalSubtitle(url: String, title: String, language: String) {
-        command("sub-add", url, "select", title, language)
+        command("sub-add", url, "cached", title, language)
+        guard let mpv else { return }
+        setOption(mpv, "sub-visibility", "yes")
     }
 
     func setSubtitleFontSize(_ size: Int) {
@@ -325,35 +327,42 @@ final class MPVPlayerController: UIViewController {
         String(format: "#%08X", argb)
     }
 
+    /// Android `NuvioMpvSurfaceView.applySubtitleStyle`: scale, geometry,
+    /// border style, colors, and the SDH filter, property for property.
     func applySubtitleStyle(_ style: SubtitleStyleOptions) {
         guard let mpv else { return }
-        setSubtitleFontSize(Self.mpvFontSize(forPercent: style.sizePercent))
-        // Android -20...50 maps onto MPV's 0...100 bottom-anchored sub-pos.
+        var scale = min(max(Double(style.sizePercent) / 100.0, 0.5), 3.0)
         let offsetRange = SubtitleStyleOptions.verticalOffsetRange
-        let normalized = Double(style.verticalOffset - offsetRange.lowerBound)
+        let clampedOffset = min(
+            max(style.verticalOffset, offsetRange.lowerBound),
+            offsetRange.upperBound
+        )
+        let normalized = Double(clampedOffset - offsetRange.lowerBound)
             / Double(offsetRange.upperBound - offsetRange.lowerBound)
-        var position = 100.0 - normalized * 25.0
-        position = min(max(position, 70), 100)
-        var posValue = position
-        mpv_set_property(mpv, "sub-pos", MPV_FORMAT_DOUBLE, &posValue)
+        // MPV_SUB_POS_AT_BOTTOM 103.4 .. MPV_SUB_POS_AT_TOP 72.4.
+        var subPos = 103.4 - normalized * (103.4 - 72.4)
+        // MPV_SUB_MARGIN_Y_MIN 0 .. MAX 60.
+        var subMarginY: Int64 = Int64(normalized * 60)
+        let outlineSize: Double = style.outlineEnabled
+            ? Double(min(max(style.outlineWidth, 1), 6))
+            : 0
+        let backgroundAlpha = Int((style.backgroundColorARGB >> 24) & 0xFF)
+        let borderStyle = backgroundAlpha > 0 ? "background-box" : "outline-and-shadow"
+        // In background-box mode sub-shadow-offset is the box padding.
+        var shadowOffset: Double = backgroundAlpha > 0 ? 5.0 : 0.0
+
+        mpv_set_property(mpv, "sub-scale", MPV_FORMAT_DOUBLE, &scale)
+        mpv_set_property(mpv, "sub-pos", MPV_FORMAT_DOUBLE, &subPos)
+        mpv_set_property(mpv, "sub-margin-y", MPV_FORMAT_INT64, &subMarginY)
+        mpv_set_property(mpv, "sub-shadow-offset", MPV_FORMAT_DOUBLE, &shadowOffset)
         mpv_set_property_string(mpv, "sub-bold", style.bold ? "yes" : "no")
+        mpv_set_property_string(mpv, "sub-outline-size", String(Int(outlineSize)))
+        mpv_set_property_string(mpv, "sub-border-style", borderStyle)
         mpv_set_property_string(mpv, "sub-color", Self.mpvColor(style.textColorARGB))
         mpv_set_property_string(mpv, "sub-back-color", Self.mpvColor(style.backgroundColorARGB))
-        if style.outlineEnabled {
-            mpv_set_property_string(mpv, "sub-border-size", String(style.outlineWidth))
-            mpv_set_property_string(mpv, "sub-border-color", Self.mpvColor(style.outlineColorARGB))
-        } else {
-            mpv_set_property_string(mpv, "sub-border-size", "0")
-        }
-    }
-
-    /// Size percent (50...200) onto the 24...96 pt scale.
-    static func mpvFontSize(forPercent percent: Int) -> Int {
-        let range = SubtitleStyleOptions.sizeRange
-        let clamped = min(max(percent, range.lowerBound), range.upperBound)
-        let fraction = Double(clamped - range.lowerBound)
-            / Double(range.upperBound - range.lowerBound)
-        return Int((24 + fraction * (96 - 24)).rounded())
+        mpv_set_property_string(mpv, "sub-outline-color", Self.mpvColor(style.outlineColorARGB))
+        mpv_set_property_string(mpv, "sub-filter-sdh", style.stripSdh ? "yes" : "no")
+        mpv_set_property_string(mpv, "sub-filter-sdh-harder", style.stripSdh ? "yes" : "no")
     }
 
     func stop() {

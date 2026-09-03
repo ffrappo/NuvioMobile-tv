@@ -43,7 +43,7 @@ struct SettingsView: View {
                 )
                 SettingsRootView(
                     state: paritySettings.state,
-                    onChange: { paritySettings.handle($0) }
+                    onChange: handleChange
                 )
                 SettingsIntegrationsSection(
                     auth: auth,
@@ -61,6 +61,17 @@ struct SettingsView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Account data and synchronized addons will be removed from this Apple TV.")
+        }
+    }
+
+    /// Applies a parity settings change; the skip-intro row also drives the
+    /// runtime IntegrationStore the player reads, keeping one source of
+    /// truth for the feature across both settings surfaces.
+    private func handleChange(_ change: NuvioSettingsChange) {
+        paritySettings.handle(change)
+        if change.settingID == "playback.skipIntroButton",
+           case .toggle(let enabled) = change.value {
+            integrations.setSkipIntroEnabled(enabled)
         }
     }
 

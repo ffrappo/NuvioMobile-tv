@@ -261,11 +261,15 @@ public struct ProfileEditorDraft: Equatable, Sendable {
     public var lockEnabled: Bool
     /// New PIN staged by the set flow; applied by the integrator on save.
     public var pendingPIN: String?
+    /// Catalog avatar selection (`avatarId`); nil keeps the color circle or
+    /// the custom URL.
+    public var avatarID: String?
 
     public init(profile: GatewayProfile) {
         original = profile
         name = profile.name
         avatarColorHex = profile.avatarColorHex
+        avatarID = profile.avatarID
         background = profile.profileBackgroundURL?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
             .map { .custom(url: $0) }
             ?? profile.profileBackgroundID.map { .catalog(id: $0) }
@@ -314,6 +318,7 @@ public struct ProfileEditorDraft: Equatable, Sendable {
             }
         }()
         updated.avatarColorHex = avatarColorHex
+        updated.avatarID = avatarID
         switch background {
         case .catalog(let id):
             updated.profileBackgroundID = id

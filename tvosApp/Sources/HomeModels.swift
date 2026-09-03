@@ -122,6 +122,20 @@ struct TVCollection: Decodable, Equatable, Hashable, Identifiable {
         pinToTop = try values.decodeIfPresent(Bool.self, forKey: .pinToTop) ?? false
         folders = try values.decodeIfPresent([TVCollectionFolder].self, forKey: .folders) ?? []
     }
+
+    init(
+        id: String = UUID().uuidString,
+        title: String,
+        backdropImageUrl: String? = nil,
+        pinToTop: Bool = false,
+        folders: [TVCollectionFolder] = []
+    ) {
+        self.id = id
+        self.title = title
+        self.backdropImageUrl = backdropImageUrl
+        self.pinToTop = pinToTop
+        self.folders = folders
+    }
 }
 
 struct TVCollectionFolder: Decodable, Equatable, Hashable, Identifiable {
@@ -146,6 +160,22 @@ struct TVCollectionFolder: Decodable, Equatable, Hashable, Identifiable {
         sources = try values.decodeIfPresent([TVCollectionSource].self, forKey: .sources)
             ?? values.decodeIfPresent([TVCollectionSource].self, forKey: .catalogSources)
             ?? []
+    }
+
+    init(
+        id: String = UUID().uuidString,
+        title: String,
+        coverImageUrl: String? = nil,
+        tileShape: String = "poster",
+        hideTitle: Bool = false,
+        sources: [TVCollectionSource] = []
+    ) {
+        self.id = id
+        self.title = title
+        self.coverImageUrl = coverImageUrl
+        self.tileShape = tileShape
+        self.hideTitle = hideTitle
+        self.sources = sources
     }
 }
 
@@ -182,6 +212,34 @@ struct TVCollectionSource: Decodable, Equatable, Hashable {
         mediaType = try values.decodeIfPresent(String.self, forKey: .mediaType)
         sortBy = try values.decodeIfPresent(String.self, forKey: .sortBy)
         sortHow = try values.decodeIfPresent(String.self, forKey: .sortHow)
+    }
+
+    init(
+        provider: String = "addon",
+        addonId: String? = nil,
+        type: String? = nil,
+        catalogId: String? = nil,
+        genre: String? = nil,
+        title: String? = nil,
+        tmdbSourceType: String? = nil,
+        tmdbId: Int? = nil,
+        traktListId: Int64? = nil,
+        mediaType: String? = nil,
+        sortBy: String? = nil,
+        sortHow: String? = nil
+    ) {
+        self.provider = provider
+        self.addonId = addonId
+        self.type = type
+        self.catalogId = catalogId
+        self.genre = genre
+        self.title = title
+        self.tmdbSourceType = tmdbSourceType
+        self.tmdbId = tmdbId
+        self.traktListId = traktListId
+        self.mediaType = mediaType
+        self.sortBy = sortBy
+        self.sortHow = sortHow
     }
 }
 

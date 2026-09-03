@@ -68,17 +68,22 @@ final class DeferredParityIntegrationTests: XCTestCase {
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
 
+        // Keys are the settings-tree ids the bridge persists.
         XCTAssertFalse(NextEpisodeAutoplaySettings.isEnabled(defaults: defaults))
-        XCTAssertEqual(NextEpisodeAutoplaySettings.timeoutSeconds(defaults: defaults), 3)
+        XCTAssertEqual(NextEpisodeAutoplaySettings.countdownSeconds, 3)
         XCTAssertEqual(NextEpisodeAutoplaySettings.triggerFraction(defaults: defaults), 0.99)
 
-        defaults.set("t:1", forKey: "nuvio.tv.settings.v2.playback.streamAutoPlayNextEpisode")
-        defaults.set("n:10", forKey: "nuvio.tv.settings.v2.playback.streamAutoPlayTimeoutSeconds")
+        defaults.set("t:1", forKey: "nuvio.tv.settings.v2.playback.nextEpisode")
         defaults.set("n:95", forKey: "nuvio.tv.settings.v2.playback.nextEpisodeThresholdPercent")
 
         XCTAssertTrue(NextEpisodeAutoplaySettings.isEnabled(defaults: defaults))
-        XCTAssertEqual(NextEpisodeAutoplaySettings.timeoutSeconds(defaults: defaults), 10)
         XCTAssertEqual(NextEpisodeAutoplaySettings.triggerFraction(defaults: defaults), 0.95)
+
+        defaults.set("o:MINUTES_BEFORE_END", forKey: "nuvio.tv.settings.v2.playback.nextEpisodeThresholdMode")
+
+        // Minutes-before-end mode collapses to satisfied at natural end.
+        defaults.set("n:2", forKey: "nuvio.tv.settings.v2.playback.nextEpisodeThresholdMinutesBeforeEnd")
+        XCTAssertEqual(NextEpisodeAutoplaySettings.triggerFraction(defaults: defaults), 0.0)
     }
 
     func testNextEpisodeAfterCurrent() {
@@ -170,11 +175,16 @@ final class DeferredParityIntegrationTests: XCTestCase {
         XCTAssertEqual(buffer.readaheadSeconds, 45)
         XCTAssertEqual(buffer.maxBytes, 150 * 1_024 * 1_024)
 
+        // Android clamps: seconds 5...120, budget 25...4096 MB.
         defaults.set("n:9000", forKey: "nuvio.tv.settings.v2.playback.bufferMax")
         defaults.set("n:2", forKey: "nuvio.tv.settings.v2.playback.bufferTargetSizeMb")
         buffer = PersistedPlaybackSetting.bufferConfiguration(defaults: defaults)
-        XCTAssertEqual(buffer.readaheadSeconds, 600, "readahead clamps to 600 s")
-        XCTAssertEqual(buffer.maxBytes, 16 * 1_024 * 1_024, "budget clamps to the 16 MB floor")
+        XCTAssertEqual(buffer.readaheadSeconds, 120, "readahead clamps to the Android 120 s standard max")
+        XCTAssertEqual(buffer.maxBytes, 25 * 1_024 * 1_024, "budget clamps to the Android 25 MB floor")
+
+        defaults.set("n:2048", forKey: "nuvio.tv.settings.v2.playback.bufferTargetSizeMb")
+        buffer = PersistedPlaybackSetting.bufferConfiguration(defaults: defaults)
+        XCTAssertEqual(buffer.maxBytes, 2048 * 1_024 * 1_024, "large budgets pass through to the 4 GB Android max")
     }
 
     func testOSDClockDefaultOn() {

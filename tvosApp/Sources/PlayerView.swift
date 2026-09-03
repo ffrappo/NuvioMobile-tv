@@ -73,12 +73,12 @@ struct PlayerView: View {
     @State private var skipIntervals: [SkipInterval] = []
     @State private var dismissedSkipIntervalIDs: Set<String> = []
     @State private var isControlPanelPresented = false
-    @StateObject private var postPlay = PostPlayController(
+    @StateObject var postPlay = PostPlayController(
         fetchRecommendations: { _ in [] },
         autoPlayTrailerEnabled: false,
         prefetchThreshold: PostPlayTiming.userMovieThreshold()
     )
-    @State private var postPlayRecommendations: [PostPlayRecommendation] = []
+    @State var postPlayRecommendations: [PostPlayRecommendation] = []
     @State var showsStreamInfo = false
     @State var nextEpisodeAutoplay: NextEpisodeAutoplayState?
     @State var autoplaySearchTask: Task<Void, Never>?
@@ -135,7 +135,17 @@ struct PlayerView: View {
                         onPlay: { recommendation in
                             playRecommendation(recommendation)
                         },
-                        onOpenDetails: { _ in },
+                        onOpenDetails: { recommendation in
+                            if let url = NuvioDeepLink.detailsURL(
+                                type: recommendation.contentType,
+                                id: recommendation.id
+                            ) {
+                                saveProgress()
+                                session.stop()
+                                dismiss()
+                                deepLinkStore.receive(url)
+                            }
+                        },
                         onPlayTrailer: {},
                         onReplay: {
                             postPlay.stop()
@@ -177,6 +187,7 @@ struct PlayerView: View {
             controls.registerInteraction()
         }
         .onDisappear {
+            cancelNextEpisodeAutoplay()
             UIApplication.shared.isIdleTimerDisabled = false
             session.onControlPress = nil
             controls.cancel()
@@ -315,54 +326,7 @@ struct PlayerView: View {
         )
     }
 
-    // MARK: - Post-play
 
-    /// Loads similar titles for the ended item and reveals the Android-style
-    /// post-play overlay.
-    private func beginPostPlay() {
-        let identity = PostPlayPlaybackIdentity(
-            contentType: route.summary.type,
-            contentID: route.summary.id,
-            videoID: route.videoID,
-            season: route.seasonNumber,
-            episode: route.episodeNumber
-        )
-        postPlay.begin(identity: identity)
-        Task { await loadPostPlayRecommendations(identity: identity) }
-    }
-
-    private func loadPostPlayRecommendations(identity: PostPlayPlaybackIdentity) async {
-        // Same-genre Cinemeta catalog stands in for the Android Trakt/TMDB
-        // more-like-this source until those integrations ship.
-        let service = StremioService()
-        let genre = route.summary.genres.first ?? ""
-        do {
-            let items = try await service.catalog(
-                type: route.summary.type,
-                id: "top",
-                genre: genre.isEmpty ? nil : genre
-            )
-            let recommendations = items
-                .filter { $0.id != route.summary.id }
-                .prefix(6)
-                .map { summary in
-                    PostPlayRecommendation(
-                        id: summary.id,
-                        contentType: summary.type,
-                        title: summary.name,
-                        poster: summary.poster,
-                        backdrop: summary.background,
-                        description: summary.description,
-                        releaseInfo: summary.releaseInfo,
-                        genres: Array(summary.genres.prefix(3))
-                    )
-                }
-            postPlayRecommendations = recommendations
-            postPlay.begin(recommendations: recommendations, identity: identity)
-        } catch {
-            postPlay.begin(recommendations: [], identity: identity)
-        }
-    }
 
     private func playRecommendation(_ recommendation: PostPlayRecommendation) {
         postPlay.stop()

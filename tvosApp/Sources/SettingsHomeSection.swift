@@ -5,6 +5,7 @@ struct SettingsHomeSection: View {
     @ObservedObject var profiles: TVProfileStore
     @ObservedObject var preferences: HomePreferencesStore
     var focus: FocusState<SettingsView.Action?>.Binding
+    @State private var showsNewCollection = false
 
     var body: some View {
         NuvioPanel {
@@ -31,7 +32,16 @@ struct SettingsHomeSection: View {
                 ForEach(orderedItems, id: \.key) { item in
                     sectionRow(item)
                 }
+                NuvioButton(
+                    title: "New Collection",
+                    symbol: "plus.rectangle.on.rectangle",
+                    action: { showsNewCollection = true }
+                )
+                .frame(width: 320)
             }
+        }
+        .sheet(isPresented: $showsNewCollection) {
+            CollectionEditingSheet(existing: nil)
         }
     }
 

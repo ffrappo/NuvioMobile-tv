@@ -28,8 +28,16 @@ enum PersistedPlaybackSetting {
     ) -> (readaheadSeconds: Int, maxBytes: Int) {
         let readahead = number("playback.bufferMax", defaults: defaults).map { Int($0) } ?? 45
         let megabytes = number("playback.bufferTargetSizeMb", defaults: defaults).map { Int($0) } ?? 150
-        let clampedReadahead = min(max(readahead, 1), 600)
-        let clampedMegabytes = min(max(megabytes, 16), 1024)
+        // Android clamps: buffer seconds 5...120 (1200 in performance
+        // mode), memory budget 25...4096 MB (`MemoryBudget.kt`).
+        let clampedReadahead = min(
+            max(readahead, NuvioSettingsLimits.minBufferSeconds),
+            NuvioSettingsLimits.maxBufferSecondsStandard
+        )
+        let clampedMegabytes = min(
+            max(megabytes, NuvioSettingsLimits.minBufferMb),
+            NuvioSettingsLimits.maxBufferMb
+        )
         return (clampedReadahead, clampedMegabytes * 1_024 * 1_024)
     }
 }

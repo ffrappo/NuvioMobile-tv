@@ -173,11 +173,13 @@ public struct CollectionSourceDraft: Equatable, Hashable, Codable, Sendable {
 
 /// Remote list providers available inside the editor source picker.
 public enum CollectionSourceProviderKind: String, CaseIterable, Codable, Hashable, Sendable {
+    case addon
     case trakt
     case tmdb
 
     public var displayName: String {
         switch self {
+        case .addon: return "Addon"
         case .trakt: return "Trakt"
         case .tmdb: return "TMDB"
         }

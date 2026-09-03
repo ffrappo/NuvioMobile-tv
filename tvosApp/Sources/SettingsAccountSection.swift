@@ -33,8 +33,11 @@ struct SettingsAccountSection: View {
         }
     }
 
+    /// Android `ProfileManager.nextProfileId`: the lowest free id in 2...6.
     private var nextProfileIndex: Int {
-        (profiles.profiles.map(\.profileIndex).max() ?? 0) + 1
+        let used = Set(profiles.profiles.map(\.profileIndex))
+        return (2...TVProfile.maxProfiles).first { !used.contains($0) }
+            ?? TVProfile.maxProfiles + 1
     }
 
     @ViewBuilder

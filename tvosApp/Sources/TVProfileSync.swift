@@ -90,6 +90,10 @@ extension TVProfileStore {
         service: NuvioAccountService = NuvioAccountService()
     ) async {
         guard auth.session != nil else { return }
+        guard updated.contains(where: { $0.profileIndex == TVProfile.primaryProfileID }) else {
+            AppLog.sync.error("Profile push rejected: primary profile missing")
+            return
+        }
         let trimmed = Array(updated.prefix(TVProfile.maxProfiles))
         do {
             let token = try await auth.validAccessToken()
@@ -101,14 +105,22 @@ extension TVProfileStore {
         }
     }
 
-    /// Deletes a profile locally and remotely. The primary profile is
-    /// protected (Android `ProfileManager` invariant).
+    /// Deletes a profile locally and remotely: purges the profile's remote
+    /// data (`sync_delete_profile_data`), then pushes the remaining list.
+    /// The primary profile is protected (Android `ProfileManager` invariant).
     func delete(
         _ profileID: Int,
         auth: AuthStore,
         service: NuvioAccountService = NuvioAccountService()
     ) async {
         guard profileID != TVProfile.primaryProfileID else { return }
+        do {
+            let token = try await auth.validAccessToken()
+            try await service.deleteProfileData(profileID: profileID, accessToken: token)
+        } catch {
+            let detail = AppLog.safeDescription(error)
+            AppLog.sync.error("Profile data purge failed profile=\(profileID) detail=\(detail, privacy: .public)")
+        }
         var remaining = profiles
         remaining.removeAll { $0.profileIndex == profileID }
         await save(remaining, auth: auth, service: service)

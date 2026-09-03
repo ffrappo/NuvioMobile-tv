@@ -175,6 +175,19 @@ extension NuvioAccountService {
         )
     }
 
+    /// `sync_delete_profile_data`: purges the deleted profile's remote
+    /// data (watch history, settings, credentials).
+    func deleteProfileData(profileID: Int, accessToken: String) async throws {
+        try await requestVoid(
+            path: "/rest/v1/rpc/sync_delete_profile_data",
+            jsonBody: [
+                "p_profile_id": profileID,
+                "p_origin_client_id": TVSyncClientIdentity.current(),
+            ],
+            accessToken: accessToken
+        )
+    }
+
     /// `get_avatar_catalog`: the standard avatar catalog.
     func avatarCatalog(accessToken: String) async throws -> [AvatarCatalogRecord] {
         try await requestRaw(

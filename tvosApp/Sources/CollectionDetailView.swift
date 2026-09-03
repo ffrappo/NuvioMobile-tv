@@ -7,6 +7,7 @@ struct CollectionDetailView: View {
     @EnvironmentObject private var addons: AddonStore
     @EnvironmentObject private var collections: CollectionStore
     @StateObject private var store = CollectionDetailStore()
+    @State private var showsEditor = false
 
     private var selectedFolder: TVCollectionFolder? {
         collection.folders.first { $0.id == store.selectedFolderID } ?? collection.folders.first
@@ -24,12 +25,21 @@ struct CollectionDetailView: View {
                 ) { folder in
                     store.selectFolderID(folder.id)
                 }
+                NuvioButton(
+                    title: "Edit Collection",
+                    symbol: "pencil.circle",
+                    action: { showsEditor = true }
+                )
+                .frame(width: 320)
                 content
             }
             .padding(48)
         }
         .navigationTitle(collection.title.tvSafe)
         .task(id: selectedFolder?.id) { await loadSelectedFolder() }
+        .sheet(isPresented: $showsEditor) {
+            CollectionEditingSheet(existing: collection)
+        }
     }
 
     @ViewBuilder
