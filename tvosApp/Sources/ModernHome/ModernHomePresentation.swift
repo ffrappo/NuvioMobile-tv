@@ -51,12 +51,16 @@ struct ModernHomePresentation: Equatable {
                     || (snapshot.isLoading && items.isEmpty)
             )
         }
+        var sectionsByID: [String: HomeCatalogSection] = [:]
+        for section in snapshot.sections where sectionsByID[section.id] == nil {
+            sectionsByID[section.id] = section
+        }
         return ModernHomePresentation(
             heroes: heroItems,
             catalogRows: rows,
             summariesByRailID: summariesByRailID,
             summariesByHeroID: summariesByHeroID,
-            sectionsByID: Dictionary(uniqueKeysWithValues: snapshot.sections.map { ($0.id, $0) })
+            sectionsByID: sectionsByID
         )
     }
 

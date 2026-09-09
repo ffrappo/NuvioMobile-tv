@@ -16,6 +16,7 @@ public struct AddonManagerView: View {
     let onMoveDown: (String) -> Void
     let onRemove: (String) -> Void
     let onSelectAddon: (String) -> Void
+    let onOpenCatalogOrder: (() -> Void)?
 
     @State private var pendingRemoval: AddonListEntry?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -29,7 +30,8 @@ public struct AddonManagerView: View {
         onMoveUp: @escaping (String) -> Void,
         onMoveDown: @escaping (String) -> Void,
         onRemove: @escaping (String) -> Void,
-        onSelectAddon: @escaping (String) -> Void = { _ in }
+        onSelectAddon: @escaping (String) -> Void = { _ in },
+        onOpenCatalogOrder: (() -> Void)? = nil
     ) {
         self.entries = entries
         self.isReadOnly = isReadOnly
@@ -40,6 +42,7 @@ public struct AddonManagerView: View {
         self.onMoveDown = onMoveDown
         self.onRemove = onRemove
         self.onSelectAddon = onSelectAddon
+        self.onOpenCatalogOrder = onOpenCatalogOrder
     }
 
     public var body: some View {
@@ -55,6 +58,15 @@ public struct AddonManagerView: View {
                     addAddonRow
                 }
                 installedSection
+                if let onOpenCatalogOrder {
+                    NuvioButton(
+                        title: "Catalog Order",
+                        symbol: "list.number",
+                        action: onOpenCatalogOrder
+                    )
+                    .frame(width: 360)
+                    .padding(.top, NuvioDesignTokens.Spacing.xl)
+                }
             }
             .padding(NuvioDesignTokens.Spacing.Screen.horizontal)
             .padding(.vertical, NuvioDesignTokens.Spacing.Screen.vertical)

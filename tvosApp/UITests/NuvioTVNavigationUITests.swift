@@ -36,7 +36,7 @@ final class NuvioTVNavigationUITests: XCTestCase {
         remote.press(.left)
         XCTAssertTrue(app.staticTexts["Discover"].waitForExistence(timeout: 5))
         XCTAssertTrue(heroButton.exists)
-        XCTAssertGreaterThan(heroButton.frame.minX, 300)
+        XCTAssertGreaterThan(heroButton.frame.minX, 160)
         attachScreenshot(name: "home-expanded-sidebar")
     }
 

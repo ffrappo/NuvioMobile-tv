@@ -193,14 +193,8 @@ public struct NuvioArtworkView: View {
     @ViewBuilder
     private var loadingSurface: some View {
         if statePresentation == .surface {
-            NuvioShimmerShape(
-                size: pixelSize,
-                cornerRadius: cornerRadius,
-                cycleDuration: shimmerCycleDuration,
-                baseColor: placeholderColor,
-                highlightColor: loadingHighlightColor
-            )
-            .transition(.opacity)
+            stateSurface(color: placeholderColor, systemImage: placeholderSystemImage)
+                .transition(.opacity)
         } else {
             Color.clear
         }

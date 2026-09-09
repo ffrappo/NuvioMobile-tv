@@ -8,13 +8,11 @@ public struct ModernRailRow: View {
     public let onOpen: (() -> Void)?
     public let onPrefetch: (String) -> Void
 
-    @ObservedObject private var focusModel: RailFocusModel
     @StateObject private var prefetchTrigger: RailPrefetchTrigger
     @FocusState private var focusedItemID: String?
 
     public init(
         section: RailSection,
-        focusModel: RailFocusModel,
         artworkProvider: @escaping PosterArtworkProvider,
         onSelect: @escaping (RailItem) -> Void,
         onFocus: @escaping (RailItem) -> Void = { _ in },
@@ -22,7 +20,6 @@ public struct ModernRailRow: View {
         onPrefetch: @escaping (String) -> Void = { _ in }
     ) {
         self.section = section
-        self.focusModel = focusModel
         self.artworkProvider = artworkProvider
         self.onSelect = onSelect
         self.onFocus = onFocus
@@ -81,40 +78,23 @@ public struct ModernRailRow: View {
             prefetchTrigger.reset()
             prefetchTrigger.updateAction { onPrefetch(newSectionID) }
         }
-        .onChange(of: focusedItemID) { oldItemID, newItemID in
-            if let oldItemID {
-                focusModel.blur(focusID(for: oldItemID))
-            }
+        .onChange(of: focusedItemID) { _, newItemID in
             if let newItemID,
                let index = section.items.firstIndex(where: { $0.id == newItemID }) {
-                focusModel.focus(focusID(for: newItemID))
-                if let item = section.items.first(where: { $0.id == newItemID }) {
-                    onFocus(item)
-                }
                 observePrefetch(at: index)
-            }
-        }
-        .onDisappear {
-            if let focusedItemID {
-                focusModel.blur(focusID(for: focusedItemID))
             }
         }
     }
 
     private func card(_ item: RailItem, at index: Int) -> some View {
-        let id = focusID(for: item.id)
-        return PosterCardView(
+        PosterCardView(
             title: item.title,
             year: item.year,
             artwork: item.posterArtwork,
             status: item.status,
             showsLabel: true,
-            isExpanded: focusModel.isExpanded(id),
-            expansion: PosterCardExpansion(
-                backdropArtwork: item.backdropArtwork,
-                overview: item.overview,
-                metadata: item.metadata
-            ),
+            isExpanded: false,
+            expansion: nil,
             artworkProvider: artworkProvider,
             onSelect: { onSelect(item) }
         )
@@ -122,10 +102,6 @@ public struct ModernRailRow: View {
         .onAppear {
             observePrefetch(at: index)
         }
-    }
-
-    private func focusID(for itemID: String) -> RailFocusID {
-        RailFocusID(sectionID: section.id, itemID: itemID)
     }
 
     private func observePrefetch(at index: Int) {

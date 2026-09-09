@@ -102,29 +102,31 @@ public enum NuvioTypographyStyle: CaseIterable, Hashable, Sendable {
 
     public var pointSize: CGFloat {
         switch self {
-        case .display: 48
-        case .compactDisplay: 36
-        case .headline: 28
-        case .sectionTitle: 24
-        case .playerControl: 20
-        case .cardTitle, .body: 16
-        case .compactTitle, .compactBody, .button: 14
-        case .metadata: 12
-        case .badge: 10
+        case .display: 52
+        case .compactDisplay: 42
+        case .headline: 34
+        case .sectionTitle: 30
+        case .playerControl: 28
+        case .cardTitle: 22
+        case .body: 24
+        case .compactTitle, .compactBody, .button: 20
+        case .metadata: 18
+        case .badge: 15
         }
     }
 
     public var lineHeight: CGFloat {
         switch self {
-        case .display: 56
-        case .compactDisplay: 44
-        case .headline: 36
-        case .sectionTitle: 32
-        case .playerControl: 28
-        case .cardTitle, .body: 24
-        case .compactTitle, .compactBody, .button: 20
-        case .metadata: 16
-        case .badge: 14
+        case .display: 62
+        case .compactDisplay: 52
+        case .headline: 44
+        case .sectionTitle: 38
+        case .playerControl: 36
+        case .cardTitle: 28
+        case .body: 32
+        case .compactTitle, .compactBody, .button: 28
+        case .metadata: 24
+        case .badge: 20
         }
     }
 

@@ -162,7 +162,20 @@ private struct DiscoverFilterChip: View {
                 }
             }
             .padding(.horizontal, NuvioDesignTokens.Spacing.lg)
-            .frame(minHeight: NuvioDesignTokens.Components.chipHeight + NuvioDesignTokens.Spacing.md)
+            .frame(minHeight: NuvioDesignTokens.Sizes.Buttons.defaultHeight)
+            .foregroundStyle(NuvioDesignTokens.Colors.primaryText)
+            .background(
+                isSelected
+                    ? NuvioDesignTokens.Colors.brand
+                    : NuvioDesignTokens.Colors.elevated,
+                in: Capsule()
+            )
+            .overlay(
+                Capsule().strokeBorder(
+                    NuvioDesignTokens.Colors.neutral700,
+                    lineWidth: NuvioDesignTokens.Strokes.hairline
+                )
+            )
         }
         .buttonStyle(
             NuvioFocusButtonStyle(cornerRadius: NuvioDesignTokens.Shapes.lg)

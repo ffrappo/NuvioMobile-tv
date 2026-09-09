@@ -52,13 +52,14 @@ struct NuvioPageHeader: View {
     var subtitle: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: NuvioDesignTokens.Spacing.lg) {
             Text(title.tvSafe)
-                .font(.largeTitle.weight(.bold))
+                .nuvioTextStyle(.display)
+                .foregroundStyle(NuvioDesignTokens.Colors.primaryText)
             if let subtitle {
                 Text(subtitle.tvSafe)
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
+                    .nuvioTextStyle(.body)
+                    .foregroundStyle(NuvioDesignTokens.Colors.secondaryText)
             }
         }
         .accessibilityElement(children: .combine)

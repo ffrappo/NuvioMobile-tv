@@ -15,6 +15,10 @@ final class HomeStore: ObservableObject {
     private var lastFailures = 0
     private var loadingSectionIDs: Set<String> = []
     private var generation = UUID()
+    private var preludeTask: Task<Void, Never>?
+    private var preludeProfileID: Int?
+    private var syncedPreludeProfileID: Int?
+    private var preludeGeneration = UUID()
 
     init(
         service: StremioService = StremioService(),
@@ -43,13 +47,7 @@ final class HomeStore: ObservableObject {
         snapshot.isLoading = true
         snapshot.message = nil
 
-        if auth.session != nil {
-            async let progressSync: Void = progress.sync(auth: auth, profileID: profileID)
-            async let collectionSync: Void = collections.sync(auth: auth, profileID: profileID)
-            async let settingsSync: Void = syncPreferences(auth: auth, profileID: profileID)
-            _ = await (progressSync, collectionSync, settingsSync)
-        }
-        guard !Task.isCancelled, requestGeneration == generation else { return }
+        startPreludeIfNeeded(auth: auth, profileID: profileID, force: force)
 
         let definitions = buildDefinitions(addons: addons)
         preferences.reconcile(definitions: definitions, collections: collections.collections)
@@ -134,6 +132,11 @@ final class HomeStore: ObservableObject {
 
     func clearForLogout() {
         generation = UUID()
+        preludeTask?.cancel()
+        preludeTask = nil
+        preludeProfileID = nil
+        syncedPreludeProfileID = nil
+        preludeGeneration = UUID()
         cachedSections = [:]
         snapshot = HomeSnapshot()
     }
@@ -148,21 +151,23 @@ final class HomeStore: ObservableObject {
         let collectionRows = collections.collections.filter {
             preferences.value.preference(for: "collection_\($0.id)")?.enabled != false
         }
-        snapshot.heroItems = makeHero(sections: orderedSections)
-        snapshot.sections = orderedSections
-        snapshot.continueWatching = progress.continueWatching
-        snapshot.collections = collectionRows
-        snapshot.isLoading = loading
-        snapshot.message = failures > 0
+        var next = snapshot
+        next.heroItems = makeHero(sections: orderedSections)
+        next.sections = orderedSections
+        next.continueWatching = progress.continueWatching
+        next.collections = collectionRows
+        next.isLoading = loading
+        next.message = failures > 0
             ? "Some Home sections could not be refreshed. Check the connection and retry."
             : collections.message
-        snapshot.isOffline = failures > 0
-        snapshot.watchedContentKeys = Set(
+        next.isOffline = failures > 0
+        next.watchedContentKeys = Set(
             progress.records
                 .filter(\.isCompleted)
                 .map { "\($0.contentType.lowercased()):\($0.contentID)" }
         )
-        snapshot.loadingSectionIDs = loadingSectionIDs
+        next.loadingSectionIDs = loadingSectionIDs
+        if next != snapshot { snapshot = next }
         if !loading {
             let generation = generation
             Task { [weak self] in
@@ -171,6 +176,39 @@ final class HomeStore: ObservableObject {
                 guard !Task.isCancelled, generation == self.generation else { return }
                 self.snapshot.upcoming = upcoming
             }
+        }
+    }
+
+    private func startPreludeIfNeeded(
+        auth: AuthStore,
+        profileID: Int,
+        force: Bool
+    ) {
+        guard auth.session != nil else { return }
+        if !force, syncedPreludeProfileID == profileID { return }
+        if !force, preludeProfileID == profileID, preludeTask != nil { return }
+        preludeTask?.cancel()
+        let taskGeneration = UUID()
+        preludeGeneration = taskGeneration
+        preludeProfileID = profileID
+        preludeTask = Task { [weak self] in
+            guard let self else { return }
+            async let progressSync: Void = progress.sync(auth: auth, profileID: profileID)
+            async let collectionSync: Void = collections.sync(auth: auth, profileID: profileID)
+            async let settingsSync: Void = syncPreferences(auth: auth, profileID: profileID)
+            _ = await (progressSync, collectionSync, settingsSync)
+            guard !Task.isCancelled,
+                  preludeGeneration == taskGeneration,
+                  preludeProfileID == profileID
+            else { return }
+            syncedPreludeProfileID = profileID
+            preludeTask = nil
+            publish(
+                sections: cachedSections,
+                active: activeOrder,
+                failures: lastFailures,
+                loading: snapshot.isLoading
+            )
         }
     }
 

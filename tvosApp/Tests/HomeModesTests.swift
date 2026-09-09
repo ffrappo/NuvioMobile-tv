@@ -213,8 +213,8 @@ final class HomeModesTests: XCTestCase {
         XCTAssertFalse(ClassicFocusGradient.isBackdropVisible(immersiveAlpha: 1))
         XCTAssertEqual(ClassicHomeScale.catalogPosterScale, 1.35)
         XCTAssertEqual(ClassicHomeScale.secondaryRowPosterScale, 1.2)
-        XCTAssertEqual(ClassicHomeScale.catalogPosterSize.width, 170.1, accuracy: 0.001)
-        XCTAssertEqual(ClassicHomeScale.catalogPosterSize.height, 255.15, accuracy: 0.001)
+        XCTAssertEqual(ClassicHomeScale.catalogPosterSize.width, 243, accuracy: 0.001)
+        XCTAssertEqual(ClassicHomeScale.catalogPosterSize.height, 364.5, accuracy: 0.001)
         XCTAssertEqual(ClassicHomeScale.heroBandHeight, 400)
         XCTAssertEqual(ClassicHomeScale.immersiveFadeDistance, 180)
     }
@@ -242,8 +242,8 @@ final class HomeModesTests: XCTestCase {
         XCTAssertEqual(GridHomeGeometry.rowsPerSection(posterWidth: 100), 2)
         XCTAssertEqual(GridHomeGeometry.maxDisplaySlots(posterWidth: 126), 24)
         XCTAssertEqual(GridHomeGeometry.maxDisplaySlots(posterWidth: 104), 16)
-        XCTAssertEqual(GridHomeGeometry.columns(containerWidth: 1920), 13)
-        XCTAssertEqual(GridHomeGeometry.columns(containerWidth: 960), 6)
+        XCTAssertEqual(GridHomeGeometry.columns(containerWidth: 1920), 9)
+        XCTAssertEqual(GridHomeGeometry.columns(containerWidth: 960), 4)
         XCTAssertEqual(GridHomeGeometry.columns(containerWidth: 100), 1)
     }
 

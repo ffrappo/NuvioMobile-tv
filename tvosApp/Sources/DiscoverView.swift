@@ -27,7 +27,6 @@ struct DiscoverView: View {
             onSelectItem: { item in selectItem(item) },
             onLoadMore: { Task { await store.loadMore() } }
         )
-        .sidebarContentInsets()
         .task(id: catalogKey) { await store.configure(addons: addons.homeAddons) }
     }
 

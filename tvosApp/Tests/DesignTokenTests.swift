@@ -15,25 +15,25 @@ final class DesignTokenTests: XCTestCase {
     }
 
     func testCanonicalMediaGeometryAndShapes() {
-        XCTAssertEqual(NuvioDesignTokens.Sizes.Cards.poster.width, 126)
-        XCTAssertEqual(NuvioDesignTokens.Sizes.Cards.poster.height, 189)
+        XCTAssertEqual(NuvioDesignTokens.Sizes.Cards.poster.width, 180)
+        XCTAssertEqual(NuvioDesignTokens.Sizes.Cards.poster.height, 270)
         XCTAssertEqual(NuvioDesignTokens.Shapes.posterRadius, 12)
 
-        XCTAssertEqual(NuvioDesignTokens.Sizes.Cards.backdrop.width, 320)
-        XCTAssertEqual(NuvioDesignTokens.Sizes.Cards.backdrop.height, 180)
+        XCTAssertEqual(NuvioDesignTokens.Sizes.Cards.backdrop.width, 360)
+        XCTAssertEqual(NuvioDesignTokens.Sizes.Cards.backdrop.height, 203)
         XCTAssertEqual(NuvioDesignTokens.Shapes.backdropRadius, 16)
 
-        XCTAssertEqual(NuvioDesignTokens.Sizes.Cards.episodeThumbnail.width, 320)
-        XCTAssertEqual(NuvioDesignTokens.Sizes.Cards.episodeThumbnail.height, 207)
+        XCTAssertEqual(NuvioDesignTokens.Sizes.Cards.episodeThumbnail.width, 360)
+        XCTAssertEqual(NuvioDesignTokens.Sizes.Cards.episodeThumbnail.height, 203)
         XCTAssertEqual(NuvioDesignTokens.Shapes.sidePanelRadius, 20)
         XCTAssertEqual(NuvioDesignTokens.Shapes.settingsContainerRadius, 28)
     }
 
     func testCanonicalSpacingFocusAndBlur() {
-        XCTAssertEqual(NuvioDesignTokens.Spacing.Screen.horizontal, 48)
-        XCTAssertEqual(NuvioDesignTokens.Spacing.Screen.vertical, 24)
-        XCTAssertEqual(NuvioDesignTokens.Spacing.Rail.itemGap, 12)
-        XCTAssertEqual(NuvioDesignTokens.Spacing.Rail.rowGap, 24)
+        XCTAssertEqual(NuvioDesignTokens.Spacing.Screen.horizontal, 80)
+        XCTAssertEqual(NuvioDesignTokens.Spacing.Screen.vertical, 48)
+        XCTAssertEqual(NuvioDesignTokens.Spacing.Rail.itemGap, 22)
+        XCTAssertEqual(NuvioDesignTokens.Spacing.Rail.rowGap, 40)
         XCTAssertEqual(NuvioDesignTokens.Focus.ringWidth, 2)
         XCTAssertEqual(NuvioDesignTokens.Focus.scale, 1.02)
         XCTAssertEqual(NuvioDesignTokens.Focus.pressedScale, 0.98)
@@ -43,18 +43,18 @@ final class DesignTokenTests: XCTestCase {
     }
 
     func testCanonicalTypographyScale() {
-        assertTypography(.display, points: 48, lineHeight: 56)
-        assertTypography(.compactDisplay, points: 36, lineHeight: 44)
-        assertTypography(.headline, points: 28, lineHeight: 36)
-        assertTypography(.sectionTitle, points: 24, lineHeight: 32)
-        assertTypography(.playerControl, points: 20, lineHeight: 28)
-        assertTypography(.cardTitle, points: 16, lineHeight: 24)
-        assertTypography(.body, points: 16, lineHeight: 24)
-        assertTypography(.compactTitle, points: 14, lineHeight: 20)
-        assertTypography(.compactBody, points: 14, lineHeight: 20)
-        assertTypography(.button, points: 14, lineHeight: 20)
-        assertTypography(.metadata, points: 12, lineHeight: 16)
-        assertTypography(.badge, points: 10, lineHeight: 14)
+        assertTypography(.display, points: 52, lineHeight: 62)
+        assertTypography(.compactDisplay, points: 42, lineHeight: 52)
+        assertTypography(.headline, points: 34, lineHeight: 44)
+        assertTypography(.sectionTitle, points: 30, lineHeight: 38)
+        assertTypography(.playerControl, points: 28, lineHeight: 36)
+        assertTypography(.cardTitle, points: 22, lineHeight: 28)
+        assertTypography(.body, points: 24, lineHeight: 32)
+        assertTypography(.compactTitle, points: 20, lineHeight: 28)
+        assertTypography(.compactBody, points: 20, lineHeight: 28)
+        assertTypography(.button, points: 20, lineHeight: 28)
+        assertTypography(.metadata, points: 18, lineHeight: 24)
+        assertTypography(.badge, points: 15, lineHeight: 20)
     }
 
     func testBundledFontsLoadRegisterAndInterResolves() throws {

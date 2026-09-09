@@ -82,20 +82,20 @@ public enum NuvioDesignTokens {
         public static let huge: CGFloat = 56
 
         public enum Screen {
-            public static let horizontal: CGFloat = 48
-            public static let vertical: CGFloat = 24
-            public static let compactHorizontal: CGFloat = 32
-            public static let compactVertical: CGFloat = 16
-            public static let overscanHorizontal: CGFloat = 56
-            public static let overscanVertical: CGFloat = 36
+            public static let horizontal: CGFloat = 80
+            public static let vertical: CGFloat = 48
+            public static let compactHorizontal: CGFloat = 64
+            public static let compactVertical: CGFloat = 36
+            public static let overscanHorizontal: CGFloat = 80
+            public static let overscanVertical: CGFloat = 48
         }
 
         public enum Rail {
-            public static let horizontalPadding: CGFloat = 48
-            public static let verticalPadding: CGFloat = 6
-            public static let rowGap: CGFloat = 24
-            public static let itemGap: CGFloat = 12
-            public static let headerBottom: CGFloat = 14
+            public static let horizontalPadding: CGFloat = 80
+            public static let verticalPadding: CGFloat = 10
+            public static let rowGap: CGFloat = 40
+            public static let itemGap: CGFloat = 22
+            public static let headerBottom: CGFloat = 18
             public static let tailPadding: CGFloat = 200
         }
 
@@ -162,11 +162,11 @@ public enum NuvioDesignTokens {
         }
 
         public enum Cards {
-            public static let poster = CGSize(width: 126, height: 189)
-            public static let compactPoster = CGSize(width: 112, height: 168)
-            public static let backdrop = CGSize(width: 320, height: 180)
-            public static let episodeThumbnail = CGSize(width: 320, height: 207)
-            public static let continueWatching = CGSize(width: 260, height: 146)
+            public static let poster = CGSize(width: 180, height: 270)
+            public static let compactPoster = CGSize(width: 160, height: 240)
+            public static let backdrop = CGSize(width: 360, height: 203)
+            public static let episodeThumbnail = CGSize(width: 360, height: 203)
+            public static let continueWatching = CGSize(width: 360, height: 203)
         }
 
         public enum Avatars {
@@ -232,14 +232,14 @@ public enum NuvioDesignTokens {
     }
 
     public enum Layout {
-        public static let safeHorizontal: CGFloat = 48
-        public static let safeVertical: CGFloat = 24
-        public static let compactSafeHorizontal: CGFloat = 32
-        public static let compactSafeVertical: CGFloat = 16
-        public static let sidebarContentOffset: CGFloat = 54
-        /// Keeps Home hero controls clear of the expanded native tvOS sidebar.
-        /// Artwork remains full bleed; only interactive foreground content uses this inset.
-        public static let nativeSidebarForegroundInset: CGFloat = 232
+        public static let safeHorizontal: CGFloat = 80
+        public static let safeVertical: CGFloat = 48
+        public static let compactSafeHorizontal: CGFloat = 64
+        public static let compactSafeVertical: CGFloat = 36
+        public static let sidebarContentOffset: CGFloat = 0
+        /// Apple TV's native sidebar already reserves its own interaction
+        /// space. Foreground content uses the standard 80-point TV margin.
+        public static let nativeSidebarForegroundInset: CGFloat = 80
         public static let rowAnchor: CGFloat = 0.42
         public static let detailsHeroWidthFraction: CGFloat = 0.62
         public static let detailsHeroHeightFraction: CGFloat = 0.72

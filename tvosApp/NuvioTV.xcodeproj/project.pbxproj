@@ -200,7 +200,6 @@
 		C802F622936E4FDCBDCE8BDE /* MediaPosterButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A37C88476BCF90A05336D5 /* MediaPosterButton.swift */; };
 		C8EF625AE98D1023FE7DE19A /* PlayerControlsOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2AFC2D037541A3D7A11A6E2 /* PlayerControlsOverlay.swift */; };
 		C982CCCBA6EDFF6871AF16D0 /* SkipSegmentsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4967F64D741AB65B25526B8 /* SkipSegmentsService.swift */; };
-		CAF83376A664B50DD220421F /* SidebarContentInsets.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB2C0F0CE1640779232015E /* SidebarContentInsets.swift */; };
 		CB4FE6DE4F4A2038847E8042 /* MPVKit-GPL in Frameworks */ = {isa = PBXBuildFile; productRef = 2031E2C11FBF3E4EAF7DA13C /* MPVKit-GPL */; };
 		CBA750BD0F1EB28FD102283E /* TVProfileSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = B562FC666609B63CA11A8C5A /* TVProfileSync.swift */; };
 		CBED960FE44E31B33CA37821 /* CatalogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE2FEDA020CC691768F55DBE /* CatalogView.swift */; };
@@ -477,7 +476,6 @@
 		CC2BAA7F1FD89709C92D44FE /* AuthModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthModels.swift; sourceTree = "<group>"; };
 		CC374EC7835840FB12FCE023 /* ProfilePinPadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePinPadView.swift; sourceTree = "<group>"; };
 		CDAB2BB8B6536D57835C2990 /* HomeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeStore.swift; sourceTree = "<group>"; };
-		CDB2C0F0CE1640779232015E /* SidebarContentInsets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarContentInsets.swift; sourceTree = "<group>"; };
 		CE240C1E5873B2E908D10D36 /* IntegrationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationStore.swift; sourceTree = "<group>"; };
 		CEF1FBB878466A5C4B281DF5 /* PostPlayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostPlayController.swift; sourceTree = "<group>"; };
 		CF410169A226F287BA8AA636 /* CatalogOrderSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogOrderSheet.swift; sourceTree = "<group>"; };
@@ -631,7 +629,6 @@
 				94F6C839C63851E17F71A673 /* SettingsHomeSection.swift */,
 				2D0CA3ABA039F9BF009C2AEB /* SettingsIntegrationsSection.swift */,
 				44E8A9DA69945B36709DBC01 /* SettingsView.swift */,
-				CDB2C0F0CE1640779232015E /* SidebarContentInsets.swift */,
 				958FD18C6EA14520C046C529 /* SignInView.swift */,
 				C4967F64D741AB65B25526B8 /* SkipSegmentsService.swift */,
 				0239D059AEB5C413463A3FFA /* Stores.swift */,
@@ -1314,7 +1311,6 @@
 				0498ACD0A5753B5D6DFF60A5 /* SettingsStateMutations.swift in Sources */,
 				FE208152F09C5B5C93C8F120 /* SettingsTree.swift in Sources */,
 				A0BD3A24E14F3967135F0D89 /* SettingsView.swift in Sources */,
-				CAF83376A664B50DD220421F /* SidebarContentInsets.swift in Sources */,
 				41EDEC0FD1E0EA9846D553D7 /* SignInView.swift in Sources */,
 				64067102CC77BD72354AF274 /* SkipIntroButtonView.swift in Sources */,
 				8A059F99665E545D6D1F8AF1 /* SkipIntroVisibilityRules.swift in Sources */,

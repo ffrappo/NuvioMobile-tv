@@ -8,34 +8,43 @@ struct AddonsView: View {
     @State private var isAdding = false
     @FocusState private var focus: AddonFocus?
     @State private var detailAddon: AddonEndpoint?
+    @State private var showsAddAddon = false
     @State private var showsCatalogOrder = false
 
     private enum AddonFocus: Hashable { case field, add }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 30) {
-                NuvioPageHeader(
-                    title: "Addons",
-                    subtitle: "Manage the services that provide catalogs, metadata, and streams"
-                )
+        AddonManagerView(
+            entries: store.addons.map(addonListEntry),
+            onAddAddon: { showsAddAddon = true },
+            onToggleEnabled: store.setEnabled,
+            onMoveUp: { store.move($0, offset: -1) },
+            onMoveDown: { store.move($0, offset: 1) },
+            onRemove: removeAddon,
+            onSelectAddon: { base in
+                detailAddon = store.addons.first { $0.baseURL == base }
+            },
+            onOpenCatalogOrder: { showsCatalogOrder = true }
+        )
+        .sheet(isPresented: $showsAddAddon) {
+            NavigationStack {
                 addForm
-                enabledAddons
-                catalogOrderEntry
+                    .padding(NuvioDesignTokens.Spacing.Screen.horizontal)
+                    .navigationTitle("Install Addon")
             }
-            .padding(48)
         }
-        .defaultFocus($focus, store.addons.isEmpty ? .field : nil)
+        .sheet(item: $detailAddon) { addon in
+            NavigationStack { addonDetailPage(addon) }
+        }
+        .sheet(isPresented: $showsCatalogOrder) {
+            CatalogOrderSheet()
+        }
+        .defaultFocus($focus, nil)
     }
 
-    /// Catalog order entry (Android settings routes to the same screen).
-    private var catalogOrderEntry: some View {
-        NuvioButton(
-            title: "Catalog Order",
-            symbol: "list.number",
-            action: { showsCatalogOrder = true }
-        )
-        .frame(width: 320)
+    private func removeAddon(_ base: String) {
+        guard let addon = store.addons.first(where: { $0.baseURL == base }) else { return }
+        Task { await store.remove(addon) }
     }
 
     private var addForm: some View {
@@ -73,36 +82,6 @@ struct AddonsView: View {
     /// The parity addon manager (Android `AddonManagerScreen.kt`): logo,
     /// version, catalog summary, credential badge, enable toggle, reorder,
     /// and removal with its own confirmation flow.
-    @ViewBuilder
-    private var enabledAddons: some View {
-        AddonManagerView(
-            entries: store.addons.map(addonListEntry),
-            onAddAddon: { focus = .field },
-            onToggleEnabled: { base, isEnabled in
-                store.setEnabled(base, isEnabled)
-            },
-            onMoveUp: { base in store.move(base, offset: -1) },
-            onMoveDown: { base in store.move(base, offset: 1) },
-            onRemove: { base in
-                if let addon = store.addons.first(where: { $0.baseURL == base }) {
-                    Task { await store.remove(addon) }
-                }
-            },
-            onSelectAddon: { base in
-                detailAddon = store.addons.first { $0.baseURL == base }
-            }
-        )
-        .sheet(item: $detailAddon) { addon in
-            NavigationStack { addonDetailPage(addon) }
-        }
-        .sheet(isPresented: $showsCatalogOrder) {
-            CatalogOrderSheet()
-        }
-        if let syncMessage = store.syncMessage {
-            NuvioStatusMessage(message: syncMessage, symbol: "arrow.triangle.2.circlepath")
-        }
-    }
-
     private func addonDetailPage(_ addon: AddonEndpoint) -> some View {
         let snapshot = AddonSnapshot(
             endpoint: addon,

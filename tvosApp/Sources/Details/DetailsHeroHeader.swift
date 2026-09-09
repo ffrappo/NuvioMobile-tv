@@ -16,10 +16,9 @@ public struct DetailsHeroActionModel: Identifiable, Equatable, Sendable {
     }
 }
 
-/// Backdrop-driven detail hero header with logo/title fallback, Android
-/// `HeroTitleContent` meta rows, and an integration-supplied action row.
-/// Frame the view (for example `.frame(height: 540)`) — the backdrop fills
-/// the provided bounds and content is bottom-anchored like Android.
+/// Detail hero content with logo/title fallback, Android `HeroTitleContent`
+/// meta rows, and an integration-supplied action row. The parent provides a
+/// bounded hero height while the screen-level backdrop remains full bleed.
 public struct DetailsHeroHeaderView: View {
     public let model: DetailsHeroModel
     public let actions: [DetailsHeroActionModel]
@@ -38,39 +37,8 @@ public struct DetailsHeroHeaderView: View {
     }
 
     public var body: some View {
-        GeometryReader { proxy in
-            ZStack(alignment: .bottomLeading) {
-                backdrop(size: proxy.size)
-                content
-            }
-        }
-        .accessibilityElement(children: .contain)
-    }
-
-    private func backdrop(size: CGSize) -> some View {
-        ZStack(alignment: .bottom) {
-            NuvioArtworkView(
-                urlString: model.backdropURLString,
-                mode: .backdrop,
-                pixelSize: size == .zero
-                    ? NuvioDesignTokens.Sizes.Cards.backdrop
-                    : size,
-                cornerRadius: 0,
-                fadeDuration: NuvioMotion.overlayTransition,
-                statePresentation: .transparent
-            )
-            LinearGradient(
-                stops: [
-                    .init(color: .clear, location: 0),
-                    .init(color: NuvioDesignTokens.Colors.canvas.opacity(0.55), location: 0.55),
-                    .init(color: NuvioDesignTokens.Colors.canvas, location: 1),
-                ],
-                startPoint: .center,
-                endPoint: .bottom
-            )
-        }
-        .accessibilityHidden(true)
-        .allowsHitTesting(false)
+        content
+            .accessibilityElement(children: .contain)
     }
 
     private var content: some View {

@@ -14,7 +14,6 @@ struct ModernHomeCatalogContent: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var hero: HeroPresentation
-    @StateObject private var focusModel = RailFocusModel()
     @StateObject private var enrichment = HeroEnrichmentStore()
     @State private var catalogFocusOwnsHero = false
 
@@ -106,10 +105,8 @@ struct ModernHomeCatalogContent: View {
                 ForEach(presentation.catalogRows) { row in
                     ModernRailRow(
                         section: row,
-                        focusModel: focusModel,
                         artworkProvider: artwork,
                         onSelect: select,
-                        onFocus: focus,
                         onOpen: {
                             guard let section = presentation.sectionsByID[row.id] else { return }
                             onOpenCatalog(section)

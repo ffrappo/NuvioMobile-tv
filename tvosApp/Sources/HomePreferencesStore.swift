@@ -28,7 +28,7 @@ final class HomePreferencesStore: ObservableObject {
             byKey[key] = HomeCatalogPreference(key: key, enabled: true, order: nextOrder, customTitle: "")
             nextOrder += 1
         }
-        value.items = byKey.values
+        let reconciled = byKey.values
             .filter { keys.contains($0.key) }
             .sorted { $0.order < $1.order }
             .enumerated()
@@ -37,6 +37,8 @@ final class HomePreferencesStore: ObservableObject {
                 copy.order = index
                 return copy
             }
+        guard reconciled != value.items else { return }
+        value.items = reconciled
         save()
     }
 
@@ -97,8 +99,10 @@ final class HomePreferencesStore: ObservableObject {
 
     func applyRemote(_ preferences: HomePreferences) {
         let localHeroEnabled = value.heroEnabled
-        value = preferences
-        value.heroEnabled = localHeroEnabled
+        var next = preferences
+        next.heroEnabled = localHeroEnabled
+        guard next != value else { return }
+        value = next
         save()
     }
 

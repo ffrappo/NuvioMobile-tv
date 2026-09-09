@@ -12,7 +12,6 @@ struct LibraryView: View {
 
     var body: some View {
         LibraryParityView(presentation: $presentation, onSelect: onSelect)
-            .sidebarContentInsets()
             .onAppear { syncPresentation() }
             .onChange(of: library.items) { _, _ in syncPresentation() }
             .onChange(of: watchProgress.records) { _, _ in syncPresentation() }

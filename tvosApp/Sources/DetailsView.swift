@@ -48,64 +48,64 @@ struct DetailsView: View {
     @ViewBuilder
     private func paritySections(_ detail: MetaDetail) -> some View {
         let presentation = presentation(detail)
+
         DetailsHeroHeaderView(
-                            model: presentation.hero,
-                            actions: heroActions,
-                            onAction: performAction
-                        )
+            model: presentation.hero,
+            actions: heroActions,
+            onAction: performAction
+        )
+        .frame(height: 500)
 
-                        if presentation.isSeries {
-                            DetailsEpisodesSectionView(
-                                seasons: presentation.seasons,
-                                selectedSeason: selectedSeason ?? presentation.seasons.first?.season ?? 1,
-                                episodes: presentation.episodes(
-                                    season: selectedSeason ?? presentation.seasons.first?.season ?? 1
-                                ),
-                                fallbackArtworkURLString: detail.background ?? detail.poster,
-                                onSelectSeason: { season in selectedSeason = season },
-                                onSelectEpisode: { episode in
-                                    selectedVideo = detail.videos.first { $0.id == episode.id }
-                                }
-                            )
-                        }
+        if presentation.isSeries {
+            let season = selectedSeason ?? presentation.seasons.first?.season ?? 1
+            DetailsEpisodesSectionView(
+                seasons: presentation.seasons,
+                selectedSeason: season,
+                episodes: presentation.episodes(season: season),
+                fallbackArtworkURLString: detail.background ?? detail.poster,
+                onSelectSeason: { selectedSeason = $0 },
+                onSelectEpisode: { episode in
+                    selectedVideo = detail.videos.first { $0.id == episode.id }
+                }
+            )
+        }
 
-                        StreamSourcesView(
-                            summary: detail.summary,
-                            type: detail.type,
-                            videoID: selectedVideo?.id ?? detail.id,
-                            contentID: selectedVideo?.id ?? detail.id,
-                            title: detail.name,
-                            seasonNumber: selectedVideo?.season,
-                            episodeNumber: selectedVideo?.episode,
-                            episodeTitle: selectedVideo?.name,
-                            episodes: detail.videos.map { video in
-                                PlayerEpisodeOption(
-                                    id: video.id,
-                                    title: video.name,
-                                    seasonNumber: video.season,
-                                    episodeNumber: video.episode
-                                )
-                            },
-                            addons: addonStore.enabledAddons,
-                            onSelectEpisode: { episode in
-                                playerRoute = nil
-                                selectedVideo = detail.videos.first { $0.id == episode.id }
-                            },
-                            onPlay: { playerRoute = $0 }
-                        )
-                        .id(selectedVideo?.id ?? detail.id)
+        StreamSourcesView(
+            summary: detail.summary,
+            type: detail.type,
+            videoID: selectedVideo?.id ?? detail.id,
+            contentID: selectedVideo?.id ?? detail.id,
+            title: detail.name,
+            seasonNumber: selectedVideo?.season,
+            episodeNumber: selectedVideo?.episode,
+            episodeTitle: selectedVideo?.name,
+            episodes: detail.videos.map { video in
+                PlayerEpisodeOption(
+                    id: video.id,
+                    title: video.name,
+                    seasonNumber: video.season,
+                    episodeNumber: video.episode
+                )
+            },
+            addons: addonStore.enabledAddons,
+            onSelectEpisode: { episode in
+                playerRoute = nil
+                selectedVideo = detail.videos.first { $0.id == episode.id }
+            },
+            onPlay: { playerRoute = $0 }
+        )
+        .id(selectedVideo?.id ?? detail.id)
 
-                        if let castSection = presentation.castSection {
-                            DetailsCastSectionView(model: castSection)
-                        }
-                        if let similarSection = presentation.similarSection,
-                           !similarSection.items.isEmpty {
-                            DetailsMoreLikeThisSectionView(
-                                model: similarSection,
-                                onSelectItem: { item in selectPosterItem(item) }
-                            )
-                        }
-
+        if let castSection = presentation.castSection {
+            DetailsCastSectionView(model: castSection)
+        }
+        if let similarSection = presentation.similarSection,
+           !similarSection.items.isEmpty {
+            DetailsMoreLikeThisSectionView(
+                model: similarSection,
+                onSelectItem: selectPosterItem
+            )
+        }
     }
 
     private var heroActions: [DetailsHeroActionModel] {

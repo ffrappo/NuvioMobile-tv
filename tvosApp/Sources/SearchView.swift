@@ -35,7 +35,6 @@ struct SearchView: View {
             },
             onRetry: { startSearch(immediately: true) }
         )
-        .sidebarContentInsets()
         .onAppear { loadRecentSearches() }
         .onChange(of: query) { _, value in
             searchTask?.cancel()

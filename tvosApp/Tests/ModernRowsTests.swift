@@ -3,14 +3,14 @@ import XCTest
 
 final class ModernRowsTests: XCTestCase {
     func testGeometryDefaults() {
-        XCTAssertEqual(ModernHomeRowTokens.posterWidth, 126)
-        XCTAssertEqual(ModernHomeRowTokens.posterHeight, 189)
+        XCTAssertEqual(ModernHomeRowTokens.posterWidth, 180)
+        XCTAssertEqual(ModernHomeRowTokens.posterHeight, 270)
         XCTAssertEqual(ModernHomeRowTokens.posterCornerRadius, 12)
-        XCTAssertEqual(ModernHomeRowTokens.backdropWidth, 320)
-        XCTAssertEqual(ModernHomeRowTokens.backdropHeight, 180)
+        XCTAssertEqual(ModernHomeRowTokens.backdropWidth, 360)
+        XCTAssertEqual(ModernHomeRowTokens.backdropHeight, 203)
         XCTAssertEqual(ModernHomeRowTokens.backdropCornerRadius, 16)
-        XCTAssertEqual(ModernHomeRowTokens.episodeWidth, 320)
-        XCTAssertEqual(ModernHomeRowTokens.episodeHeight, 207)
+        XCTAssertEqual(ModernHomeRowTokens.episodeWidth, 360)
+        XCTAssertEqual(ModernHomeRowTokens.episodeHeight, 203)
         XCTAssertEqual(ModernHomeRowTokens.sidePanelCornerRadius, 20)
         XCTAssertEqual(ModernHomeRowTokens.settingsContainerCornerRadius, 28)
     }
@@ -88,11 +88,11 @@ final class ModernRowsTests: XCTestCase {
     }
 
     func testSpacingConstants() {
-        XCTAssertEqual(ModernHomeRowTokens.screenHorizontalMargin, 48)
-        XCTAssertEqual(ModernHomeRowTokens.screenVerticalMargin, 24)
+        XCTAssertEqual(ModernHomeRowTokens.screenHorizontalMargin, 80)
+        XCTAssertEqual(ModernHomeRowTokens.screenVerticalMargin, 48)
         XCTAssertEqual(ModernHomeRowTokens.railLeadingMargin, 52)
-        XCTAssertEqual(ModernHomeRowTokens.itemGap, 12)
-        XCTAssertEqual(ModernHomeRowTokens.rowGap, 24)
+        XCTAssertEqual(ModernHomeRowTokens.itemGap, 22)
+        XCTAssertEqual(ModernHomeRowTokens.rowGap, 40)
         XCTAssertEqual(ModernHomeRowTokens.focusRingWidth, 2)
         XCTAssertEqual(ModernHomeRowTokens.progressHeight, 3)
         XCTAssertEqual(RailPrefetchTrigger.trailingThreshold, 4)

@@ -37,7 +37,7 @@ public struct SearchPosterItem: Identifiable, Equatable, Sendable {
 
     /// Maps an in-module `MetaSummary` from the live search store.
     init(summary: MetaSummary) {
-        id = summary.id
+        id = "\(summary.type):\(summary.id)"
         title = summary.name
         year = summary.releaseInfo?.trimmedNonEmpty
         type = summary.type

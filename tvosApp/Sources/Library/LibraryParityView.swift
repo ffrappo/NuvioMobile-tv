@@ -17,33 +17,37 @@ struct LibraryParityView: View {
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                VStack(alignment: .leading, spacing: NuvioDesignTokens.Spacing.lg) {
+                VStack(alignment: .leading, spacing: NuvioDesignTokens.Spacing.xl) {
                     header
-                    LibraryFilterRow(
-                        title: nil,
-                        choices: viewModeChoices,
-                        selection: viewModeSelection
-                    )
-                    LibraryFilterRow(
-                        title: "Type",
-                        choices: typeTabChoices,
-                        selection: $presentation.selectedTypeTabKey
-                    )
-                    LibraryFilterRow(
-                        title: "Provider",
-                        choices: providerChoices,
-                        selection: providerSelection
-                    )
-                    LibraryFilterRow(
-                        title: "Watched",
-                        choices: watchedFilterChoices,
-                        selection: watchedFilterSelection
-                    )
-                    LibraryFilterRow(
-                        title: "Sort",
-                        choices: sortChoices,
-                        selection: sortSelection
-                    )
+                    HStack(alignment: .top, spacing: NuvioDesignTokens.Spacing.xxl) {
+                        LibraryFilterRow(
+                            title: "View",
+                            choices: viewModeChoices,
+                            selection: viewModeSelection
+                        )
+                        LibraryFilterRow(
+                            title: "Type",
+                            choices: typeTabChoices,
+                            selection: $presentation.selectedTypeTabKey
+                        )
+                        LibraryFilterRow(
+                            title: "Provider",
+                            choices: providerChoices,
+                            selection: providerSelection
+                        )
+                    }
+                    HStack(alignment: .top, spacing: NuvioDesignTokens.Spacing.xxl) {
+                        LibraryFilterRow(
+                            title: "Watched",
+                            choices: watchedFilterChoices,
+                            selection: watchedFilterSelection
+                        )
+                        LibraryFilterRow(
+                            title: "Sort",
+                            choices: sortChoices,
+                            selection: sortSelection
+                        )
+                    }
                     searchField
 
                     if let empty = presentation.emptyState {
@@ -52,8 +56,8 @@ struct LibraryParityView: View {
                         posterGrid
                     }
                 }
-                .padding(.horizontal, NuvioDesignTokens.Spacing.xxxl)
-                .padding(.top, NuvioDesignTokens.Spacing.xl)
+                .padding(.horizontal, NuvioDesignTokens.Spacing.Screen.horizontal)
+                .padding(.top, NuvioDesignTokens.Spacing.Screen.vertical)
                 .padding(.bottom, NuvioDesignTokens.Spacing.xxl)
             }
             .onChange(of: presentation.sortSelectionVersion) {

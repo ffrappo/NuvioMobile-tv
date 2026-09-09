@@ -24,23 +24,18 @@ struct AppShellView: View {
                 }
                 Tab("Discover", systemImage: "safari", value: .discover) {
                     DiscoverView(onSelect: showDetails)
-                        .sidebarContentInsets()
                 }
                 Tab("Search", systemImage: "magnifyingglass", value: .search, role: .search) {
                     SearchView(onSelect: showDetails)
-                        .sidebarContentInsets()
                 }
                 Tab("Library", systemImage: "rectangle.stack", value: .library) {
                     LibraryView(onSelect: showDetails)
-                        .sidebarContentInsets()
                 }
                 Tab("Addons", systemImage: "puzzlepiece.extension", value: .addons) {
                     AddonsView()
-                        .sidebarContentInsets()
                 }
                 Tab("Settings", systemImage: "gearshape", value: .settings) {
                     SettingsView()
-                        .sidebarContentInsets()
                 }
             }
             .tabViewStyle(.sidebarAdaptable)
