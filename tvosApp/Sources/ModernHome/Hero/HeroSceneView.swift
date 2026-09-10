@@ -167,18 +167,7 @@ public struct HeroSceneView: View {
 
     @ViewBuilder
     private func title(_ item: HeroItem) -> some View {
-        if let logo = item.titleLogoURL, !logo.isEmpty {
-            NuvioArtworkView(
-                urlString: logo,
-                mode: .titleLogo,
-                pixelSize: CGSize(width: 420, height: 112),
-                fadeDuration: NuvioMotion.contentTransition,
-                statePresentation: .transparent
-            )
-            .accessibilityLabel(item.title)
-        } else {
-            fallbackTitle(item.title)
-        }
+        HeroTitleView(title: item.title, logoURL: item.titleLogoURL)
     }
 
     private func fallbackTitle(_ value: String) -> some View {
@@ -321,3 +310,35 @@ private struct HeroCapsuleButtonStyle: ButtonStyle {
         return isFocused ? NuvioDesignTokens.Focus.scale : 1
     }
 }
+
+private struct HeroTitleView: View {
+    let title: String
+    let logoURL: String?
+    @State private var logoImage: UIImage?
+
+    var body: some View {
+        Group {
+            if let logoImage {
+                Image(uiImage: logoImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: 420, maxHeight: 112, alignment: .leading)
+                    .transition(.opacity)
+                    .accessibilityLabel(title)
+            } else {
+                Text(title)
+                    .nuvioTextStyle(.display)
+                    .foregroundStyle(NuvioDesignTokens.Colors.primaryText)
+                    .lineLimit(2)
+            }
+        }
+        .task(id: logoURL) {
+            logoImage = nil
+            guard let logoURL, let url = URL(string: logoURL) else { return }
+            if let loaded = await ArtworkLoader.shared.image(for: url, pixelSize: CGSize(width: 420, height: 112)) {
+                logoImage = loaded
+            }
+        }
+    }
+}
+

@@ -12,29 +12,44 @@ struct SearchView: View {
     private let recentSearchesKey = "nuvio.tv.recentSearches.v1"
 
     var body: some View {
-        SearchParityView(
-            query: $query,
-            presentation: SearchParityView.presentation(
-                query: query,
-                submittedQuery: submittedQuery,
-                isSearching: store.isLoading,
-                errorMessage: store.message,
-                providerResults: store.providerResults,
-                recentSearches: recentSearches.items,
-                discoverLocation: .inSearch
-            ),
-            onSubmitQuery: { startSearch(immediately: true) },
-            onSelectItem: { item in selectPosterItem(item) },
-            onSelectRecentSearch: { value in
-                query = value
-                startSearch(immediately: true)
-            },
-            onClearRecentSearches: {
-                recentSearches.clear()
-                persistRecentSearches()
-            },
-            onRetry: { startSearch(immediately: true) }
-        )
+        NavigationStack {
+            SearchParityView(
+                query: $query,
+                presentation: SearchParityView.presentation(
+                    query: query,
+                    submittedQuery: submittedQuery,
+                    isSearching: store.isLoading,
+                    errorMessage: store.message,
+                    providerResults: store.providerResults,
+                    recentSearches: recentSearches.items,
+                    discoverLocation: .inSearch
+                ),
+                onSubmitQuery: { startSearch(immediately: true) },
+                onSelectItem: { item in selectPosterItem(item) },
+                onSelectRecentSearch: { value in
+                    query = value
+                    startSearch(immediately: true)
+                },
+                onClearRecentSearches: {
+                    recentSearches.clear()
+                    persistRecentSearches()
+                },
+                onRetry: { startSearch(immediately: true) }
+            )
+            .searchable(
+                text: $query,
+                placement: .automatic,
+                prompt: "Search movies & series"
+            ) {
+                ForEach(recentSearches.items, id: \.self) { value in
+                    Button(value) {
+                        query = value
+                        startSearch(immediately: true)
+                    }
+                }
+            }
+            .onSubmit(of: .search) { startSearch(immediately: true) }
+        }
         .onAppear { loadRecentSearches() }
         .onChange(of: query) { _, value in
             searchTask?.cancel()

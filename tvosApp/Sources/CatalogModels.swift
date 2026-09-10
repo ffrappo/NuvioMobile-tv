@@ -71,11 +71,20 @@ enum CatalogDescriptors {
                 }) else { return nil }
                 let genreExtra = catalog.extra.first { $0.name == "genre" && $0.isRequired }
                 guard genreExtra == nil || genreExtra?.options.first != nil else { return nil }
+                let rawGenres = catalog.extra.first { $0.name == "genre" }?.options ?? []
+                let cleanedGenres = rawGenres.filter {
+                    let lower = $0.lowercased()
+                    return lower != "none" && lower != "all"
+                }
+                let initialGenre = genreExtra?.options.first.flatMap { opt in
+                    let lower = opt.lowercased()
+                    return (lower == "none" || lower == "all") ? nil : opt
+                }
                 return descriptor(
                     addon: addon,
                     catalog: catalog,
-                    genre: genreExtra?.options.first,
-                    genres: catalog.extra.first { $0.name == "genre" }?.options ?? [],
+                    genre: initialGenre,
+                    genres: cleanedGenres,
                     supportsPagination: names.contains("skip")
                 )
             }
@@ -137,12 +146,5 @@ enum CatalogDescriptors {
                 supportsPagination: paginates
             )
         }
-    }
-}
-
-private extension Array {
-    func uniqued<Key: Hashable>(by keyPath: KeyPath<Element, Key>) -> [Element] {
-        var keys = Set<Key>()
-        return filter { keys.insert($0[keyPath: keyPath]).inserted }
     }
 }

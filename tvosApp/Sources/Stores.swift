@@ -41,7 +41,9 @@ final class LibraryStore: ObservableObject {
         accountContext = (auth, profileID)
         do {
             let token = try await auth.validAccessToken()
-            items = try await service.library(accessToken: token, profileID: profileID).map(\.summary)
+            items = try await service.library(accessToken: token, profileID: profileID)
+                .map(\.summary)
+                .uniqued(by: { "\($0.type):\($0.id)" })
             save()
         } catch {
             AppLog.sync.error("Library sync failed profile=\(profileID) detail=\(AppLog.safeDescription(error), privacy: .public)")
@@ -99,11 +101,11 @@ final class AddonStore: ObservableObject {
         self.defaults = defaults
         self.service = service
         self.accountService = accountService
-        storedBases = defaults.stringArray(forKey: key) ?? []
+        storedBases = (defaults.stringArray(forKey: key) ?? []).uniqued()
         disabledBases = Set(defaults.stringArray(forKey: disabledKey) ?? [])
-        addons = storedBases.map {
+        addons = Self.deduplicate(storedBases.map {
             AddonEndpoint(baseURL: $0, name: URL(string: $0)?.host ?? "Saved addon", detail: nil, providesStreams: true)
-        }
+        })
         homeAddons = []
     }
 
@@ -120,7 +122,7 @@ final class AddonStore: ObservableObject {
             )
                 .filter(\.enabled)
                 .sorted { $0.sortOrder < $1.sortOrder }
-            let remoteURLs = remote.map(\.url)
+            let remoteURLs = remote.map(\.url).uniqued()
             if remoteURLs.isEmpty, !storedBases.isEmpty {
                 await pushToAccount()
             } else {
@@ -244,8 +246,21 @@ final class AddonStore: ObservableObject {
                 ))
             }
         }
-        addons = refreshed
-        homeAddons = refreshedHomeAddons
+        addons = Self.deduplicate(refreshed)
+        homeAddons = refreshedHomeAddons.uniqued(by: \.baseURL)
+    }
+
+    private static func deduplicate(_ endpoints: [AddonEndpoint]) -> [AddonEndpoint] {
+        var seenBases = Set<String>()
+        var seenIDs = Set<String>()
+        return endpoints.filter { endpoint in
+            let normalized = endpoint.baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            guard seenBases.insert(normalized).inserted else { return false }
+            if let manifestID = endpoint.manifest?.id, !manifestID.isEmpty {
+                guard seenIDs.insert(manifestID).inserted else { return false }
+            }
+            return true
+        }
     }
 
     private func pushToAccount() async {

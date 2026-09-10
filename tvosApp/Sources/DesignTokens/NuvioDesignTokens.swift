@@ -182,7 +182,7 @@ public enum NuvioDesignTokens {
             public static let control: CGFloat = 44
             public static let compactControl: CGFloat = 40
             public static let timelineHeight: CGFloat = 4
-            public static let sidePanelWidth: CGFloat = 360
+            public static let sidePanelWidth: CGFloat = 720
             public static let railWidth: CGFloat = 280
         }
 

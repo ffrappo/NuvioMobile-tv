@@ -167,28 +167,11 @@ struct LibraryParityView: View {
     // MARK: Search field
 
     private var searchField: some View {
-        HStack(spacing: NuvioDesignTokens.Spacing.sm) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(NuvioDesignTokens.Colors.secondaryText)
-            TextField("Search your library", text: $presentation.query)
-                .textFieldStyle(.plain)
-            if !presentation.query.isEmpty {
-                Button {
-                    presentation.query = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(NuvioDesignTokens.Colors.secondaryText)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Clear search")
-            }
-        }
-        .nuvioTextStyle(.body)
-        .padding(.horizontal, NuvioDesignTokens.Spacing.lg)
-        .padding(.vertical, NuvioDesignTokens.Spacing.sm)
-        .background(
-            RoundedRectangle(cornerRadius: NuvioDesignTokens.Shapes.md, style: .continuous)
-                .fill(NuvioDesignTokens.Colors.elevated)
+        NuvioInputField(
+            title: "Search your library",
+            prompt: "Search your library",
+            text: $presentation.query,
+            icon: "magnifyingglass"
         )
     }
 

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct PlayerRoute: Identifiable {
+struct PlayerRoute: Identifiable, Hashable {
     let id = UUID()
     let url: URL
     let contentID: String
@@ -17,6 +17,14 @@ struct PlayerRoute: Identifiable {
     var streamSources: [StreamSource] = []
     let episodes: [PlayerEpisodeOption]
     let onSelectEpisode: (PlayerEpisodeOption) -> Void
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
+    static func == (lhs: PlayerRoute, rhs: PlayerRoute) -> Bool {
+        lhs.id == rhs.id
+    }
 
     var initialSource: PlayerSourceOption? {
         availableSources.first { $0.url == url }
@@ -167,6 +175,13 @@ struct PlayerView: View {
         .onAppear {
             UIApplication.shared.isIdleTimerDisabled = true
             selectedSourceURL = route.url
+#if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-audit-mock-player") {
+                controls.registerInteraction(keepVisible: true)
+                session.mockForAudit()
+                return
+            }
+#endif
             session.updateActiveSourceName(route.initialSource?.name ?? route.sourceName)
             resumePosition = syncedProgress.resumablePosition(
                 videoID: route.videoID,

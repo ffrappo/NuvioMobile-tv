@@ -13,6 +13,11 @@ extension MPVPlayerController {
     }
 
     func setupMPV() {
+#if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-audit-mock-player") {
+            return
+        }
+#endif
         mpv = mpv_create()
         guard let mpv else {
             Task { @MainActor in session.update(loading: false, error: "Could not initialize the MPV player.") }

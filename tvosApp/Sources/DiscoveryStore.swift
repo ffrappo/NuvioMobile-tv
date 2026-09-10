@@ -44,15 +44,23 @@ final class DiscoveryStore: ObservableObject {
             next.contains(where: { $0.type == value }) ? value : nil
         } ?? next.first?.type
         selectedType = type
-        selectedCatalogID = availableCatalogs.first?.id
+        selectedCatalogID = defaultCatalogID(in: availableCatalogs)
         await reload()
     }
 
     func selectType(_ type: String) async {
         guard type != selectedType else { return }
         selectedType = type
-        selectedCatalogID = availableCatalogs.first?.id
+        selectedCatalogID = defaultCatalogID(in: availableCatalogs)
         await reload()
+    }
+
+    private func defaultCatalogID(in catalogs: [CatalogDescriptor]) -> String? {
+        catalogs.first(where: {
+            let name = $0.catalogName.lowercased()
+            let id = $0.catalogID.lowercased()
+            return name.contains("popular") || name.contains("top") || id.contains("top") || id.contains("popular")
+        })?.id ?? catalogs.first?.id
     }
 
     func selectCatalog(_ id: String) async {
@@ -137,12 +145,5 @@ final class DiscoveryStore: ObservableObject {
             message = error.userMessage
             nextSkip = nil
         }
-    }
-}
-
-private extension Array where Element == String {
-    func uniqued() -> [String] {
-        var seen = Set<String>()
-        return filter { seen.insert($0).inserted }
     }
 }

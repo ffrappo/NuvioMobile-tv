@@ -184,13 +184,6 @@ public struct DiscoverPresentation: Equatable, Sendable {
     }
 }
 
-private extension Array where Element == String {
-    func uniqued() -> [String] {
-        var seen = Set<String>()
-        return filter { seen.insert($0).inserted }
-    }
-}
-
 private extension Collection {
     var isNotEmpty: Bool { !isEmpty }
 }

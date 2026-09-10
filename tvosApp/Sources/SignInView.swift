@@ -134,14 +134,16 @@ struct SignInView: View {
 
     @ViewBuilder
     private func accountField(_ title: String, text: Binding<String>, field: Field, secure: Bool) -> some View {
-        Group {
-            if secure { SecureField(title, text: text) } else { TextField(title, text: text) }
-        }
-        .textContentType(secure ? .password : .username)
-        .textInputAutocapitalization(.never)
-        .autocorrectionDisabled()
+        NuvioInputField(
+            title: title,
+            prompt: title,
+            text: text,
+            isSecure: secure,
+            icon: secure ? "lock" : "envelope",
+            textContentType: secure ? .password : .username,
+            onSubmit: { focus = field == .email ? .password : .signIn }
+        )
         .focused($focus, equals: field)
-        .onSubmit { focus = field == .email ? .password : .signIn }
     }
 
     private func isInformational(_ message: String) -> Bool {

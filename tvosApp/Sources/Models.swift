@@ -355,3 +355,22 @@ struct Lossy<Value: Decodable>: Decodable {
         value = try? Value(from: decoder)
     }
 }
+
+extension Array {
+    func uniqued<Key: Hashable>(by keyPath: KeyPath<Element, Key>) -> [Element] {
+        var keys = Set<Key>()
+        return filter { keys.insert($0[keyPath: keyPath]).inserted }
+    }
+
+    func uniqued<Key: Hashable>(by keySelector: (Element) -> Key) -> [Element] {
+        var keys = Set<Key>()
+        return filter { keys.insert(keySelector($0)).inserted }
+    }
+}
+
+extension Array where Element: Hashable {
+    func uniqued() -> [Element] {
+        var seen = Set<Element>()
+        return filter { seen.insert($0).inserted }
+    }
+}

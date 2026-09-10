@@ -29,7 +29,8 @@ struct PlayerSelectionPanel: View {
                 } else {
                     ScrollView {
                         LazyVStack(spacing: 12) { panelRows }
-                            .padding(36)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
                     }
                 }
             }
@@ -73,16 +74,23 @@ struct PlayerSelectionPanel: View {
             EmptyView()
         case .audio:
             ForEach(session.audioTracks) { track in
-                row(track.displayName, symbol: "waveform", selected: track.isSelected) {
+                row(
+                    track.displayName,
+                    subtitle: track.language?.uppercased(),
+                    symbol: "waveform",
+                    selected: track.isSelected
+                ) {
                     session.selectAudio(id: track.id)
                     dismiss()
                 }
             }
         case .sources:
             ForEach(route.availableSources) { source in
+                let title = sourceQualityTitle(source)
                 row(
-                    sourceTitle(source),
-                    symbol: source.compatibilityIssue == nil ? "play.rectangle" : "exclamationmark.triangle.fill",
+                    title,
+                    subtitle: source.name,
+                    symbol: source.compatibilityIssue == nil ? "play.rectangle.fill" : "exclamationmark.triangle.fill",
                     selected: source.url == selectedSourceURL,
                     enabled: source.compatibilityIssue == nil
                 ) {
@@ -94,7 +102,7 @@ struct PlayerSelectionPanel: View {
             ForEach(route.episodes) { episode in
                 row(
                     episodeTitle(episode),
-                    symbol: "rectangle.stack",
+                    symbol: "rectangle.stack.fill",
                     selected: episode.id == route.contentID
                 ) {
                     onSelectEpisode(episode)
@@ -104,66 +112,93 @@ struct PlayerSelectionPanel: View {
         }
     }
 
-    /// The parity subtitle side panel (Android `SubtitleSelectionOverlay.kt`):
-    /// embedded tracks, off state, timing with the dialog, the SDH filter,
-    /// and the appearance entry routing to the parity style panel.
     private var subtitleSelectionPanel: some View {
-        SubtitleSelectionPanel(
-            embeddedTracks: session.subtitleTracks.map { track in
-                SubtitleEmbeddedTrack(
-                    index: Int(track.id),
-                    name: track.displayName,
-                    language: track.language,
-                    trackID: String(track.id),
-                    codec: nil,
-                    isForced: false,
-                    isSelected: track.isSelected
-                )
-            },
-            externalTracks: externalSubtitleTracks,
-            styleOptions: styleStore.options,
-            delayMilliseconds: session.subtitleDelayMilliseconds,
-            isLoadingExternalTracks: isLoadingExternalSubtitles,
-            onSelectEmbedded: { embedded in
-                session.selectSubtitle(id: Int64(embedded.index))
-            },
-            onSelectExternal: { external in
-                session.addExternalSubtitle(
-                    url: external.url,
-                    title: external.id,
-                    language: external.language
-                )
-                dismiss()
-            },
-            onDisableSubtitles: {
-                session.selectSubtitle(id: nil)
-            },
-            onAdjustDelay: { delta in
-                session.setSubtitleDelay(
-                    milliseconds: session.subtitleDelayMilliseconds + delta
-                )
-                timingState.adjustDelay(byMilliseconds: delta)
-            },
-            onOpenTimingDialog: {
-                timingState = SubtitleTimingDialogState(
-                    delayMilliseconds: session.subtitleDelayMilliseconds
-                )
-                showsTimingDialog = true
-            },
-            onToggleSdhFilter: { enabled in
-                styleStore.toggleSdhFilter(enabled)
-                session.controllerApplySubtitleStyle(styleStore.options)
-            },
-            onShowAppearance: { showsSubtitleAppearance = true },
-            onClose: { dismiss() }
-        )
-        .frame(maxWidth: 640)
+        ScrollView {
+            LazyVStack(spacing: 12) {
+                row(
+                    "Off",
+                    subtitle: "Disable subtitles",
+                    symbol: "captions.bubble",
+                    selected: session.subtitleTracks.allSatisfy { !$0.isSelected }
+                ) {
+                    session.selectSubtitle(id: nil)
+                    dismiss()
+                }
+
+                if !session.subtitleTracks.isEmpty {
+                    sectionHeader("Built-in Tracks")
+                    ForEach(session.subtitleTracks) { track in
+                        row(
+                            track.displayName,
+                            subtitle: track.language?.uppercased(),
+                            symbol: "captions.bubble.fill",
+                            selected: track.isSelected
+                        ) {
+                            session.selectSubtitle(id: track.id)
+                            dismiss()
+                        }
+                    }
+                }
+
+                if !externalSubtitleTracks.isEmpty {
+                    sectionHeader("Addon Subtitles")
+                    ForEach(externalSubtitleTracks) { track in
+                        row(
+                            track.language.capitalized,
+                            subtitle: track.addonName,
+                            symbol: "arrow.down.circle",
+                            selected: track.isSelected
+                        ) {
+                            session.addExternalSubtitle(
+                                url: track.url,
+                                title: track.externalID,
+                                language: track.language
+                            )
+                            dismiss()
+                        }
+                    }
+                }
+
+                Divider().overlay(Color.white.opacity(0.12)).padding(.vertical, 8)
+
+                HStack(spacing: 16) {
+                    Button {
+                        showsSubtitleAppearance = true
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "textformat")
+                            Text("Appearance")
+                        }
+                        .font(.headline)
+                        .padding(.horizontal, 20)
+                        .frame(maxWidth: .infinity, minHeight: 64)
+                    }
+                    .buttonStyle(PlayerSelectionRowStyle())
+
+                    Button {
+                        timingState = SubtitleTimingDialogState(
+                            delayMilliseconds: session.subtitleDelayMilliseconds
+                        )
+                        showsTimingDialog = true
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "timer")
+                            Text("Sync / Delay")
+                        }
+                        .font(.headline)
+                        .padding(.horizontal, 20)
+                        .frame(maxWidth: .infinity, minHeight: 64)
+                    }
+                    .buttonStyle(PlayerSelectionRowStyle())
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+        }
         .task(id: route.videoID) {
             guard externalSubtitleTracks.isEmpty, !isLoadingExternalSubtitles else { return }
             isLoadingExternalSubtitles = true
             let repository = AddonSubtitleRepository()
-            // Forward the playing stream's filename and size for
-            // hash/size-based subtitle addons (Android buildExtraParams).
             let playingStream = route.streamSources.first {
                 $0.stream.url == selectedSourceURL.absoluteString
             }?.stream ?? route.streamSources.first?.stream
@@ -178,6 +213,19 @@ struct PlayerSelectionPanel: View {
             externalSubtitleTracks = tracks
             isLoadingExternalSubtitles = false
         }
+    }
+
+    private func sectionHeader(_ title: String) -> some View {
+        HStack {
+            Text(title)
+                .font(.caption.weight(.bold))
+                .foregroundStyle(Color.secondary)
+                .textCase(.uppercase)
+                .tracking(1.5)
+            Spacer()
+        }
+        .padding(.top, 12)
+        .padding(.horizontal, 8)
     }
 
     /// The parity source side panel (Android `StreamSourcesSidePanel.kt`):
@@ -211,6 +259,7 @@ struct PlayerSelectionPanel: View {
 
     private func row(
         _ title: String,
+        subtitle: String? = nil,
         symbol: String,
         selected: Bool,
         enabled: Bool = true,
@@ -218,13 +267,28 @@ struct PlayerSelectionPanel: View {
     ) -> some View {
         Button(action: action) {
             HStack(spacing: 18) {
-                Image(systemName: symbol).frame(width: 34)
-                Text(title.tvSafe).lineLimit(2)
+                Image(systemName: symbol)
+                    .font(.system(size: 24))
+                    .frame(width: 36)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title.tvSafe)
+                        .font(.headline.weight(.semibold))
+                        .lineLimit(1)
+                    if let subtitle, !subtitle.isEmpty {
+                        Text(subtitle.tvSafe)
+                            .font(.caption)
+                            .foregroundStyle(Color.secondary)
+                            .lineLimit(1)
+                    }
+                }
                 Spacer()
-                if selected { Image(systemName: "checkmark.circle.fill") }
+                if selected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 22))
+                }
             }
-            .font(.headline)
             .padding(.horizontal, 24)
+            .padding(.vertical, 12)
             .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
         }
         .buttonStyle(PlayerSelectionRowStyle())
@@ -232,19 +296,27 @@ struct PlayerSelectionPanel: View {
         .opacity(enabled ? 1 : 0.55)
     }
 
-    private func sourceTitle(_ source: PlayerSourceOption) -> String {
-        var parts = [source.name]
-        if let summary = source.displaySummary?.trimmedNonEmpty { parts.append(summary) }
+    private func sourceQualityTitle(_ source: PlayerSourceOption) -> String {
+        var parts: [String] = []
+        if let summary = source.displaySummary?.trimmedNonEmpty {
+            parts.append(summary)
+        }
         parts.append(source.addonName)
-        if let issue = source.compatibilityIssue { parts.append(issue) }
+        if let issue = source.compatibilityIssue {
+            parts.append("(\(issue))")
+        }
         return parts.joined(separator: "  ·  ")
+    }
+
+    private func sourceTitle(_ source: PlayerSourceOption) -> String {
+        sourceQualityTitle(source)
     }
 
     private func episodeTitle(_ episode: PlayerEpisodeOption) -> String {
         guard let season = episode.seasonNumber, let number = episode.episodeNumber else {
             return episode.title
         }
-        return "S\(season) E\(number)  \(episode.title)"
+        return "S\(season) E\(number) · \(episode.title)"
     }
 }
 

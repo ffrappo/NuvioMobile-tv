@@ -19,6 +19,7 @@
 		0F9546E6E269B25147026AAE /* SearchPosterRail.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1459BA91E2C86E4ECA22A2E /* SearchPosterRail.swift */; };
 		10AB1DFC5DC3EFE2EAFB1DB4 /* PostPlayControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DCDA9D74000C70C343CD73A /* PostPlayControllerTests.swift */; };
 		10D265F667AF593986213A05 /* PostPlayReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1FDAF9E5AFCF49762DE9D94 /* PostPlayReducer.swift */; };
+		117F5679D7C55102D85534DC /* PlayerAuditRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6C7FDBE2169E66CEEA6AC67 /* PlayerAuditRoute.swift */; };
 		12A5669EEE742FEA82106E11 /* CatalogGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED2E28126A1D06E58F49DA23 /* CatalogGridView.swift */; };
 		12C9BBE3343CACDDEA5712A3 /* HomeSyncModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543DA650106C90A093A2E954 /* HomeSyncModels.swift */; };
 		14514F43628AA1B45A89CE3A /* ProfileGatewayModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA2F7D2EE768FAD375DC3C9 /* ProfileGatewayModels.swift */; };
@@ -98,6 +99,7 @@
 		62BFE858050C0FD75B034131 /* LibraryFilterRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9846E167AB646AAEC2A12E59 /* LibraryFilterRow.swift */; };
 		63243E52B6A6ACF125F56860 /* AddonManagerParityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AB86F7C7B323D69CAFDD9D7 /* AddonManagerParityTests.swift */; };
 		64067102CC77BD72354AF274 /* SkipIntroButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7095FBB6734995814757148 /* SkipIntroButtonView.swift */; };
+		6406AB351B2F49E4D88A5155 /* NuvioInputField.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE33EEFFF7422FE51F06F095 /* NuvioInputField.swift */; };
 		6502905E9F8395255D21479D /* HeroModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 425D652E7475BA4B531E4B7F /* HeroModels.swift */; };
 		65BF19E9AF02A0166B09538E /* AddonManagerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A29FF4C6BFCD86EFEFFDD79D /* AddonManagerModels.swift */; };
 		66368A4B5CD4B4071A16EC6F /* DetailsInfoSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C97084669F824B1A9035E94 /* DetailsInfoSections.swift */; };
@@ -122,6 +124,7 @@
 		748E9D90F76FD77C838E8898 /* PlaybackTimelineScrubber.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4B08B0E68A9C97F695E1A8 /* PlaybackTimelineScrubber.swift */; };
 		752EAE3CA354C3B2B7E61361 /* SearchParityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CD9C3C63BE1CA1C2D8E4FC2 /* SearchParityTests.swift */; };
 		75EF5A9CA5811D2D02487062 /* SubtitleSelectionPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53694ECC73B3AD175EC383FC /* SubtitleSelectionPanel.swift */; };
+		7708573208A69C7471E43013 /* MPVPlaybackSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 894D9EB6EB661E820649F906 /* MPVPlaybackSession.swift */; };
 		790E57ABF64BF130454DAFCE /* DiscoverPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28F4B5D8AF946934F453C2A /* DiscoverPresentation.swift */; };
 		79ECAFE18DCBB22C71399F8C /* CollectionEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 238B098FBF9C011FD0EFFED9 /* CollectionEditorView.swift */; };
 		7B98265279433315EBBFBC04 /* TestURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BD604BBB1017EDAC356B444 /* TestURLProtocol.swift */; };
@@ -414,6 +417,7 @@
 		82956D899696970A117196B1 /* NuvioDeepLinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NuvioDeepLinkTests.swift; sourceTree = "<group>"; };
 		842F07A8FA06F55FC57B884D /* SettingsOptionPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsOptionPicker.swift; sourceTree = "<group>"; };
 		86D1F9E7082FD4205EE938F4 /* HeroSceneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroSceneView.swift; sourceTree = "<group>"; };
+		894D9EB6EB661E820649F906 /* MPVPlaybackSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPVPlaybackSession.swift; sourceTree = "<group>"; };
 		89B2C4E82C9CC1B5AF450E11 /* ModernRowsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModernRowsTests.swift; sourceTree = "<group>"; };
 		8BC5DAEE5C7D57F67EB0F0CB /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		8BD604BBB1017EDAC356B444 /* TestURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestURLProtocol.swift; sourceTree = "<group>"; };
@@ -458,6 +462,7 @@
 		B7095FBB6734995814757148 /* SkipIntroButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkipIntroButtonView.swift; sourceTree = "<group>"; };
 		B7F4A65751932490794A0DA2 /* DetailsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsModels.swift; sourceTree = "<group>"; };
 		BA3E284037490E5D7B0F7A63 /* PlayerChromeState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerChromeState.swift; sourceTree = "<group>"; };
+		BE33EEFFF7422FE51F06F095 /* NuvioInputField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NuvioInputField.swift; sourceTree = "<group>"; };
 		BE3830B7B3B9DD609AE362CE /* CatalogRail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogRail.swift; sourceTree = "<group>"; };
 		BEE3E2F8AF23223F89922E74 /* RailModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RailModels.swift; sourceTree = "<group>"; };
 		BF2B2FCE14F19B0513EC4EB5 /* HomeLayoutSwitch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeLayoutSwitch.swift; sourceTree = "<group>"; };
@@ -486,6 +491,7 @@
 		D1459BA91E2C86E4ECA22A2E /* SearchPosterRail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchPosterRail.swift; sourceTree = "<group>"; };
 		D2BCBAC9D74CA3ACE5C77D0D /* LibraryModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryModels.swift; sourceTree = "<group>"; };
 		D425767B80D0A4CFDF4B1FF7 /* CatalogRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogRepository.swift; sourceTree = "<group>"; };
+		D6C7FDBE2169E66CEEA6AC67 /* PlayerAuditRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerAuditRoute.swift; sourceTree = "<group>"; };
 		D77EEC2F4DA27DE885F3B35C /* DetailsMetaFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsMetaFormatting.swift; sourceTree = "<group>"; };
 		D9D2AE63A6646FAF92DF7F42 /* AddonManagerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddonManagerView.swift; sourceTree = "<group>"; };
 		DAD403061B546938AA99146F /* GridHomeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridHomeModels.swift; sourceTree = "<group>"; };
@@ -603,6 +609,7 @@
 				F6A37C88476BCF90A05336D5 /* MediaPosterButton.swift */,
 				8BC5DAEE5C7D57F67EB0F0CB /* Models.swift */,
 				158C29FFFE770CF9A32C05D2 /* MPVMetalLayer.swift */,
+				894D9EB6EB661E820649F906 /* MPVPlaybackSession.swift */,
 				302544E09DAD6A87C91FB11C /* MPVPlayerController.swift */,
 				AAD0750902F3BA140EC65E3B /* MPVPlayerNetworking.swift */,
 				7035A4491F97D16A99A108F6 /* MPVPlayerSetup.swift */,
@@ -612,9 +619,11 @@
 				03034C5B53855631AFCD548B /* NuvioAccountServiceProfiles.swift */,
 				51FCD104A61FCAE3B60D12FD /* NuvioControls.swift */,
 				8E66B8A4DC0471884A17150F /* NuvioDeepLink.swift */,
+				BE33EEFFF7422FE51F06F095 /* NuvioInputField.swift */,
 				9743E52A15DDE3E903942F2C /* NuvioTheme.swift */,
 				DB33DAAC2888C4E929BE8E32 /* NuvioTVApp.swift */,
 				DD4B08B0E68A9C97F695E1A8 /* PlaybackTimelineScrubber.swift */,
+				D6C7FDBE2169E66CEEA6AC67 /* PlayerAuditRoute.swift */,
 				B2AFC2D037541A3D7A11A6E2 /* PlayerControlsOverlay.swift */,
 				F18FD64ECA02F81C05D32427 /* PlayerControlStrip.swift */,
 				96D5B2597935756E1FBADFBE /* PlayerControlsVisibility.swift */,
@@ -1221,6 +1230,7 @@
 				4D4CCE508CDE2AFBF9510968 /* LibraryPresentation.swift in Sources */,
 				F869D817DBC83F02DC5362C6 /* LibraryView.swift in Sources */,
 				A661038A523081A1FB24F3D9 /* MPVMetalLayer.swift in Sources */,
+				7708573208A69C7471E43013 /* MPVPlaybackSession.swift in Sources */,
 				B08120C4F269B799CFC54713 /* MPVPlayerController.swift in Sources */,
 				3E5C13C1C6F3DFDD6884062B /* MPVPlayerNetworking.swift in Sources */,
 				CE500D0391C7A5F4C21EFA54 /* MPVPlayerSetup.swift in Sources */,
@@ -1241,6 +1251,7 @@
 				B08F3319C094846EE0E4D237 /* NuvioDeepLink.swift in Sources */,
 				AB8E9399D2DA1CD2506313C7 /* NuvioDesignTokens.swift in Sources */,
 				BC869890465038393A2E6882 /* NuvioFocusStyle.swift in Sources */,
+				6406AB351B2F49E4D88A5155 /* NuvioInputField.swift in Sources */,
 				2C36A0EDE526A3E6265A4113 /* NuvioLoadingViews.swift in Sources */,
 				D450B27500060707B1F56122 /* NuvioMotion.swift in Sources */,
 				80063B14EF2A7DF38A8EE737 /* NuvioTVApp.swift in Sources */,
@@ -1248,6 +1259,7 @@
 				9EE7B517BA8792F45E2CD383 /* NuvioTypography.swift in Sources */,
 				82EBB6C9198957F0C484F7EA /* PersistedPlaybackSetting.swift in Sources */,
 				748E9D90F76FD77C838E8898 /* PlaybackTimelineScrubber.swift in Sources */,
+				117F5679D7C55102D85534DC /* PlayerAuditRoute.swift in Sources */,
 				9A4EB4112D02C4EA66084930 /* PlayerChromeState.swift in Sources */,
 				E519A1983E8298A3105BB68A /* PlayerControlStrip.swift in Sources */,
 				C8EF625AE98D1023FE7DE19A /* PlayerControlsOverlay.swift in Sources */,

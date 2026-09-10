@@ -56,9 +56,6 @@ struct ModernHomeCatalogContent: View {
                 heroScene(foregroundBottomInset: foregroundBottomInset)
                     .frame(height: heroHeight)
                 rows.frame(height: rowsHeight).offset(y: rowsTop)
-                if let message {
-                    statusBanner(message).padding(.top, 30)
-                }
             }
         }
         .background(NuvioDesignTokens.Colors.canvasBlack)
@@ -101,6 +98,9 @@ struct ModernHomeCatalogContent: View {
     private var rows: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: NuvioDesignTokens.Spacing.Rail.rowGap) {
+                if let message, presentation.catalogRows.isEmpty {
+                    statusBanner(message)
+                }
                 personalRows
                 ForEach(presentation.catalogRows) { row in
                     ModernRailRow(

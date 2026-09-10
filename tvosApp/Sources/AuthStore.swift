@@ -113,6 +113,22 @@ final class AuthStore: ObservableObject {
     }
 
     private func restore() async {
+#if DEBUG
+        let args = ProcessInfo.processInfo.arguments
+        if let emailIdx = args.firstIndex(of: "-audit-email"),
+           args.indices.contains(emailIdx + 1),
+           let passIdx = args.firstIndex(of: "-audit-password"),
+           args.indices.contains(passIdx + 1) {
+            let email = args[emailIdx + 1]
+            let pass = args[passIdx + 1]
+            AppLog.console("Auth: audit sign in attempting for \(email)")
+            await signIn(email: email, password: pass)
+            if session != nil {
+                AppLog.console("Auth: audit sign in succeeded!")
+                return
+            }
+        }
+#endif
         if let saved = sessionStorage.load() {
             do {
                 var active = saved

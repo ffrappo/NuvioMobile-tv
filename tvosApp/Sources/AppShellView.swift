@@ -8,9 +8,49 @@ struct AppShellView: View {
     @EnvironmentObject private var profileStore: TVProfileStore
     @EnvironmentObject private var deepLinkStore: NuvioDeepLinkStore
     @Environment(\.nuvioTheme) private var theme
-    @State private var selection: AppSection = .home
+    @State private var selection: AppSection
     @State private var path: [AppRoute] = []
     @State private var showProfileGateway = false
+
+    init() {
+        var initial: AppSection = .home
+        var initialPath: [AppRoute] = []
+#if DEBUG
+        let arguments = ProcessInfo.processInfo.arguments
+        if let marker = arguments.firstIndex(of: "-selected-tab"),
+           arguments.indices.contains(marker + 1),
+           let requested = AppSection(rawValue: arguments[marker + 1]) {
+            initial = requested
+        }
+        if arguments.contains("-audit-route-movie") {
+            initialPath = [.details(MetaSummary(
+                id: "tt1160419",
+                type: "movie",
+                name: "Dune",
+                poster: "https://images.metahub.space/poster/medium/tt1160419/img.jpg",
+                background: "https://images.metahub.space/background/medium/tt1160419/img.jpg",
+                description: "Paul Atreides, a brilliant and gifted young man born into a great destiny beyond his understanding, must travel to the most dangerous planet in the universe to ensure the future of his family and his people.",
+                releaseInfo: "2021",
+                genres: ["Action", "Adventure", "Sci-Fi"]
+            ))]
+        } else if arguments.contains("-audit-route-series") {
+            initialPath = [.details(MetaSummary(
+                id: "tt0903747",
+                type: "series",
+                name: "Breaking Bad",
+                poster: "https://images.metahub.space/poster/medium/tt0903747/img.jpg",
+                background: "https://images.metahub.space/background/medium/tt0903747/img.jpg",
+                description: "A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine in order to secure his family's future.",
+                releaseInfo: "2008-2013",
+                genres: ["Crime", "Drama", "Thriller"]
+            ))]
+        } else if arguments.contains("-audit-route-player") {
+            initialPath = [.player(PlayerRoute.sampleAuditRoute)]
+        }
+#endif
+        _selection = State(initialValue: initial)
+        _path = State(initialValue: initialPath)
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -48,6 +88,8 @@ struct AppShellView: View {
                     CatalogGridScreen(listing: listing, onSelect: showDetails)
                 case .collection(let collection):
                     CollectionDetailView(collection: collection, onSelect: showDetails)
+                case .player(let route):
+                    PlayerView(route: route)
                 }
             }
         }
@@ -102,7 +144,9 @@ struct AppShellView: View {
         async let integrations: Void = integrationStore.syncFromAccount(auth: authStore)
         async let library: Void = libraryStore.syncFromAccount(auth: authStore, profileID: profileID)
         _ = await (addons, integrations, library)
-        if profileStore.profiles.count > 1 {
+        if ProcessInfo.processInfo.arguments.contains(where: { $0.hasPrefix("-audit-route-") }) {
+            // Suppress gateway popup during automated route audits
+        } else if profileStore.profiles.count > 1 {
             showProfileGateway = true
         }
     }
@@ -151,6 +195,7 @@ enum AppRoute: Hashable {
     case details(MetaSummary)
     case catalog(CatalogListing)
     case collection(TVCollection)
+    case player(PlayerRoute)
 }
 
 enum AppSection: String, Hashable {

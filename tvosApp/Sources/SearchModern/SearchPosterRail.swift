@@ -1,39 +1,45 @@
 import SwiftUI
 
-/// Poster card for search and discover rails. Reuses `NuvioArtworkView` and
-/// the Nuvio focus tokens; focus stays entirely system-owned.
+/// Poster card for search and discover rails. Reuses `PosterCardView` for
+/// consistent Apple TV focus rings, corner radii, and typography.
 struct SearchPosterCard: View {
     let item: SearchPosterItem
     let onSelect: () -> Void
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    private static let posterSize = NuvioDesignTokens.Sizes.Cards.poster
-
     var body: some View {
-        Button(action: onSelect) {
-            VStack(alignment: .leading, spacing: NuvioDesignTokens.Spacing.xs) {
-                NuvioArtworkView(
-                    url: item.posterURL,
-                    mode: .poster,
-                    pixelSize: Self.posterSize,
-                    cornerRadius: NuvioDesignTokens.Shapes.posterRadius
-                )
-                Text(item.title)
-                    .nuvioTextStyle(.cardTitle)
-                    .foregroundStyle(NuvioDesignTokens.Colors.primaryText)
-                    .lineLimit(1)
-                if let year = item.year {
-                    Text(year)
-                        .nuvioTextStyle(.metadata)
-                        .foregroundStyle(NuvioDesignTokens.Colors.secondaryText)
-                        .lineLimit(1)
-                }
-            }
-            .frame(width: Self.posterSize.width, alignment: .leading)
+        PosterCardView(
+            title: item.title,
+            year: item.year,
+            artwork: item.posterURL.map { .url($0) } ?? .placeholder(systemName: "film"),
+            artworkProvider: artworkProvider,
+            onSelect: onSelect
+        )
+    }
+
+    private func artworkProvider(
+        _ source: PosterArtworkSource,
+        _ pixelSize: CGSize,
+        _ cornerRadius: CGFloat
+    ) -> AnyView {
+        switch source {
+        case .url(let url):
+            return AnyView(NuvioArtworkView(
+                url: url,
+                mode: .poster,
+                pixelSize: pixelSize,
+                cornerRadius: cornerRadius
+            ))
+        case .loading:
+            return AnyView(NuvioShimmerShape(size: pixelSize, cornerRadius: cornerRadius))
+        case .placeholder(let systemName):
+            return AnyView(NuvioArtworkView(
+                url: nil,
+                mode: .poster,
+                pixelSize: pixelSize,
+                cornerRadius: cornerRadius,
+                placeholderSystemImage: systemName
+            ))
         }
-        .buttonStyle(NuvioFocusButtonStyle(cornerRadius: NuvioDesignTokens.Shapes.posterRadius))
-        .accessibilityLabel(item.title)
     }
 }
 

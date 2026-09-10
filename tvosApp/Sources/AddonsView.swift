@@ -55,16 +55,20 @@ struct AddonsView: View {
                 Text("Paste a Stremio manifest link. Use an iPhone keyboard or Siri Remote dictation for faster entry.")
                     .foregroundStyle(.secondary)
                 HStack(spacing: 18) {
-                    TextField("https://example.com/manifest.json", text: $manifestURL)
-                        .keyboardType(.URL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .focused($focus, equals: .field)
-                        .onSubmit(add)
+                    NuvioInputField(
+                        title: "Manifest URL",
+                        prompt: "https://example.com/manifest.json",
+                        text: $manifestURL,
+                        icon: "link",
+                        keyboardType: .URL,
+                        onSubmit: add
+                    )
+                    .focused($focus, equals: .field)
                     Button(action: add) {
                         if isAdding { ProgressView() } else { Label("Add Addon", systemImage: "plus") }
                     }
                     .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     .disabled(isAdding || manifestURL.trimmedNonEmpty == nil)
                     .focused($focus, equals: .add)
                 }

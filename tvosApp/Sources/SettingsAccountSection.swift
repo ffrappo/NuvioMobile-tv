@@ -109,7 +109,7 @@ struct SettingsAccountSection: View {
                             symbol: "pencil.circle",
                             action: { editingProfile = profile }
                         )
-                        .frame(width: 150)
+                        .frame(minWidth: 170)
                     }
                     if auth.session != nil, profiles.profiles.count < TVProfile.maxProfiles {
                         NuvioButton(
@@ -117,7 +117,7 @@ struct SettingsAccountSection: View {
                             symbol: "plus.circle",
                             action: { showsAddProfile = true }
                         )
-                        .frame(width: 200)
+                        .frame(minWidth: 240)
                     }
                 }
             }

@@ -41,7 +41,6 @@ public struct SearchParityView: View {
     public var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: NuvioDesignTokens.Spacing.Rail.rowGap) {
-                SearchParityField(query: $query, onSubmit: onSubmitQuery)
                 content
             }
             .padding(.top, NuvioDesignTokens.Spacing.lg)
