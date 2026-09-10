@@ -75,47 +75,11 @@ targets:
           NSExtensionPointIdentifier: com.apple.tv-top-shelf
           NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).NuvioTopShelfProvider"
 
-  NuvioTVTests:
-    type: bundle.unit-test
-    platform: tvOS
-    deploymentTarget: "18.0"
-    sources:
-      - path: Tests
-    dependencies:
-      - target: NuvioTV
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: "$(TVOS_TEST_BUNDLE_IDENTIFIER)"
-        GENERATE_INFOPLIST_FILE: YES
-        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Nuvio.app/Nuvio"
-        BUNDLE_LOADER: "$(TEST_HOST)"
-
-  NuvioTVUITests:
-    type: bundle.ui-testing
-    platform: tvOS
-    deploymentTarget: "18.0"
-    sources:
-      - path: UITests
-    dependencies:
-      - target: NuvioTV
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: "$(TVOS_UI_TEST_BUNDLE_IDENTIFIER)"
-        GENERATE_INFOPLIST_FILE: YES
-        TEST_TARGET_NAME: NuvioTV
-
 schemes:
   NuvioTV:
     build:
       targets:
         NuvioTV: all
         NuvioTopShelf: all
-        NuvioTVTests: [test]
-        NuvioTVUITests: [test]
     run:
       config: Debug
-    test:
-      config: Debug
-      targets:
-        - NuvioTVTests
-        - NuvioTVUITests

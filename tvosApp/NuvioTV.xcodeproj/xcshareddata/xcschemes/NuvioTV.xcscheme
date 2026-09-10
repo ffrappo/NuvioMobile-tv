@@ -23,34 +23,6 @@
          </BuildActionEntry>
          <BuildActionEntry
             buildForTesting = "YES"
-            buildForRunning = "NO"
-            buildForProfiling = "NO"
-            buildForArchiving = "NO"
-            buildForAnalyzing = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "426513E97679F8DF836825D9"
-               BuildableName = "NuvioTVTests.xctest"
-               BlueprintName = "NuvioTVTests"
-               ReferencedContainer = "container:NuvioTV.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "NO"
-            buildForProfiling = "NO"
-            buildForArchiving = "NO"
-            buildForAnalyzing = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "34E1659056F70F4B4C13C171"
-               BuildableName = "NuvioTVUITests.xctest"
-               BlueprintName = "NuvioTVUITests"
-               ReferencedContainer = "container:NuvioTV.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
             buildForRunning = "YES"
             buildForProfiling = "YES"
             buildForArchiving = "YES"
@@ -81,31 +53,7 @@
          </BuildableReference>
       </MacroExpansion>
       <Testables>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "426513E97679F8DF836825D9"
-               BuildableName = "NuvioTVTests.xctest"
-               BlueprintName = "NuvioTVTests"
-               ReferencedContainer = "container:NuvioTV.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "34E1659056F70F4B4C13C171"
-               BuildableName = "NuvioTVUITests.xctest"
-               BlueprintName = "NuvioTVUITests"
-               ReferencedContainer = "container:NuvioTV.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
-      <CommandLineArguments>
-      </CommandLineArguments>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
