@@ -81,6 +81,8 @@ struct PlayerView: View {
     @State private var skipIntervals: [SkipInterval] = []
     @State private var dismissedSkipIntervalIDs: Set<String> = []
     @State private var isControlPanelPresented = false
+    @State private var overlayOwnFocus = false
+    @State private var stripFocus = false
     @StateObject var postPlay = PostPlayController(
         fetchRecommendations: { _ in [] },
         autoPlayTrailerEnabled: false,
@@ -121,7 +123,15 @@ struct PlayerView: View {
                     onSkip: skip,
                     onSelectSource: switchSource,
                     onSelectEpisode: selectEpisode,
-                    onToggleStreamInfo: { showsStreamInfo.toggle() }
+                    onToggleStreamInfo: { showsStreamInfo.toggle() },
+                    onOwnFocusChanged: { focused in
+                        overlayOwnFocus = focused
+                        syncFocusHold()
+                    },
+                    onStripFocusChanged: { focused in
+                        stripFocus = focused
+                        syncFocusHold()
+                    }
                 )
                 .transition(.opacity)
             }
@@ -176,6 +186,12 @@ struct PlayerView: View {
             UIApplication.shared.isIdleTimerDisabled = true
             selectedSourceURL = route.url
 #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-audit-stream-info") {
+                controls.registerInteraction(keepVisible: true)
+                session.mockForAudit()
+                showsStreamInfo = true
+                return
+            }
             if ProcessInfo.processInfo.arguments.contains("-audit-mock-player") {
                 controls.registerInteraction(keepVisible: true)
                 session.mockForAudit()
@@ -230,7 +246,7 @@ struct PlayerView: View {
             if paused {
                 controls.registerInteraction(keepVisible: true)
             } else {
-                controls.registerInteraction()
+                controls.resumeAutoHide()
             }
             syncNowPlaying(position: session.position, force: true)
         }
@@ -299,6 +315,10 @@ struct PlayerView: View {
     private func setControlPanelPresented(_ presented: Bool) {
         isControlPanelPresented = presented
         controls.registerInteraction(keepVisible: presented || session.isPaused)
+    }
+
+    private func syncFocusHold() {
+        controls.setFocusHoldsVisibility(overlayOwnFocus || stripFocus)
     }
 
     private func handleControlPress() {

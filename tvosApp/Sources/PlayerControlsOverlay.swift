@@ -11,12 +11,14 @@ struct PlayerControlsOverlay: View {
     let onSelectSource: (PlayerSourceOption) -> Void
     let onSelectEpisode: (PlayerEpisodeOption) -> Void
     var onToggleStreamInfo: () -> Void = {}
+    var onOwnFocusChanged: (Bool) -> Void = { _ in }
+    var onStripFocusChanged: (Bool) -> Void = { _ in }
 
     @State private var scrubPosition = 0.0
     @FocusState private var focus: Control?
     @Environment(\.nuvioTheme) private var theme
 
-    private enum Control: Hashable { case timeline, playPause, skip }
+    private enum Control: Hashable { case timeline, playPause, back10, fwd10, skip }
 
     var body: some View {
         ZStack {
@@ -36,6 +38,9 @@ struct PlayerControlsOverlay: View {
         .onAppear { scrubPosition = session.position }
         .onChange(of: session.position) { _, position in
             scrubPosition = position
+        }
+        .onChange(of: focus) { _, newValue in
+            onOwnFocusChanged(newValue != nil && newValue != .timeline)
         }
     }
 
@@ -65,8 +70,11 @@ struct PlayerControlsOverlay: View {
         }
     }
 
+    /// Apple TV player bottom chrome: the scrubber with elapsed and remaining
+    /// time inline, transport buttons at the leading edge, and the option
+    /// strip at the trailing edge, floating directly on the gradient.
     private var bottomControls: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 24) {
             timeline
             HStack(spacing: 28) {
                 transportButtons
@@ -79,38 +87,36 @@ struct PlayerControlsOverlay: View {
                     onModalPresentationChanged: onModalPresentationChanged,
                     onSelectSource: onSelectSource,
                     onSelectEpisode: onSelectEpisode,
-                    onToggleStreamInfo: onToggleStreamInfo
+                    onToggleStreamInfo: onToggleStreamInfo,
+                    onFocusChanged: onStripFocusChanged
                 )
             }
         }
-        .padding(.horizontal, 26)
-        .padding(.vertical, 22)
-        .nuvioAdaptiveSurface(RoundedRectangle(cornerRadius: 26, style: .continuous))
     }
 
     private var transportButtons: some View {
-        HStack(spacing: 18) {
-            transportButton("gobackward.10", label: "Back 10 Seconds") { seek(by: -10) }
+        HStack(spacing: 24) {
+            transportButton("gobackward.10", label: "Back 10 Seconds", control: .back10) { seek(by: -10) }
             Button {
                 session.toggle()
                 onInteraction()
             } label: {
                 Image(systemName: session.isPaused ? "play.fill" : "pause.fill")
-                    .font(.system(size: 30, weight: .semibold))
-                    .frame(width: 64, height: 64)
+                    .font(.system(size: 32, weight: .semibold))
+                    .frame(width: 72, height: 72)
             }
-            .buttonStyle(.borderedProminent)
-            .buttonBorderShape(.circle)
-            .tint(.white)
-            .foregroundStyle(.black)
+            .buttonStyle(PlayerTransportButtonStyle())
             .focused($focus, equals: .playPause)
             .accessibilityLabel(session.isPaused ? "Play" : "Pause")
-            transportButton("goforward.10", label: "Forward 10 Seconds") { seek(by: 10) }
+            transportButton("goforward.10", label: "Forward 10 Seconds", control: .fwd10) { seek(by: 10) }
         }
     }
 
     private var timeline: some View {
-        VStack(spacing: 2) {
+        HStack(spacing: 20) {
+            Text(PlayerTimeFormatter.string(scrubPosition))
+                .font(.callout.monospacedDigit().weight(.medium))
+                .foregroundStyle(.white.opacity(0.92))
             PlaybackTimelineScrubber(
                 position: scrubPosition,
                 duration: max(session.duration, 0),
@@ -122,6 +128,10 @@ struct PlayerControlsOverlay: View {
                 onInteraction: onInteraction
             )
             .focused($focus, equals: .timeline)
+            .frame(maxWidth: .infinity)
+            Text("-\(PlayerTimeFormatter.string(max(0, session.duration - scrubPosition)))")
+                .font(.callout.monospacedDigit().weight(.medium))
+                .foregroundStyle(.white.opacity(0.92))
         }
     }
 
@@ -131,11 +141,10 @@ struct PlayerControlsOverlay: View {
             Button { onSkip(interval) } label: {
                 Label(interval.actionTitle, systemImage: "forward.end.fill")
                     .font(.headline.weight(.semibold))
-                    .padding(.horizontal, 8)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.white)
-            .foregroundStyle(.black)
+            .buttonStyle(PlayerTransportButtonStyle(cornerRadius: 40))
             .focused($focus, equals: .skip)
         }
         .padding(.bottom, 22)
@@ -144,16 +153,16 @@ struct PlayerControlsOverlay: View {
     private func transportButton(
         _ symbol: String,
         label: String,
+        control: Control,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 22, weight: .semibold))
-                .frame(width: 48, height: 48)
+                .font(.system(size: 26, weight: .semibold))
+                .frame(width: 56, height: 56)
         }
-        .buttonStyle(.bordered)
-        .buttonBorderShape(.circle)
-        .foregroundStyle(.white)
+        .buttonStyle(PlayerTransportButtonStyle(cornerRadius: 28))
+        .focused($focus, equals: control)
         .accessibilityLabel(label)
     }
 
@@ -194,6 +203,36 @@ struct PlayerControlsOverlay: View {
         }
         let code = "S\(season) E\(episode)"
         return route.episodeTitle.map { "\(code)  \($0)" } ?? code
+    }
+}
+
+/// Uniform transport control style: unfocused = translucent white circle
+/// with white glyph, focused = solid white with black glyph, Apple TV style.
+struct PlayerTransportButtonStyle: ButtonStyle {
+    var cornerRadius: CGFloat = 36
+
+    @Environment(\.isFocused) private var isFocused
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(isFocused ? Color.black : Color.white)
+            .background(
+                isFocused ? Color.white : Color.white.opacity(0.16),
+                in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            )
+            .scaleEffect(
+                reduceMotion ? 1 :
+                    (isFocused ? 1.06 : (configuration.isPressed ? 0.95 : 1))
+            )
+            .animation(
+                reduceMotion ? nil : .easeOut(duration: 0.12),
+                value: isFocused
+            )
+            .animation(
+                reduceMotion ? nil : .easeOut(duration: 0.12),
+                value: configuration.isPressed
+            )
     }
 }
 

@@ -12,40 +12,29 @@ struct PlaybackTimelineScrubber: View {
     @State private var pending: Double?
     @State private var commitTask: Task<Void, Never>?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.nuvioTheme) private var theme
 
     var body: some View {
-        VStack(spacing: 2) {
-            GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(.white.opacity(isFocused ? 0.38 : 0.25))
-                    Capsule().fill(.white).frame(width: proxy.size.width * progress)
-                    if isFocused {
-                        Circle()
-                            .fill(.white)
-                            .frame(width: 26, height: 26)
-                            .shadow(color: .black.opacity(0.35), radius: 6, y: 2)
-                            .offset(x: max(0, proxy.size.width * progress - 13))
-                    }
-                    TimelinePanControl(
-                        progress: progress * 100,
-                        enabled: duration > 0,
-                        onChanged: { updatePreview(progress: $0 / 100) },
-                        onEnded: scheduleCommit,
-                        onStep: { updatePreview(by: Double($0) * step); scheduleCommit() }
-                    )
+        GeometryReader { proxy in
+            ZStack(alignment: .leading) {
+                Capsule().fill(.white.opacity(isFocused ? 0.42 : 0.28))
+                Capsule().fill(.white).frame(width: proxy.size.width * progress)
+                if isFocused {
+                    Circle()
+                        .fill(.white)
+                        .frame(width: 22, height: 22)
+                        .shadow(color: .black.opacity(0.35), radius: 5, y: 2)
+                        .offset(x: max(0, proxy.size.width * progress - 11))
                 }
+                TimelinePanControl(
+                    progress: progress * 100,
+                    enabled: duration > 0,
+                    onChanged: { updatePreview(progress: $0 / 100) },
+                    onEnded: scheduleCommit,
+                    onStep: { updatePreview(by: Double($0) * step); scheduleCommit() }
+                )
             }
-            .frame(height: isFocused ? 34 : 18)
-
-            HStack {
-                Text(PlayerTimeFormatter.string(preview))
-                Spacer()
-                Text("-\(PlayerTimeFormatter.string(max(0, duration - preview)))")
-            }
-            .font(.callout.monospacedDigit().weight(.medium))
-            .foregroundStyle(theme.secondaryText)
         }
+        .frame(height: isFocused ? 24 : 10)
         .onAppear { preview = position }
         .onDisappear { commitTask?.cancel() }
         .onChange(of: position) { _, value in receivePlayerPosition(value) }

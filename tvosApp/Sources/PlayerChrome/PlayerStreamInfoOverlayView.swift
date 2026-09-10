@@ -285,23 +285,21 @@ private struct StreamInfoHudButton: View {
             HStack(spacing: NuvioDesignTokens.Spacing.xs) {
                 Circle()
                     .fill(enabled
-                          ? NuvioDesignTokens.Colors.brand
-                          : Color.white.opacity(0.35))
+                          ? (isFocused ? Color.black : NuvioDesignTokens.Colors.brand)
+                          : (isFocused ? Color.black : Color.white.opacity(0.35)))
                     .frame(width: 7, height: 7)
                 Text("HUD")
                     .nuvioTextStyle(.metadata)
-                    .foregroundStyle(Color.white.opacity(enabled ? 1 : 0.5))
+                    .foregroundStyle(isFocused ? Color.black : Color.white.opacity(enabled ? 1 : 0.5))
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 4)
-            .background(Capsule().fill(hudBackground))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(
+                isFocused ? Color.white : Color.white.opacity(enabled ? 0.14 : 0.06),
+                in: Capsule()
+            )
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Toggle debug HUD")
-    }
-
-    private var hudBackground: Color {
-        if isFocused { return enabled ? .white : Color.white.opacity(0.4) }
-        return Color.white.opacity(enabled ? 0.14 : 0.06)
     }
 }

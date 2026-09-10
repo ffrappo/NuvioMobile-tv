@@ -51,27 +51,24 @@ struct SubtitlePanelRowStyle: ButtonStyle {
 }
 
 /// Smaller circular style used by stepper buttons inside panel rows.
+/// Focused inverts to a solid white circle with a black glyph, matching the
+/// row style so every focused control in a panel has full contrast.
 struct SubtitlePanelStepButtonStyle: ButtonStyle {
     @Environment(\.isFocused) private var isFocused
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .foregroundStyle(Color.white)
+            .foregroundStyle(isFocused ? Color.black : Color.white)
             .frame(width: 44, height: 44)
             .background(
-                (isFocused ? Color.white.opacity(0.28) : Color.white.opacity(0.14)),
+                (isFocused ? Color.white : Color.white.opacity(0.14)),
                 in: Circle()
             )
-            .overlay {
-                Circle().stroke(
-                    isFocused ? Color.white : Color.clear,
-                    lineWidth: NuvioDesignTokens.Focus.ringWidth
-                )
-            }
             .scaleEffect(
-                configuration.isPressed ? NuvioDesignTokens.Focus.pressedScale : 1
+                reduceMotion ? 1 : (isFocused ? 1.06 : (configuration.isPressed ? NuvioDesignTokens.Focus.pressedScale : 1))
             )
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: isFocused)
             .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
@@ -219,38 +216,59 @@ struct SubtitlePanelColorChipRow: View {
     var body: some View {
         HStack(spacing: NuvioDesignTokens.Spacing.sm) {
             ForEach(colors, id: \.self) { color in
-                let isSelected = (color.nuvioRGB == selectedRGB)
-                Button {
+                SubtitlePanelColorChip(
+                    color: color,
+                    isSelected: color.nuvioRGB == selectedRGB,
+                    enabled: enabled
+                ) {
                     action(color)
-                } label: {
-                    ZStack {
-                        Circle()
-                            .fill(Color(nuvioARGB: color))
-                        if isSelected {
-                            Image(systemName: "checkmark")
-                                .font(.caption.weight(.bold))
-                                .foregroundStyle(
-                                    isLightColor(color) ? Color.black : Color.white
-                                )
-                        }
-                    }
-                    .frame(width: 34, height: 34)
-                    .overlay {
-                        Circle().stroke(
-                            isSelected ? Color.white : Color.clear,
-                            lineWidth: NuvioDesignTokens.Focus.ringWidth
-                        )
-                    }
-                    .opacity(enabled ? 1 : NuvioDesignTokens.Effects.disabledOpacity)
                 }
-                .buttonStyle(.plain)
-                .disabled(!enabled)
-                .accessibilityLabel(isSelected ? "Selected color" : "Color option")
             }
             Spacer()
         }
         .padding(.horizontal, NuvioDesignTokens.Spacing.lg)
         .accessibilityElement(children: .contain)
+    }
+}
+
+private struct SubtitlePanelColorChip: View {
+    let color: UInt32
+    let isSelected: Bool
+    let enabled: Bool
+    let action: () -> Void
+
+    @Environment(\.isFocused) private var isFocused
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .fill(Color(nuvioARGB: color))
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(
+                            isLightColor(color) ? Color.black : Color.white
+                        )
+                }
+            }
+            .frame(width: 34, height: 34)
+            .overlay {
+                Circle().stroke(
+                    (isFocused || isSelected) ? Color.white : Color.clear,
+                    lineWidth: NuvioDesignTokens.Focus.ringWidth
+                )
+            }
+            .scaleEffect(
+                reduceMotion ? 1 : (isFocused ? 1.15 : 1)
+            )
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: isFocused)
+            .opacity(enabled ? 1 : NuvioDesignTokens.Effects.disabledOpacity)
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .accessibilityLabel(isSelected ? "Selected color" : "Color option")
     }
 
     private func isLightColor(_ argb: UInt32) -> Bool {

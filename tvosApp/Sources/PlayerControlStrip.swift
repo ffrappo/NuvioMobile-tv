@@ -9,8 +9,10 @@ struct PlayerControlStrip: View {
     let onSelectSource: (PlayerSourceOption) -> Void
     let onSelectEpisode: (PlayerEpisodeOption) -> Void
     var onToggleStreamInfo: () -> Void = {}
+    var onFocusChanged: (Bool) -> Void = { _ in }
 
     @State private var presentedPanel: Panel?
+    @FocusState private var focusedAction: String?
 
     init(
         route: PlayerRoute,
@@ -20,7 +22,8 @@ struct PlayerControlStrip: View {
         onModalPresentationChanged: @escaping (Bool) -> Void,
         onSelectSource: @escaping (PlayerSourceOption) -> Void,
         onSelectEpisode: @escaping (PlayerEpisodeOption) -> Void,
-        onToggleStreamInfo: @escaping () -> Void = {}
+        onToggleStreamInfo: @escaping () -> Void = {},
+        onFocusChanged: @escaping (Bool) -> Void = { _ in }
     ) {
         self.route = route
         self.session = session
@@ -30,6 +33,7 @@ struct PlayerControlStrip: View {
         self.onSelectSource = onSelectSource
         self.onSelectEpisode = onSelectEpisode
         self.onToggleStreamInfo = onToggleStreamInfo
+        self.onFocusChanged = onFocusChanged
     }
 
     enum Panel: String, Identifiable {
@@ -38,7 +42,7 @@ struct PlayerControlStrip: View {
     }
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 16) {
             actionButton(session.resizeMode.title, symbol: session.resizeMode.symbol) {
                 session.setResizeMode(session.resizeMode.next)
             }
@@ -59,9 +63,6 @@ struct PlayerControlStrip: View {
                 .accessibilityLabel("Audio Output")
         }
         .focusSection()
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
-        .nuvioAdaptiveSurface(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .sheet(item: $presentedPanel) { panel in
             PlayerSelectionPanel(
                 panel: panel,
@@ -75,6 +76,9 @@ struct PlayerControlStrip: View {
         .onChange(of: presentedPanel) { _, panel in
             onModalPresentationChanged(panel != nil)
             onInteraction()
+        }
+        .onChange(of: focusedAction) { _, focused in
+            onFocusChanged(focused != nil)
         }
         .onAppear {
 #if DEBUG
@@ -97,10 +101,11 @@ struct PlayerControlStrip: View {
             onInteraction()
         } label: {
             Text(speedTitle)
-                .font(.system(size: 14, weight: .bold, design: .rounded))
-                .frame(width: 44, height: 44)
+                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .frame(width: 48, height: 48)
         }
         .buttonStyle(PlayerPillButtonStyle())
+        .focused($focusedAction, equals: "speed")
         .accessibilityLabel("Playback Speed: \(speedTitle)")
     }
 
@@ -110,10 +115,11 @@ struct PlayerControlStrip: View {
             onInteraction()
         } label: {
             Image(systemName: symbol)
-                .font(.system(size: 20, weight: .medium))
-                .frame(width: 44, height: 44)
+                .font(.system(size: 22, weight: .medium))
+                .frame(width: 48, height: 48)
         }
         .buttonStyle(PlayerPillButtonStyle())
+        .focused($focusedAction, equals: title)
         .accessibilityLabel(title)
     }
 
@@ -124,17 +130,21 @@ struct PlayerControlStrip: View {
 
 private struct PlayerPillButtonStyle: ButtonStyle {
     @Environment(\.isFocused) private var isFocused
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .foregroundStyle(isFocused ? Color.black : Color.white)
             .background(
-                isFocused ? Color.white : Color.white.opacity(0.14),
+                isFocused ? Color.white : Color.white.opacity(0.16),
                 in: Circle()
             )
-            .scaleEffect(isFocused ? 1.15 : (configuration.isPressed ? 0.95 : 1.0))
-            .animation(.easeOut(duration: 0.12), value: isFocused)
-            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+            .scaleEffect(
+                reduceMotion ? 1 :
+                    (isFocused ? 1.08 : (configuration.isPressed ? 0.95 : 1))
+            )
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: isFocused)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
 

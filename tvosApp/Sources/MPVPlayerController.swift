@@ -33,9 +33,19 @@ final class MPVPlayerController: UIViewController {
         view.backgroundColor = .black
         configureLayer()
         setupMPV()
+        let trackpadWake = UIPanGestureRecognizer(target: self, action: #selector(wakeControlsFromGesture))
+        trackpadWake.cancelsTouchesInView = false
+        view.addGestureRecognizer(trackpadWake)
+        let tapWake = UITapGestureRecognizer(target: self, action: #selector(wakeControlsFromGesture))
+        tapWake.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapWake)
         progressTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             self?.scheduleProgressPoll()
         }
+    }
+
+    @objc private func wakeControlsFromGesture() {
+        session.onControlPress?()
     }
 
     override func viewDidLayoutSubviews() {
@@ -63,6 +73,15 @@ final class MPVPlayerController: UIViewController {
         }
         if wakesControls { session.onControlPress?() }
         super.pressesBegan(presses, with: event)
+    }
+
+    /// Trackpad touches and swipes on the Siri Remote surface deliver touch
+    /// events here before any gesture interpretation: every touch wakes the
+    /// controls, matching the system player where any trackpad contact
+    /// reveals the chrome.
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        session.onControlPress?()
+        super.touchesBegan(touches, with: event)
     }
 
     func load(
